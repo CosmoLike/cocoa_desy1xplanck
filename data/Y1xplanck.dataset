@@ -1,0 +1,18 @@
+data_file = xi_Y1_6x2pt
+cov_file = cov_desy1xplanck
+mask_file = xi_Y1_6x2pt.mask
+nz_lens_file = mcal_1101_lens.nz
+nz_source_file = mcal_1101_source.nz
+lensing_overlap_cut = 0.1
+nuisance_params = DES.paramnames
+lens_ntomo = 5
+source_ntomo = 4
+IA_model = 4
+n_cl = 15
+l_min = 40.
+l_max = 3000.
+n_theta = 20
+t_min = 2.5
+t_max = 250.
+
+cmb_noise_file = noise_plancksmica.txt

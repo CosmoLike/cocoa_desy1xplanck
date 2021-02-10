@@ -1,0 +1,6 @@
+*.o
+*.pyc
+*.so
+*.pyo
+*.cfg
+chains/

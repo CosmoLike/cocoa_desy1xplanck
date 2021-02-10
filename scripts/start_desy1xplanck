@@ -1,0 +1,20 @@
+if [ -z "${ROOTDIR}" ]; then
+    echo 'ERROR ROOTDIR not define'
+    return
+fi
+
+# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+
+addvar LD_LIBRARY_PATH $ROOTDIR/projects/desy1xplanck/interface
+
+addvar PYTHONPATH $ROOTDIR/projects/desy1xplanck/interface
+
+if [ -n "${COSMOLIKE_DEBUG_MODE}" ]; then
+    export SPDLOG_LEVEL=debug
+else
+    export SPDLOG_LEVEL=info
+fi

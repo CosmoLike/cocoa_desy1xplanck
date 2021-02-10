@@ -1,0 +1,20 @@
+DES_DZ_L1 \Delta z_{\rm l, DES}^1 
+DES_DZ_L2 \Delta z_{\rm l, DES}^2 
+DES_DZ_L3 \Delta z_{\rm l, DES}^3 
+DES_DZ_L4 \Delta z_{\rm l, DES}^4 
+DES_DZ_L5 \Delta z_{\rm l, DES}^5 
+DES_B1_1  b^1_{\rm 1-DES}
+DES_B1_2  b^2_{\rm 1-DES}
+DES_B1_3  b^3_{\rm 1-DES}
+DES_B1_4  b^4_{\rm 1-DES}
+DES_B1_5  b^5_{\rm 1-DES}
+DES_DZ_S1 \Delta z_{\rm s, DES}^1 
+DES_DZ_S2 \Delta z_{\rm s, DES}^2 
+DES_DZ_S3 \Delta z_{\rm s, DES}^3 
+DES_DZ_S4 \Delta z_{\rm s, DES}^4 
+DES_M1  m^1_{\rm DES}
+DES_M2  m^2_{\rm DES}
+DES_M3  m^3_{\rm DES}
+DES_M4  m^4_{\rm DES}
+DES_A1_1 A^1_{\rm 1-IA,DES}
+DES_A1_2 A^2_{\rm 1-IA,DES}
