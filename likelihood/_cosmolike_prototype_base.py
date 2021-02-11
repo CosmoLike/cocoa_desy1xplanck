@@ -12,7 +12,7 @@ from cobaya.likelihoods._base_classes import _DataSetLikelihood
 from cobaya.log import LoggedError
 from getdist import IniFile
 
-import cosmolike_desy1xplanck_6x2_interface as ci
+import cosmolike_desy1xplanck_interface as ci
 
 # default is best fit LCDM - just need to be an ok Cosmology
 default_omega_matter = 0.315
