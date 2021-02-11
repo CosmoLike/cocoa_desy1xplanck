@@ -126,6 +126,7 @@ CSOURCES += \
 		${ROOTDIR}/external_modules/code/cosmolike/basics.c \
 		${ROOTDIR}/external_modules/code/cosmolike/bias.c \
 		${ROOTDIR}/external_modules/code/cosmolike/cosmo3D.c \
+		${ROOTDIR}/external_modules/code/cosmolike/cosmo2D_fullsky.c \
 		${ROOTDIR}/external_modules/code/cosmolike/cosmo2D_fourier.c \
 		${ROOTDIR}/external_modules/code/cosmolike/cosmo2D_exact_fft.c \
 		${ROOTDIR}/external_modules/code/cosmolike/CMBxLSS_fourier.c \
@@ -142,6 +143,7 @@ OBJECTC += \
 		./basics.o \
 		./bias.o \
 		./cosmo3D.o \
+		./cosmo2D_fullsky.o \
 		./cosmo2D_fourier.o \
 		./cosmo2D_exact_fft.o \
 		./CMBxLSS_fourier.o \
