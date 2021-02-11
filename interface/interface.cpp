@@ -26,10 +26,9 @@ namespace py = pybind11;
 
 #include "cosmolike/basics.h"
 #include "cosmolike/bias.h"
-#include "cosmolike/cosmo2D_fullsky.h"
-//#include "cosmolike/cosmo2D_exact_fft.h"
-#include "cosmolike/CMBxLSS_fourier.h"
 #include "cosmolike/cosmo3D.h"
+#include "cosmolike/cosmo2D_fourier.h"
+#include "cosmolike/cosmo2D_fullsky.h"
 #include "cosmolike/halo.h"
 #include "cosmolike/radial_weights.h"
 #include "cosmolike/IA.h"
@@ -886,7 +885,7 @@ std::vector<double> cpp_compute_data_vector() {
     for (int nz=0; nz<tomo.clustering_Nbin; nz++) {
       for (int i=0; i<like.Ntheta; i++) {
         if (cpp_compute_mask(start+(like.Ntheta*nz)+i)) {
-          data_vector[start+(like.Ntheta*nz)+i] = w_gk(i, nz);
+          data_vector[start+(like.Ntheta*nz)+i] = w_gk_fullsky(i, nz);
         }
       }
     }
@@ -896,7 +895,7 @@ std::vector<double> cpp_compute_data_vector() {
     for (int nz=0; nz<tomo.shear_Nbin; nz++) {
       for (int i=0; i<like.Ntheta; i++) {
         if (cpp_compute_mask(start+(like.Ntheta*nz)+i)) {
-          data_vector[start+(like.Ntheta*nz)+i] = w_ks(i, nz)
+          data_vector[start+(like.Ntheta*nz)+i] = w_ks_fullsky(i, nz)
             *(1.0+nuisance.shear_calibration_m[nz]);
         }
       }
