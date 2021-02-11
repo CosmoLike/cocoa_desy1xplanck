@@ -1,6 +1,5 @@
 from cobaya.likelihoods.desy1xplanck._cosmolike_prototype_base import _cosmolike_prototype_base
-import cosmolike_desy1xplanck_6x2_interface as ci
-#import time
+import cosmolike_desy1xplanck_interface as ci
 
 class desy1xplanck_6x2pt(_cosmolike_prototype_base):
 	# ------------------------------------------------------------------------
@@ -15,8 +14,6 @@ class desy1xplanck_6x2pt(_cosmolike_prototype_base):
 	# ------------------------------------------------------------------------
 
 	def logp(self, **params_values):
-#		t0 = time.time()
-
 		self.set_cosmo_related()
 
 		self.set_lens_related(**params_values)
@@ -28,7 +25,5 @@ class desy1xplanck_6x2pt(_cosmolike_prototype_base):
 		if self.print_intermediate_products == True:
 			self.test_all()
 
-#		t1 = time.time()
-#		print(t1-t0)
 		return self.compute_logp(datavector)
 
