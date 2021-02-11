@@ -26,8 +26,8 @@ namespace py = pybind11;
 
 #include "cosmolike/basics.h"
 #include "cosmolike/bias.h"
-#include "cosmolike/cosmo2D_fourier.h"
-#include "cosmolike/cosmo2D_exact_fft.h"
+#include "cosmolike/cosmo2D_fullsky.h"
+//#include "cosmolike/cosmo2D_exact_fft.h"
 #include "cosmolike/CMBxLSS_fourier.h"
 #include "cosmolike/cosmo3D.h"
 #include "cosmolike/halo.h"
@@ -834,8 +834,6 @@ std::vector<double> cpp_compute_data_vector() {
     exit(1);
   }
 #endif
-  #####################
-  #####################
   std::vector<double> data_vector(like.Ndata,0.0);
   int start = 0;
   if (like.shear_shear == 1) {
@@ -845,13 +843,13 @@ std::vector<double> cpp_compute_data_vector() {
       for (int i = 0; i<like.Ntheta; i++) {
         if (cpp_compute_mask(like.Ntheta*nz+i)) {
           data_vector[like.Ntheta*nz+i] =
-            xi_pm(1,i,z1,z2)*
+            xi_pm_fullsky(1,i,z1,z2)*
             (1.0 + nuisance.shear_calibration_m[z1])*
             (1.0 + nuisance.shear_calibration_m[z2]);
         }
         if (cpp_compute_mask(like.Ntheta*(tomo.shear_Npowerspectra+nz)+i)) {
           data_vector[like.Ntheta*(tomo.shear_Npowerspectra+nz)+i] =
-            xi_pm(-1,i,z1,z2)*
+            xi_pm_fullsky(-1,i,z1,z2)*
             (1. + nuisance.shear_calibration_m[z1])*
             (1. + nuisance.shear_calibration_m[z2]);
         }
@@ -866,7 +864,8 @@ std::vector<double> cpp_compute_data_vector() {
       for (int i=0; i<like.Ntheta; i++) {
         if (cpp_compute_mask(start+(like.Ntheta*nz)+i)) {
           const double theta = like.theta[i];
-          data_vector[start+(like.Ntheta*nz)+i] = w_gamma_t(i,zl,zs)*(1.0+nuisance.shear_calibration_m[zs]);
+          data_vector[start+(like.Ntheta*nz)+i] =
+            w_gamma_t_fullsky(i,zl,zs)*(1.0+nuisance.shear_calibration_m[zs]);
         }
       }
     }
@@ -877,7 +876,7 @@ std::vector<double> cpp_compute_data_vector() {
     for (int nz=0; nz<tomo.clustering_Npowerspectra; nz++) {
       for (int i=0; i<like.Ntheta; i++) {
         if (cpp_compute_mask(start+(like.Ntheta*nz)+i)) {
-          data_vector[start+(like.Ntheta*nz)+i] = w_tomo_nonLimber(i, nz, nz);
+          data_vector[start+(like.Ntheta*nz)+i] = w_tomo_fullsky(i, nz, nz);
         }
       }
     }
@@ -887,7 +886,7 @@ std::vector<double> cpp_compute_data_vector() {
     for (int nz=0; nz<tomo.clustering_Nbin; nz++) {
       for (int i=0; i<like.Ntheta; i++) {
         if (cpp_compute_mask(start+(like.Ntheta*nz)+i)) {
-          data_vector[start+(like.Ntheta*nz)+i] = w_gk(i,nz);
+          data_vector[start+(like.Ntheta*nz)+i] = w_gk(i, nz);
         }
       }
     }
@@ -897,7 +896,7 @@ std::vector<double> cpp_compute_data_vector() {
     for (int nz=0; nz<tomo.shear_Nbin; nz++) {
       for (int i=0; i<like.Ntheta; i++) {
         if (cpp_compute_mask(start+(like.Ntheta*nz)+i)) {
-          data_vector[start+(like.Ntheta*nz)+i] = w_ks(i,nz)
+          data_vector[start+(like.Ntheta*nz)+i] = w_ks(i, nz)
             *(1.0+nuisance.shear_calibration_m[nz]);
         }
       }
@@ -914,8 +913,7 @@ std::vector<double> cpp_compute_data_vector() {
   spdlog::debug("\x1b[90m{}\x1b[0m: Ends", "compute_data_vector");
   return data_vector;
 }
-  #####################
-  #####################
+
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -1369,47 +1367,8 @@ arma::Mat<double> cpp_print_datavector() {
   return r;
 }
 
-arma::Mat<double> cpp_print_Z1Z2() {
-  arma::Mat<double> r(tomo.shear_Npowerspectra, 3, arma::fill::zeros);
-  for (int i=0; i<tomo.shear_Npowerspectra; i++) {
-    r(i,0) = i;
-    r(i,1) = Z1(i);
-    r(i,2) = Z2(i);
-  }
-  return r;
-}
-
-arma::Mat<double> cpp_print_ZLZS() {
-  arma::Mat<double> r(tomo.shear_Npowerspectra, 3, arma::fill::zeros);
-  for (int i=0; i<tomo.ggl_Npowerspectra; i++) {
-    r(i,0) = i;
-    r(i,1) = ZL(i);
-    r(i,2) = ZS(i);
-  }
-  return r;
-}
-
-arma::Mat<double> cpp_print_WS_WK() {
-  arma::Mat<double> r(tomo.shear_Npowerspectra*Ntable.N_a, 7,
-    arma::fill::zeros);
-  const double da = ((1.0-limits.a_min)/(Ntable.N_a-1.));
-  for (int nz=0; nz<tomo.shear_Npowerspectra; nz++) {
-    for (int j=0; j<Ntable.N_a; j++) {
-      const double  a = limits.a_min + j * da;
-      r(nz*Ntable.N_a+j,0) = nz;
-      r(nz*Ntable.N_a+j,1) = Z1(nz);
-      r(nz*Ntable.N_a+j,2) = a;
-      r(nz*Ntable.N_a+j,3) = chi(a);
-      r(nz*Ntable.N_a+j,4) = f_K(chi(a));
-      //r(nz*Ntable.N_a+j,5) = W_source(a, Z1(nz));
-      r(nz*Ntable.N_a+j,6) = W_kappa(a, f_K(chi(a)), Z1(nz));
-    }
-  }
-  return r;
-}
-
 #ifdef PYBIND11
-PYBIND11_MODULE(cosmolike_desy1xplanck_6x2_interface, m) {
+PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m) {
     m.doc() = "CosmoLike Interface for DES-Y1 x Planck 6x2 Module";
 
     m.def("initial_setup", &cpp_initial_setup, "Def Setup");
@@ -1475,10 +1434,6 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_6x2_interface, m) {
     m.def("print_a", &cpp_print_a,"Print Scale Factor");
 
     m.def("print_datavector", &cpp_print_datavector, "Print data vector");
-
-    m.def("print_z1z2", &cpp_print_Z1Z2, "Print Shear redshift bins");
-
-    m.def("print_ws_wk", &cpp_print_WS_WK, "Print Shear W_source(a,nz) and W_kappa(a,f(chi),nz)");
 }
 #endif // PYBIND11
 
