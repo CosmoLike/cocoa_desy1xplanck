@@ -27,8 +27,7 @@ namespace py = pybind11;
 #include "cosmolike/basics.h"
 #include "cosmolike/bias.h"
 #include "cosmolike/cosmo3D.h"
-#include "cosmolike/cosmo2D_fourier.h"
-#include "cosmolike/cosmo2D_fullsky.h"
+#include "cosmolike/cosmo2D.h"
 #include "cosmolike/halo.h"
 #include "cosmolike/radial_weights.h"
 #include "cosmolike/IA.h"
@@ -842,13 +841,13 @@ std::vector<double> cpp_compute_data_vector() {
       for (int i = 0; i<like.Ntheta; i++) {
         if (cpp_compute_mask(like.Ntheta*nz+i)) {
           data_vector[like.Ntheta*nz+i] =
-            xi_pm_fullsky(1,i,z1,z2)*
+            xi_pm_tomo_fullsky(1,i,z1,z2)*
             (1.0 + nuisance.shear_calibration_m[z1])*
             (1.0 + nuisance.shear_calibration_m[z2]);
         }
         if (cpp_compute_mask(like.Ntheta*(tomo.shear_Npowerspectra+nz)+i)) {
           data_vector[like.Ntheta*(tomo.shear_Npowerspectra+nz)+i] =
-            xi_pm_fullsky(-1,i,z1,z2)*
+            xi_pm_tomo_fullsky(-1,i,z1,z2)*
             (1. + nuisance.shear_calibration_m[z1])*
             (1. + nuisance.shear_calibration_m[z2]);
         }
@@ -864,7 +863,7 @@ std::vector<double> cpp_compute_data_vector() {
         if (cpp_compute_mask(start+(like.Ntheta*nz)+i)) {
           const double theta = like.theta[i];
           data_vector[start+(like.Ntheta*nz)+i] =
-            w_gamma_t_fullsky(i,zl,zs)*(1.0+nuisance.shear_calibration_m[zs]);
+            w_gamma_t_tomo_fullsky(i,zl,zs)*(1.0+nuisance.shear_calibration_m[zs]);
         }
       }
     }
@@ -875,7 +874,8 @@ std::vector<double> cpp_compute_data_vector() {
     for (int nz=0; nz<tomo.clustering_Npowerspectra; nz++) {
       for (int i=0; i<like.Ntheta; i++) {
         if (cpp_compute_mask(start+(like.Ntheta*nz)+i)) {
-          data_vector[start+(like.Ntheta*nz)+i] = w_tomo_fullsky(i, nz, nz);
+          data_vector[start+(like.Ntheta*nz)+i] =
+            w_tomo_fullsky_nonLimber(i, nz, nz);
         }
       }
     }
@@ -885,7 +885,7 @@ std::vector<double> cpp_compute_data_vector() {
     for (int nz=0; nz<tomo.clustering_Nbin; nz++) {
       for (int i=0; i<like.Ntheta; i++) {
         if (cpp_compute_mask(start+(like.Ntheta*nz)+i)) {
-          data_vector[start+(like.Ntheta*nz)+i] = w_gk_fullsky(i, nz);
+          data_vector[start+(like.Ntheta*nz)+i] = w_gk_tomo_fullsky(i, nz);
         }
       }
     }
@@ -895,7 +895,7 @@ std::vector<double> cpp_compute_data_vector() {
     for (int nz=0; nz<tomo.shear_Nbin; nz++) {
       for (int i=0; i<like.Ntheta; i++) {
         if (cpp_compute_mask(start+(like.Ntheta*nz)+i)) {
-          data_vector[start+(like.Ntheta*nz)+i] = w_ks_fullsky(i, nz)
+          data_vector[start+(like.Ntheta*nz)+i] = w_ks_tomo_fullsky(i, nz)
             *(1.0+nuisance.shear_calibration_m[nz]);
         }
       }
@@ -1265,106 +1265,6 @@ bool ima::RealData::is_inv_cov_set() const {
   return this->is_inv_cov_set_;
 }
 
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-// Routines to test functions that were modified by Cocoa
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-
-arma::Mat<double> cpp_print_a() {
-  const int Nchi = 1000;
-  arma::Mat<double> r(Nchi, 2, arma::fill::zeros);
-  const double chi_min = 10.;
-  const double chi_max = 7000.;
-  const double dlnchi = std::log(chi_max/chi_min)/(Nchi-1.);
-  const double real_coverH0 = cosmology.coverH0/cosmology.h0;
-  for(int i=0; i<Nchi; i++) {
-    r(i,0) = chi_min*exp(dlnchi*i)/real_coverH0;
-    r(i,1) = a_chi(r(i,0));
-  }
-  return r;
-}
-
-arma::Mat<double> cpp_print_chi() {
-  arma::Mat<double> r(Ntable.N_a, 2, arma::fill::zeros);
-  const double da = ((1.0-limits.a_min)/(Ntable.N_a-1.0));
-  for (int i=0; i<Ntable.N_a; i++) {
-    r(i,0) = limits.a_min + i * da;
-    r(i,1) = chi(r(i,0));
-  }
-  return r;
-}
-
-arma::Mat<double> cpp_print_dchi_da() {
-  arma::Mat<double> r(Ntable.N_a, 2, arma::fill::zeros);
-  const double da = ((1.0-limits.a_min)/(Ntable.N_a-1.0));
-  for (int i=0; i<Ntable.N_a; i++) {
-    r(i,0) = limits.a_min + i * da;
-    r(i,1) = dchi_da(r(i,0));
-  }
-  return r;
-}
-
-arma::Mat<double> cpp_print_growth() {
-  arma::Mat<double> r(Ntable.N_a, 2, arma::fill::zeros);
-  const double da = ((1.0-limits.a_min)/(Ntable.N_a-1.0));
-  for (int i=0; i<Ntable.N_a; i++) {
-    r(i,0) = limits.a_min + i * da;
-    r(i,1) = growfac(r(i,0));
-  }
-  return r;
-}
-
-arma::Mat<double> cpp_print_fgrowth() {
-  arma::Mat<double> r(Ntable.N_a, 2, arma::fill::zeros);
-  const double da = ((1.0-limits.a_min)/(Ntable.N_a-1.0));
-  for (int i=0; i<Ntable.N_a; i++) {
-    r(i,0) = limits.a_min + i * da;
-    r(i,1) = f_growth(1.0/r(i,0)-1.0);
-  }
-  return r;
-}
-
-arma::Mat<double> cpp_print_hoverh0() {
-  arma::Mat<double> r(Ntable.N_a, 2, arma::fill::zeros);
-  const double da = ((1.0-limits.a_min)/(Ntable.N_a-1.));
-  for (int i=0; i<Ntable.N_a; i++) {
-    r(i,0) = limits.a_min + i * da;
-    r(i,1) = hoverh0(r(i,0));
-  }
-  return r;
-}
-
-arma::Mat<double> cpp_print_ps() {
-  const double da = ((1.0-limits.a_min)/(Ntable.N_a-1.));
-  const double logkmin = std::log(limits.k_min_mpc*cosmology.coverH0);
-  const double logkmax = std::log(limits.k_max_mpc_class*cosmology.coverH0);
-  const double dk = (logkmax-logkmin)/(Ntable.N_k_nlin-1.0);
-  arma::Mat<double> r(Ntable.N_a*Ntable.N_k_nlin, 4, arma::fill::zeros);
-  for (int i=0; i<Ntable.N_a; i++) {
-    const double a = limits.a_min + i * da;
-    for (int j=0; j<Ntable.N_k_nlin; j++) {
-      const double k = std::exp(logkmin + j * dk);
-      r(i*Ntable.N_k_nlin+j,0) = a;
-      r(i*Ntable.N_k_nlin+j,1) = k;
-      r(i*Ntable.N_k_nlin+j,2) = p_lin(k, a);
-      r(i*Ntable.N_k_nlin+j,3) = p_nonlin(k, a);
-    }
-  }
-  return r;
-}
-
-arma::Mat<double> cpp_print_datavector() {
-  std::vector<double> tmp = cpp_compute_data_vector();
-  arma::Mat<double> r(tmp.size(), 2, arma::fill::zeros);
-  for (int i=0; i<static_cast<int>(tmp.size()); i++) {
-    r(i,0) = i;
-    r(i,1) = tmp[i];
-  }
-  return r;
-}
 
 #ifdef PYBIND11
 PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m) {
@@ -1417,22 +1317,6 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m) {
     m.def("set_cosmological_parameters", &cpp_set_cosmological_parameters,  "Set Cosmological Parameters", py::arg("omega_matter"), py::arg("hubble"), py::arg("is_cached"));
 
     m.def("init_data_real", &cpp_init_data_real,"Init cov, mask and data", py::arg("COV"), py::arg("MASK"), py::arg("DATA"));
-
-    m.def("print_chi", &cpp_print_chi, "Print Distance");
-
-    m.def("print_dchi_da", &cpp_print_dchi_da, "Print dchi/da");
-
-    m.def("print_growth", &cpp_print_growth, "Print Growth");
-
-    m.def("print_fgrowth", &cpp_print_fgrowth, "Print f Growth");
-
-    m.def("print_hoverh0", &cpp_print_hoverh0, "Print hoverh0");
-
-    m.def("print_ps", &cpp_print_ps, "Print Linear and Non-Linear Power Spectrum");
-
-    m.def("print_a", &cpp_print_a,"Print Scale Factor");
-
-    m.def("print_datavector", &cpp_print_datavector, "Print data vector");
 }
 #endif // PYBIND11
 
