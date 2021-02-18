@@ -30,7 +30,6 @@ namespace py = pybind11;
 #include "cosmolike/cosmo2D.h"
 #include "cosmolike/halo.h"
 #include "cosmolike/radial_weights.h"
-#include "cosmolike/IA.h"
 #include "cosmolike/recompute.h"
 #include "cosmolike/pt_cfastpt.h"
 #include "cosmolike/redshift_spline.h"
@@ -863,7 +862,7 @@ std::vector<double> cpp_compute_data_vector() {
         if (cpp_compute_mask(start+(like.Ntheta*nz)+i)) {
           const double theta = like.theta[i];
           data_vector[start+(like.Ntheta*nz)+i] =
-            w_gamma_t_tomo_fullsky(i,zl,zs)*(1.0+nuisance.shear_calibration_m[zs]);
+            w_gs_tomo_fullsky(i,zl,zs)*(1.0+nuisance.shear_calibration_m[zs]);
         }
       }
     }
@@ -875,7 +874,7 @@ std::vector<double> cpp_compute_data_vector() {
       for (int i=0; i<like.Ntheta; i++) {
         if (cpp_compute_mask(start+(like.Ntheta*nz)+i)) {
           data_vector[start+(like.Ntheta*nz)+i] =
-            w_tomo_fullsky_nonLimber(i, nz, nz);
+            w_gg_tomo_fullsky_nonlimber(i, nz, nz);
         }
       }
     }
