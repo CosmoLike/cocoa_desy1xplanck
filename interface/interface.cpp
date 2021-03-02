@@ -840,13 +840,13 @@ std::vector<double> cpp_compute_data_vector() {
       for (int i = 0; i<like.Ntheta; i++) {
         if (cpp_compute_mask(like.Ntheta*nz+i)) {
           data_vector[like.Ntheta*nz+i] =
-            xi_pm_tomo_fullsky(1,i,z1,z2)*
+            xi_pm_tomo(1, i, z1, z2, 1 /* limber option = 1 -> limber */)*
             (1.0 + nuisance.shear_calibration_m[z1])*
             (1.0 + nuisance.shear_calibration_m[z2]);
         }
         if (cpp_compute_mask(like.Ntheta*(tomo.shear_Npowerspectra+nz)+i)) {
           data_vector[like.Ntheta*(tomo.shear_Npowerspectra+nz)+i] =
-            xi_pm_tomo_fullsky(-1,i,z1,z2)*
+            xi_pm_tomo(-1, i, z1, z2, 1 /* limber option = 1 -> limber */)*
             (1. + nuisance.shear_calibration_m[z1])*
             (1. + nuisance.shear_calibration_m[z2]);
         }
@@ -862,7 +862,8 @@ std::vector<double> cpp_compute_data_vector() {
         if (cpp_compute_mask(start+(like.Ntheta*nz)+i)) {
           const double theta = like.theta[i];
           data_vector[start+(like.Ntheta*nz)+i] =
-            w_gs_tomo_fullsky(i,zl,zs)*(1.0+nuisance.shear_calibration_m[zs]);
+            w_gammat_tomo(i, zl, zs, 1 /* limber option = 1 -> limber */)*
+            (1.0+nuisance.shear_calibration_m[zs]);
         }
       }
     }
@@ -874,7 +875,7 @@ std::vector<double> cpp_compute_data_vector() {
       for (int i=0; i<like.Ntheta; i++) {
         if (cpp_compute_mask(start+(like.Ntheta*nz)+i)) {
           data_vector[start+(like.Ntheta*nz)+i] =
-            w_gg_tomo_fullsky_nonlimber(i, nz, nz);
+            w_gg_tomo(i, nz, nz, 0 /* limber option = 0 -> nonlimber */);
         }
       }
     }
@@ -884,7 +885,8 @@ std::vector<double> cpp_compute_data_vector() {
     for (int nz=0; nz<tomo.clustering_Nbin; nz++) {
       for (int i=0; i<like.Ntheta; i++) {
         if (cpp_compute_mask(start+(like.Ntheta*nz)+i)) {
-          data_vector[start+(like.Ntheta*nz)+i] = w_gk_tomo_fullsky(i, nz);
+          data_vector[start+(like.Ntheta*nz)+i] =
+            w_gk_tomo(i, nz, 1 /* limber option = 1 -> limber */);
         }
       }
     }
@@ -894,8 +896,9 @@ std::vector<double> cpp_compute_data_vector() {
     for (int nz=0; nz<tomo.shear_Nbin; nz++) {
       for (int i=0; i<like.Ntheta; i++) {
         if (cpp_compute_mask(start+(like.Ntheta*nz)+i)) {
-          data_vector[start+(like.Ntheta*nz)+i] = w_ks_tomo_fullsky(i, nz)
-            *(1.0+nuisance.shear_calibration_m[nz]);
+          data_vector[start+(like.Ntheta*nz)+i] =
+            w_ks_tomo(i, nz, 1 /* limber option = 1 -> limber */)*
+            (1.0+nuisance.shear_calibration_m[nz]);
         }
       }
     }
@@ -904,7 +907,7 @@ std::vector<double> cpp_compute_data_vector() {
   if (like.kk == 1) {
     for (int i=0; i<like.Ncl; i++) {
       if (cpp_compute_mask(start+i)) {
-        data_vector[start+i] = C_kk(like.ell[i]);
+        data_vector[start+i] = C_kk_limber(like.ell[i]);
       }
     }
   }
