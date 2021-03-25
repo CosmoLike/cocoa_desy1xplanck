@@ -55,7 +55,6 @@ void cpp_initial_setup() {
   tomo.shear_Nbin = 0;
   tomo.clustering_Nbin = 0;
 
-  like.shearcalib = 0; // on cpp_compute_data_vector I erased shearcalib flag
   like.shear_shear = 0;
   like.shear_pos = 0;
   like.pos_pos = 0;
@@ -72,14 +71,6 @@ void cpp_initial_setup() {
   like.clusterWL = 0;
   like.clusterCG = 0;
   like.clusterCC = 0;
-  like.SN_WFIRST = 0;
-  like.BAO = 0;
-  like.wlphotoz = 0;
-  like.clphotoz = 0;
-  like.Planck15_BAO_H070p6_JLA_w0wa = 0;
-  like.Planck18_BAO_Riess18_Pantheon_w0wa = 0;
-  like.Planck18_BAO_w0wa = 0;
-  like.Planck18_w0 = 0;
 
   // reset bias
   for (int i = 0; i < MAX_SIZE_ARRAYS; i++) {
