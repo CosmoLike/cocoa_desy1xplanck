@@ -1,7 +1,7 @@
 path: null
 data_file: Y1xplanck.dataset
 acc: 1
-speed: 1
+speed: 2
 
 print_intermediate_products: False
 
@@ -12,4 +12,4 @@ create_baryon_pca: False
 baryon_pca_select_simulations: TNG100/HzAGN/mb2/illustris/eagle/owls_AGN_T80/owls_AGN_T85/owls_AGN_T87/BAHAMAS_T76/BAHAMAS_T78/BAHAMAS_T80
 filename_baryon_pca: "./project/des_y3"
 
-params: !defaults [params_des_3x2pt]
+params: !defaults [params_des_cosmic_shear]

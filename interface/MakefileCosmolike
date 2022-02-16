@@ -123,8 +123,12 @@ CSOURCES += \
 		${ROOTDIR}/external_modules/code/cfftlog/cfftlog.c \
 		${ROOTDIR}/external_modules/code/cfftlog/utils_complex.c \
 		${ROOTDIR}/external_modules/code/cfftlog/utils.c \
+		${ROOTDIR}/external_modules/code/cfastpt/cfastpt.c \
+		${ROOTDIR}/external_modules/code/cfastpt/utils_complex_cfastpt.c \
+		${ROOTDIR}/external_modules/code/cfastpt/utils_cfastpt.c \
 		${ROOTDIR}/external_modules/code/cosmolike/basics.c \
 		${ROOTDIR}/external_modules/code/cosmolike/bias.c \
+		${ROOTDIR}/external_modules/code/cosmolike/baryons.c \
 		${ROOTDIR}/external_modules/code/cosmolike/cosmo3D.c \
 		${ROOTDIR}/external_modules/code/cosmolike/cosmo2D.c \
 		${ROOTDIR}/external_modules/code/cosmolike/halo.c \
@@ -133,12 +137,17 @@ CSOURCES += \
 		${ROOTDIR}/external_modules/code/cosmolike/radial_weights.c \
 		${ROOTDIR}/external_modules/code/cosmolike/redshift_spline.c \
 		${ROOTDIR}/external_modules/code/cosmolike/structs.c \
+		${ROOTDIR}/external_modules/code/cosmolike/pt_cfastpt.c \
 
 OBJECTC += \
 		./cfftlog.o \
 		./utils_complex.o \
 		./utils.o \
+		./cfastpt.o \
+		./utils_complex_cfastpt.o \
+		./utils_cfastpt.o \
 		./basics.o \
+		./baryons.o \
 		./bias.o \
 		./cosmo3D.o \
 		./cosmo2D.o \
@@ -148,6 +157,7 @@ OBJECTC += \
 		./recompute.o \
 		./redshift_spline.o \
 		./structs.o \
+		./pt_cfastpt.o \
 
 $(OBJECTC): $(CSOURCES)
 	$(CC) $(CFLAGS) -fPIC -DCOBAYA_SAMPLER -c $(CSOURCES)

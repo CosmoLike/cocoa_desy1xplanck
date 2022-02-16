@@ -2,13 +2,13 @@ from cobaya.likelihoods.desy1xplanck._cosmolike_prototype_base import _cosmolike
 import cosmolike_desy1xplanck_interface as ci
 import numpy as np
 
-class desy1xplanck_6x2pt(_cosmolike_prototype_base):
+class desy1xplanck_cosmic_shear(_cosmolike_prototype_base):
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
 
   def initialize(self):
-    super(desy1xplanck_6x2pt,self).initialize(probe="6x2pt")
+    super(desy1xplanck_cosmic_shear,self).initialize(probe="xi")
 
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
@@ -24,8 +24,6 @@ class desy1xplanck_6x2pt(_cosmolike_prototype_base):
     if self.create_baryon_pca:
       self.force_cache_false = False
 
-    self.set_lens_related(**params_values)
-
     self.set_source_related(**params_values)
 
     # datavector C++ returns a list (not numpy array)
@@ -39,3 +37,4 @@ class desy1xplanck_6x2pt(_cosmolike_prototype_base):
 
     return self.compute_logp(datavector)
 
+    
