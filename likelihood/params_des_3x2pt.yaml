@@ -1,0 +1,359 @@
+  # WL photo-z errors
+  DES_DZ_S1:
+    prior:
+      dist: norm
+      loc: -0.001
+      scale: 0.016
+    ref:
+      dist: norm
+      loc: -0.001
+      scale: 0.016
+    proposal: 0.016
+    latex: \Delta z_\mathrm{s,DES}^1
+  DES_DZ_S2:
+    prior:
+      dist: norm
+      loc: -0.019
+      scale: 0.013
+    ref:
+      dist: norm
+      loc: -0.019
+      scale: 0.015
+    proposal: 0.013
+    latex: \Delta z_\mathrm{s,DES}^2
+  DES_DZ_S3:
+    prior:
+      dist: norm
+      loc: 0.009
+      scale: 0.011
+    ref:
+      dist: norm
+      loc: 0.009
+      scale: 0.011
+    proposal: 0.011
+    latex: \Delta z_\mathrm{s,DES}^3
+  DES_DZ_S4:
+    prior:
+      dist: norm
+      loc: -0.018
+      scale: 0.022
+    ref:
+      dist: norm
+      loc: -0.018
+      scale: 0.022
+    proposal: 0.022
+    latex: \Delta z_\mathrm{s,DES}^4
+  DES_DZ_S5:
+    prior:
+      dist: norm
+      loc: -0.018
+      scale: 0.022
+    ref:
+      dist: norm
+      loc: -0.018
+      scale: 0.022
+    proposal: 0.022
+    latex: \Delta z_\mathrm{s,DES}^5
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # Intrinsic alignment
+  DES_A1_1:
+    prior:
+      min: -5
+      max:  5
+    ref:
+      dist: norm
+      loc: 0.7
+      scale: 0.5
+    proposal: 0.75
+    latex: A_\mathrm{1-IA,DES}^1
+  DES_A1_2:
+    prior:
+      min: -5
+      max:  5
+    ref:
+      dist: norm
+      loc: -1.7
+      scale: 0.5
+    proposal: 0.75
+    latex: A_\mathrm{1-IA,DES}^2
+  DES_A1_3:
+    value: 0
+    latex: A_\mathrm{1-IA,DES}^3        
+  DES_A1_4:
+    value: 0
+    latex: A_\mathrm{1-IA,DES}^4  
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  DES_A2_1:
+    value: 0.0
+    latex: A_\mathrm{2-IA,DES}^1
+  DES_A2_2:
+    value: 0.0
+    latex: A_\mathrm{2-IA,DES}^2
+  DES_A2_3:
+    value: 0.0
+    latex: A_\mathrm{2-IA,DES}^3
+  DES_A2_4:
+    value: 0.0
+    latex: A_\mathrm{2-IA,DES}^4
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  DES_BTA_1:
+    value: 0
+    latex: A_\mathrm{BTA-IA,DES}^1
+  DES_BTA_2:
+    value: 0
+    latex: A_\mathrm{BTA-IA,DES}^2
+  DES_BTA_3:
+    value: 0
+    latex: A_\mathrm{BTA-IA,DES}^3        
+  DES_BTA_4:
+    value: 0
+    latex: A_\mathrm{BTA-IA,DES}^4
+ # ------------------------------------------------------------------------
+ # ------------------------------------------------------------------------
+ # ------------------------------------------------------------------------
+ # Lensing photo-z errors
+  DES_DZ_L1:
+    prior:
+      dist: norm
+      loc: 0.001
+      scale: 0.008
+    ref:
+      dist: norm
+      loc: 0.001
+      scale: 0.008
+    proposal: 0.008
+    latex: \Delta z_\mathrm{l,DES}^1
+  DES_DZ_L2:
+    prior:
+      dist: norm
+      loc: 0.001
+      scale: 0.007
+    ref:
+      dist: norm
+      loc: 0.001
+      scale: 0.007
+    proposal: 0.007
+    latex: \Delta z_\mathrm{l,DES}^2
+  DES_DZ_L3:
+    prior:
+      dist: norm
+      loc: 0.003
+      scale: 0.007
+    ref:
+      dist: norm
+      loc: 0.003
+      scale: 0.007
+    proposal: 0.007
+    latex: \Delta z_\mathrm{l,DES}^3
+  DES_DZ_L4:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.01
+    ref:
+      dist: norm
+      loc: 0
+      scale: 0.01
+    proposal: 0.01
+    latex: \Delta z_\mathrm{l,DES}^4
+  DES_DZ_L5:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.01 
+    ref:
+      dist: norm
+      loc: 0
+      scale: 0.01
+    proposal: 0.01
+    latex: \Delta z_\mathrm{l,DES}^5
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # Bin bias parameters
+  DES_B1_1:
+    prior:
+      min: 0.8
+      max: 3
+    ref:
+      dist: norm
+      loc: 1.5
+      scale: 0.1
+    proposal: 0.1
+    latex: b_\mathrm{1-DES}^1
+  DES_B1_2:
+    prior:
+      min: 0.8
+      max: 3
+    ref:
+      dist: norm
+      loc: 1.6
+      scale: 0.1
+    proposal: 0.1
+    latex: b_\mathrm{1-DES}^2
+  DES_B1_3:
+    prior:
+      min: 0.8
+      max: 3
+    ref:
+      dist: norm
+      loc: 1.7
+      scale: 0.1
+    proposal: 0.1
+    latex: b_\mathrm{1-DES}^3
+  DES_B1_4:
+    prior:
+      min: 0.8
+      max: 3
+    ref:
+      dist: norm
+      loc: 1.8
+      scale: 0.1
+    proposal: 0.1
+    latex: b_\mathrm{1-DES}^4
+  DES_B1_5:
+    prior:
+      min: 0.8
+      max: 3
+    ref:
+      dist: norm
+      loc: 2.0
+      scale: 0.1
+    proposal: 0.1
+    latex: b_\mathrm{1-DES}^5
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  DES_B2_1:
+    value: 0.0
+    latex: b_\mathrm{2-DES}^1
+  DES_B2_2:
+    value: 0.0
+    latex: b_\mathrm{2-DES}^2
+  DES_B2_3:
+    value: 0.0
+    latex: b_\mathrm{2-DES}^3
+  DES_B2_4:
+    value: 0.0
+    latex: b_\mathrm{2-DES}^4
+  DES_B2_5:
+    value: 0.0
+    latex: b_\mathrm{2-DES}^5
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  DES_BMAG_1:
+    value: -0.19375
+    latex: b_\mathrm{BMAG-DES}^1
+  DES_BMAG_2:
+    value: -0.6285407
+    latex: b_\mathrm{BMAG-DES}^2
+  DES_BMAG_3:
+    value: -0.69319886
+    latex: b_\mathrm{BMAG-DES}^3
+  DES_BMAG_4:
+    value: 1.17735723
+    latex: b_\mathrm{BMAG-DES}^4
+  DES_BMAG_5:
+    value: 1.87509758
+    latex: b_\mathrm{BMAG-DES}^5
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # Shear calibration parameters
+  DES_M1:
+    prior:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.05
+    proposal: 0.03
+    latex: m_\mathrm{DES}^1
+  DES_M2:
+    prior:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.012
+      scale: 0.05
+    proposal: 0.03
+    latex: m_\mathrm{DES}^2
+  DES_M3:
+    prior:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.012
+      scale: 0.05
+    proposal: 0.03
+    latex: m_\mathrm{DES}^3
+  DES_M4:
+    prior:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.05
+    proposal: 0.03
+    latex: m_\mathrm{DES}^4 
+  DES_M5:
+    prior:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.05
+    proposal: 0.03
+    latex: m_\mathrm{DES}^5
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # Point Mass parameters
+  DES_PM1:
+    value: 0.0
+    latex: PM_\mathrm{DES}^1
+  DES_PM2:
+    value: 0.0
+    latex: PM_\mathrm{DES}^2
+  DES_PM3:
+    value: 0.0
+    latex: PM_\mathrm{DES}^3
+  DES_PM4:
+    value: 0.0
+    latex: PM_\mathrm{DES}^4
+  DES_PM5:
+    value: 0.0
+    latex: PM_\mathrm{DES}^5
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # WL photo-z errors
+  DES_BARYON_Q1:
+    value: 0.0
+    latex: PM_\mathrm{DES}^1
+  DES_BARYON_Q2:
+    value: 0.0
+    latex: PM_\mathrm{DES}^2
+  DES_BARYON_Q3:
+    value: 0.0
+    latex: PM_\mathrm{DES}^3
+  DES_BARYON_Q4:
+    value: 0.0
+    latex: PM_\mathrm{DES}^4
