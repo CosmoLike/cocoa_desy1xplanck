@@ -2,10 +2,14 @@ timing: True
 debug: True
 stop_at_error: True
 
+
 likelihood:
   desy1xplanck.desy1xplanck_6x2pt:
     path: ./external_modules/data/desy1xplanck
-    
+    ### Create baryon effects PCs during example evaluation
+    #create_baryon_pca: True
+    #filename_baryon_pca: ./external_modules/data/desy1xplanck/6x2pt_baseline_PCA
+   
 params:
   As_1e9:
     prior:
@@ -125,6 +129,8 @@ params:
   omegan:
     derived: 'lambda omegan2, H0: omegan2/((H0/100)**2)'
     latex: \Omega_\mathrm{\\nu}
+  DES_BARYON_Q1:
+    value: 0.0
 
 theory:
   camb:
@@ -171,7 +177,9 @@ sampler:
       DES_B1_3: 1.61423
       DES_B1_4: 1.92886
       DES_B1_5: 2.11633
-      w: -0.9
+      w: -1.0
       wa: 0.0
+
+      
 
 output: ./projects/desy1xplanck/chains/EXAMPLE_EVALUATE1

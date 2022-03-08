@@ -34,8 +34,14 @@ class desy1xplanck_6x2pt(_cosmolike_prototype_base):
     if self.use_baryon_pca:
       # Warning: we assume the PCs were created with the same mask
       # We have no way of testing user enforced that
+      #print("\n\n\n ??? \n\n\n")
       self.set_baryon_related(**params_values)
       datavector = self.add_baryon_pcs_to_datavector(datavector)
-
+    #print("Evaluated data vector:\n")
+    dv_fname = "./projects/desy1xplanck/chains/EXAMPLE_EVALUATE1.model_vector"
+    with open(dv_fname, 'w') as fp:
+        for i in range(len(datavector)):
+            #print("i=%d dv = %le\n"%(i,datavector[i]))
+            fp.write("%d %le\n"%(i, datavector[i]))
     return self.compute_logp(datavector)
 

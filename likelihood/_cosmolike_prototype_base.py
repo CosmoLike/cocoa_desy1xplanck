@@ -89,6 +89,8 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
 
     self.lmax_kappa_cmb = ini.float("lmax_kappa_cmb", default = -1)
 
+    self.lmin_kappa_cmb = ini.float("lmin_kappa_cmb", default = -1)
+
     self.lens_ntomo = ini.int("lens_ntomo", default = -1) #5
 
     self.source_ntomo = ini.int("source_ntomo") #4
@@ -150,13 +152,13 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
       ci.init_lens_sample(self.lens_file, self.lens_ntomo, self.ggl_olap_cut)
     else:
       self.lens_ntomo = 0
-    
+
     if (self.lmax_kappa_cmb > 0):
       self.ncl = ini.int("n_cl")
       self.l_min = ini.float("l_min")
       self.l_max = ini.float("l_max")
       ci.init_binning_fourier(self.ncl, self.l_min, self.l_max)
-      ci.init_cmb(self.lmax_kappa_cmb)
+      ci.init_cmb(self.lmin_kappa_cmb, self.lmax_kappa_cmb)
     else:
       self.lmax_kappa_cmb = 0
 
@@ -490,7 +492,6 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
 
     for i in range(nbaryons_scenario):
       PCS_FINAL[:,i] = ci.get_expand_dim_from_masked_reduced_dim(PCs[:,i])
-
     np.savetxt(self.filename_baryon_pca, PCS_FINAL)
 
     ci.init_baryons_contamination(False,"")

@@ -43,17 +43,17 @@
       scale: 0.022
     proposal: 0.022
     latex: \Delta z_\mathrm{s,DES}^4
-  DES_DZ_S5:
-    prior:
-      dist: norm
-      loc: -0.018
-      scale: 0.022
-    ref:
-      dist: norm
-      loc: -0.018
-      scale: 0.022
-    proposal: 0.022
-    latex: \Delta z_\mathrm{s,DES}^5
+  #DES_DZ_S5:
+  #  prior:
+  #    dist: norm
+  #    loc: -0.018
+  #    scale: 0.022
+  #  ref:
+  #    dist: norm
+  #    loc: -0.018
+  #    scale: 0.022
+  #  proposal: 0.022
+  #  latex: \Delta z_\mathrm{s,DES}^5
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
@@ -311,17 +311,17 @@
       scale: 0.05
     proposal: 0.03
     latex: m_\mathrm{DES}^4 
-  DES_M5:
-    prior:
-      dist: norm
-      loc: 0.012
-      scale: 0.023
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 0.05
-    proposal: 0.03
-    latex: m_\mathrm{DES}^5
+  #DES_M5:
+  #  prior:
+  #    dist: norm
+  #    loc: 0.012
+  #    scale: 0.023
+  #  ref:
+  #    dist: norm
+  #    loc: 0.0
+  #    scale: 0.05
+  #  proposal: 0.03
+  #  latex: m_\mathrm{DES}^5
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
@@ -344,16 +344,16 @@
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
-  # WL photo-z errors
+  # Baryonic effects PCs amplitudes
   DES_BARYON_Q1:
     value: 0.0
-    latex: PM_\mathrm{DES}^1
+    latex: Q_\mathrm{DES}^1
   DES_BARYON_Q2:
     value: 0.0
-    latex: PM_\mathrm{DES}^2
+    latex: Q_\mathrm{DES}^2
   DES_BARYON_Q3:
     value: 0.0
-    latex: PM_\mathrm{DES}^3
+    latex: Q_\mathrm{DES}^3
   DES_BARYON_Q4:
     value: 0.0
-    latex: PM_\mathrm{DES}^4
+    latex: Q_\mathrm{DES}^4
