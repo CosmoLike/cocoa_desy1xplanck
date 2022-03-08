@@ -226,9 +226,10 @@ void cpp_init_IA(int N)
   spdlog::debug("\x1b[90m{}\x1b[0m: Ends", "init_IA");
 }
 
-void cpp_init_cmb(const double lmax_kappa_cmb) {
+void cpp_init_cmb(const double lmin_kappa_cmb, const double lmax_kappa_cmb) {
   spdlog::debug("\x1b[90m{}\x1b[0m: Begins", "init_cmb");
 
+  like.lmin_kappacmb = lmin_kappa_cmb;
   like.lmax_kappacmb = lmax_kappa_cmb;
 
   spdlog::debug("\x1b[90m{}\x1b[0m: Ends", "init_cmb");
@@ -2103,6 +2104,7 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
   m.def("init_cmb",
     &cpp_init_cmb,
     "Init CMB l_max",
+    py::arg("lmin_kappa_cmb"),
     py::arg("lmax_kappa_cmb")
   );
 
