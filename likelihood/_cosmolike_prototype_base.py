@@ -109,6 +109,8 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
     self.z_interp_1D = np.linspace(0,2.0,1000)
     self.z_interp_1D = np.concatenate((self.z_interp_1D,
       np.linspace(2.0,10.1,200)),axis=0)
+    self.z_interp_1D = np.concatenate((self.z_interp_1D,
+      np.linspace(1080,2000,20)),axis=0)
     self.z_interp_1D[0] = 0
 
     self.z_interp_2D = np.linspace(0,2.0,100)
