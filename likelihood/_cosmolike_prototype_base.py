@@ -125,12 +125,13 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
     self.k_interp_2D = np.power(10.0,self.log10k_interp_2D)
     self.len_k_interp_2D = len(self.k_interp_2D)
     self.len_pkz_interp_2D = self.len_log10k_interp_2D*self.len_z_interp_2D
-    self.extrap_kmax = 2.5e2 * self.acc
+    self.extrap_kmax = 2.5e2 * self.accuracyboost
 
     # ------------------------------------------------------------------------
 
     ci.initial_setup()
-
+    ci.init_accuracy_boost(self.accuracyboost, self.samplingboost)
+    
     ci.init_probes(possible_probes=self.probe)
 
     ci.init_binning(self.ntheta, self.theta_min_arcmin, self.theta_max_arcmin)
@@ -213,7 +214,7 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
       "omegam": None,
       "Pk_interpolator": {
         "z": self.z_interp_2D,
-        "k_max": 20 * self.acc,
+        "k_max": 20 * self.accuracyboost,
         "nonlinear": (True,False),
         "vars_pairs": ([("delta_tot", "delta_tot")])
       },

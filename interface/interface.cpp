@@ -91,6 +91,21 @@ void cpp_initial_setup()
   spdlog::debug("\x1b[90m{}\x1b[0m: Ends", "initial_setup");
 }
 
+void cpp_init_accuracy_boost(const double accuracy_boost, const double sampling_boost)
+{
+  Ntable.N_a = static_cast<int>(ceil(Ntable.N_a*accuracy_boost));
+  Ntable.N_ell_TATT = static_cast<int>(ceil(Ntable.N_ell_TATT*accuracy_boost));
+  
+  Ntable.N_k_lin = static_cast<int>(ceil(Ntable.N_k_lin*sampling_boost));
+  Ntable.N_k_nlin = static_cast<int>(ceil(Ntable.N_k_nlin*sampling_boost));
+  Ntable.N_ell = static_cast<int>(ceil(Ntable.N_ell*sampling_boost));
+  
+  Ntable.N_theta  = static_cast<int>(ceil(Ntable.N_theta*sampling_boost));
+
+  Ntable.N_S2 = static_cast<int>(ceil(Ntable.N_S2*sampling_boost));
+  Ntable.N_DS = static_cast<int>(ceil(Ntable.N_DS*sampling_boost));
+}
+
 void cpp_init_probes(std::string possible_probes)
 {
   spdlog::debug("\x1b[90m{}\x1b[0m: Begins", "init_probes");
@@ -2206,6 +2221,13 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
     &cpp_init_baryon_pca_scenarios,
     "Init scenario selection to generate baryonic PCA",
     py::arg("scenarios")
+  );
+
+  m.def("init_accuracy_boost",
+    &cpp_init_accuracy_boost,
+    "Init Accuracy and Sampling Boost (can slow down Cosmolike a lot)",
+    py::arg("accuracy_boost"),
+    py::arg("sampling_boost")
   );
 
   // --------------------------------------------------------------------
