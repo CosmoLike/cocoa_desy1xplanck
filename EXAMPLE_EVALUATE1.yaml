@@ -10,10 +10,10 @@ likelihood:
   #  path: ./external_modules/data/desy1xplanck
   #desy1xplanck.desy1xplanck_2x2pt:
   #  path: ./external_modules/data/desy1xplanck
-  desy1xplanck.desy1xplanck_3x2pt:
-    path: ./external_modules/data/desy1xplanck
-  #desy1xplanck.desy1xplanck_6x2pt:
+  #desy1xplanck.desy1xplanck_3x2pt:
   #  path: ./external_modules/data/desy1xplanck
+  desy1xplanck.desy1xplanck_6x2pt:
+    path: ./external_modules/data/desy1xplanck
     ### Create baryon effects PCs during example evaluation
     #create_baryon_pca: True
     #filename_baryon_pca: ./external_modules/data/desy1xplanck/6x2pt_baseline_PCA
