@@ -1234,17 +1234,49 @@ std::vector<double> cpp_compute_data_vector_masked()
   start = start + like.Ntheta*tomo.shear_Nbin;
   if (like.kk == 1)
   {
+    ima::RealData& instance = ima::RealData::get_instance();
     for (int i=0; i<like.Ncl; i++)
     {
       if (cpp_get_mask(start+i))
       {
-        data_vector[start+i] = C_kk_limber(like.ell[i]);
+        //data_vector[start+i] = C_kk_limber(like.ell[i]);
+		data_vector[start+i] = C_kk_limber_nointerp(like.ell[i], 0);
+        //spdlog::info("\x1b[90m{}\x1b[0m: C kk: ell = {} --- C_kk = {} / {}", 
+		//	"compute_data_vector_masked", like.ell[i], data_vector[start+i], instance.get_data_masked(start+i));
       }
     }
   }
-  
+/*
+  double test_ary[2] = {1000, 0};
+  double test_int = 0;
+  test_int =  int_for_C_kk_limber(0.3, (void *)test_ary);
+  spdlog::info("\x1b[90m{}\x1b[0m: Try int_for_C_kk_limber(a = 0.3, ell=1000) = {}",
+            "compute_data_vector_masked", test_int );
   spdlog::debug("\x1b[90m{}\x1b[0m: Ends", "compute_data_vector_masked");
 
+  // test chi integration
+  int Nz_tfi = 10000;
+  double zmin_tfi = 1e-5, zmax_tfi = 1090.0;
+  double dz_tfi = log(zmax_tfi/zmin_tfi) / Nz_tfi;
+  double z_tfi = 0.0, chi_tfi=0.0;
+
+  char tfi_filename[500];
+  sprintf(tfi_filename, "/home/u17/jiachuanxu/cocoa/Cocoa/test_chi_precision_cocoa.dat");
+  FILE *tfi_file;
+  tfi_file = fopen(tfi_filename, "w");
+  if(tfi_file == NULL){
+    spdlog::critical("\x1b[90m{}\x1b[0m: Can not open file {}!",
+			"compute_data_vector_masked", tfi_filename);
+	exit(-1);
+  }
+  fprintf(tfi_file, "# z chi \n");
+  for(int i_tfi=0; i_tfi<Nz_tfi; i_tfi ++){
+    z_tfi = exp( log(zmin_tfi) + (i_tfi+0.5)*dz_tfi );
+    chi_tfi = chi( 1.0/(1.0+z_tfi) );
+    fprintf(tfi_file, "%le\t%le\n", z_tfi, chi_tfi);
+  }
+  fclose(tfi_file);
+*/
   return data_vector;
 }
 
