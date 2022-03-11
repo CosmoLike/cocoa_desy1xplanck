@@ -88,7 +88,31 @@ void cpp_initial_setup()
     nuisance.b_ta_z[i] = 0.0;
   }
 
+  // use_flat_sky
+  like.use_full_sky_shear = 1;
+  like.use_full_sky_ggl = 1;
+  like.use_full_sky_clustering = 1;
+  like.use_full_sky_gk = 1;
+  like.use_full_sky_sk = 1;
+
+  like.high_def_integration = 0;
+
   spdlog::debug("\x1b[90m{}\x1b[0m: Ends", "initial_setup");
+}
+
+void cpp_init_accuracy_boost(const double accuracy_boost, const double sampling_boost)
+{
+  Ntable.N_a = static_cast<int>(ceil(Ntable.N_a*accuracy_boost));
+  Ntable.N_ell_TATT = static_cast<int>(ceil(Ntable.N_ell_TATT*accuracy_boost));
+  
+  Ntable.N_k_lin = static_cast<int>(ceil(Ntable.N_k_lin*sampling_boost));
+  Ntable.N_k_nlin = static_cast<int>(ceil(Ntable.N_k_nlin*sampling_boost));
+  Ntable.N_ell = static_cast<int>(ceil(Ntable.N_ell*sampling_boost));
+  
+  Ntable.N_theta  = static_cast<int>(ceil(Ntable.N_theta*sampling_boost));
+
+  Ntable.N_S2 = static_cast<int>(ceil(Ntable.N_S2*sampling_boost));
+  Ntable.N_DS = static_cast<int>(ceil(Ntable.N_DS*sampling_boost));
 }
 
 void cpp_init_probes(std::string possible_probes)
@@ -1144,21 +1168,41 @@ std::vector<double> cpp_compute_data_vector_masked()
     {
       const int z1 = Z1(nz);
       const int z2 = Z2(nz);
-      for (int i = 0; i<like.Ntheta; i++)
+      for (int i=0; i<like.Ntheta; i++)
       {
-        if (cpp_get_mask(like.Ntheta*nz+i))
         {
-          data_vector[like.Ntheta*nz+i] =
-            xi_pm_tomo(1, i, z1, z2, 1 /* limber option = 1 -> limber */)*
-            (1.0 + nuisance.shear_calibration_m[z1])*
-            (1.0 + nuisance.shear_calibration_m[z2]);
+          const int index = like.Ntheta*nz + i;
+          if (cpp_get_mask(index))
+          {
+            if(like.use_full_sky_shear == 1)
+            {
+              data_vector[index] = xi_pm_tomo(1, i, z1, z2, 1)*
+                (1.0 + nuisance.shear_calibration_m[z1])*(1.0 + nuisance.shear_calibration_m[z2]);
+            }
+            else
+            {
+              const double theta = like.theta[i];
+              data_vector[index] = xi_pm_tomo_flatsky(1, theta, z1, z2, 1)*
+                (1.0 + nuisance.shear_calibration_m[z1])*(1.0 + nuisance.shear_calibration_m[z2]);
+            }
+          }
         }
-        if (cpp_get_mask(like.Ntheta*(tomo.shear_Npowerspectra+nz)+i))
         {
-          data_vector[like.Ntheta*(tomo.shear_Npowerspectra+nz)+i] =
-            xi_pm_tomo(-1, i, z1, z2, 1 /*limber*/)*
-            (1. + nuisance.shear_calibration_m[z1])*
-            (1. + nuisance.shear_calibration_m[z2]);
+          const int index = like.Ntheta*(tomo.shear_Npowerspectra + nz) + i;
+          if (cpp_get_mask(index))
+          {
+            if(like.use_full_sky_shear == 1)
+            {
+              data_vector[index] = xi_pm_tomo(-1, i, z1, z2, 1)*
+                (1.0 + nuisance.shear_calibration_m[z1])*(1.0 + nuisance.shear_calibration_m[z2]);
+            }
+            else
+            {
+              const double theta = like.theta[i];
+              data_vector[index] = xi_pm_tomo_flatsky(-1, theta, z1, z2, 1)*
+                (1.0 + nuisance.shear_calibration_m[z1])*(1.0 + nuisance.shear_calibration_m[z2]);
+            }
+          }
         }
       }
     }
@@ -1173,12 +1217,21 @@ std::vector<double> cpp_compute_data_vector_masked()
       const int zs = ZS(nz);
       for (int i=0; i<like.Ntheta; i++)
       {
-        if (cpp_get_mask(start+(like.Ntheta*nz)+i))
+        const int index = start + like.Ntheta*nz + i;
+        if (cpp_get_mask(index))
         {
           const double theta = like.theta[i];
-          data_vector[start+(like.Ntheta*nz)+i] = (
-            w_gammat_tomo(i, zl, zs, 1 /* limber option=1 -> limber */) +
-            cpp_compute_pm(zl, zs, theta))*(1.0+nuisance.shear_calibration_m[zs]);
+          if(like.use_full_sky_ggl == 1)
+          {
+            data_vector[index] = (w_gammat_tomo(i, zl, zs, 1) + cpp_compute_pm(zl, zs, theta))*
+              (1.0+nuisance.shear_calibration_m[zs]);
+          }
+          else
+          {
+            data_vector[index] = 
+              (w_gammat_tomo_flatsky(theta, zl, zs, 1) + cpp_compute_pm(zl, zs, theta))*
+              (1.0+nuisance.shear_calibration_m[zs]);
+          }
         }
       }
     }
@@ -1191,10 +1244,18 @@ std::vector<double> cpp_compute_data_vector_masked()
     {
       for (int i=0; i<like.Ntheta; i++)
       {
-        if (cpp_get_mask(start+(like.Ntheta*nz)+i))
+        const int index = start + like.Ntheta*nz + i;
+        if (cpp_get_mask(index))
         {
-          data_vector[start+(like.Ntheta*nz)+i] =
-            w_gg_tomo(i, nz, nz, 0 /* limber option = 0 -> nonlimber */);
+          if(like.use_full_sky_clustering == 1)
+          {
+            data_vector[index] = w_gg_tomo(i, nz, nz, 0);
+          }
+          else
+          {
+            const double theta = like.theta[i];
+            data_vector[index] = w_gg_tomo_flatsky(theta, nz, nz, 0);
+          }
         }
       }
     }
@@ -1205,27 +1266,45 @@ std::vector<double> cpp_compute_data_vector_masked()
   {
     for (int nz=0; nz<tomo.clustering_Nbin; nz++)
     {
-      for (int i=0; i<like.Ntheta; i++) {
-        if (cpp_get_mask(start+(like.Ntheta*nz)+i))
+      for (int i=0; i<like.Ntheta; i++) 
+      {
+        const int index = start + like.Ntheta*nz + i;
+        if (cpp_get_mask(index))
         {
-          data_vector[start+(like.Ntheta*nz)+i] =
-            w_gk_tomo(i, nz, 1 /* limber option = 1 -> limber */);
+          if(like.use_full_sky_gk == 1)
+          {
+            data_vector[index] = w_gk_tomo(i, nz, 1);
+          }
+          else
+          {
+            const double theta = like.theta[i];
+            data_vector[index] = w_gk_tomo_flatsky(theta, nz, 1);
+          }
         }
       }
     }
   }
 
   start = start + like.Ntheta*tomo.clustering_Nbin;
-  if (like.ks == 1) {
+  if (like.ks == 1) 
+  {
     for (int nz=0; nz<tomo.shear_Nbin; nz++)
     {
       for (int i=0; i<like.Ntheta; i++)
       {
-        if (cpp_get_mask(start+(like.Ntheta*nz)+i))
+        const int index = start + like.Ntheta*nz + i; 
+        if (cpp_get_mask(index))
         {
-          data_vector[start+(like.Ntheta*nz)+i] =
-            w_ks_tomo(i, nz, 1 /* limber option = 1 -> limber */)*
-            (1.0+nuisance.shear_calibration_m[nz]);
+          if(like.use_full_sky_sk == 1)
+          {
+            data_vector[index] = w_ks_tomo(i, nz, 1)*(1.0 + nuisance.shear_calibration_m[nz]);
+          }
+          else
+          {
+            const double theta = like.theta[i];
+            data_vector[index] = 
+              w_ks_tomo_flatsky(theta, nz, 1)*(1.0 + nuisance.shear_calibration_m[nz]);
+          }
         }
       }
     }
@@ -1237,12 +1316,13 @@ std::vector<double> cpp_compute_data_vector_masked()
     ima::RealData& instance = ima::RealData::get_instance();
     for (int i=0; i<like.Ncl; i++)
     {
-      if (cpp_get_mask(start+i))
+      const int index = start + i; 
+      if (cpp_get_mask(index))
       {
-        //data_vector[start+i] = C_kk_limber(like.ell[i]);
-		data_vector[start+i] = C_kk_limber_nointerp(like.ell[i], 0);
+        //data_vector[index] = C_kk_limber(like.ell[i]);
+		data_vector[index] = C_kk_limber_nointerp(like.ell[i], 0);
         //spdlog::info("\x1b[90m{}\x1b[0m: C kk: ell = {} --- C_kk = {} / {}", 
-		//	"compute_data_vector_masked", like.ell[i], data_vector[start+i], instance.get_data_masked(start+i));
+		//	"compute_data_vector_masked", like.ell[i], data_vector[start+i], instance.get_data_masked(index));
       }
     }
   }
@@ -2238,6 +2318,13 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
     &cpp_init_baryon_pca_scenarios,
     "Init scenario selection to generate baryonic PCA",
     py::arg("scenarios")
+  );
+
+  m.def("init_accuracy_boost",
+    &cpp_init_accuracy_boost,
+    "Init Accuracy and Sampling Boost (can slow down Cosmolike a lot)",
+    py::arg("accuracy_boost"),
+    py::arg("sampling_boost")
   );
 
   // --------------------------------------------------------------------

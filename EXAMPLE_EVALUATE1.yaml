@@ -4,8 +4,16 @@ stop_at_error: True
 
 
 likelihood:
-  desy1xplanck.desy1xplanck_6x2pt:
+  desy1xplanck.desy1xplanck_xi_ggl:
     path: ./external_modules/data/desy1xplanck
+  #desy1xplanck.desy1xplanck_ggl:
+  #  path: ./external_modules/data/desy1xplanck
+  #desy1xplanck.desy1xplanck_2x2pt:
+  #  path: ./external_modules/data/desy1xplanck
+  #desy1xplanck.desy1xplanck_3x2pt:
+  #  path: ./external_modules/data/desy1xplanck
+  #desy1xplanck.desy1xplanck_6x2pt:
+  #  path: ./external_modules/data/desy1xplanck
     ### Create baryon effects PCs during example evaluation
     #create_baryon_pca: True
     #filename_baryon_pca: ./external_modules/data/desy1xplanck/6x2pt_baseline_PCA
@@ -20,7 +28,7 @@ params:
       loc: 2.1
       scale: 0.65
     proposal: 0.4
-    latex: 10^9 A_\mathrm{s})
+    latex: 10^9 A_\mathrm{s}
     drop: true
     renames: A
   As:
@@ -68,84 +76,39 @@ params:
     proposal: 0.02
     latex: \Omega_\mathrm{m}
     drop: true
-  mnu:
+  m_ncdm:
     prior:
-      min: 0.06
+      min: 0.0
       max: 0.6
     ref:
       dist: norm
       loc: 0.25
       scale: 0.1
     proposal: 0.05
-  w:
-    prior:
-      min: -3
-      max: 1
-    ref:
-      dist: norm
-      loc: -0.99
-      scale: 0.05
-    proposal: 0.05
-    latex: w_{0,\mathrm{DE}}
-  wa:
-    prior:
-      min: -3
-      max: 2
-    ref:
-      dist: norm
-      loc: 0
-      scale: 0.35
-    proposal: 0.2
-    latex: w_{a,\mathrm{DE}}
   omegabh2:
     value: 'lambda omegab, H0: omegab*(H0/100)**2'
     latex: \Omega_\mathrm{b} h^2
   omegach2:
-    value: 'lambda omegam, omegab, mnu, H0: (omegam-omegab)*(H0/100)**2-(mnu*(3.046/3)**0.75)/94.0708'
+    value: 'lambda omegam, omegab, m_ncdm, H0: (omegam-omegab)*(H0/100)**2-(m_ncdm*(3.046/3)**0.75)/94.0708'
     latex: \Omega_\mathrm{c} h^2
   tau:
     value: 0.0697186
     latex: \tau_\mathrm{reio}
-  omegal:
-    latex: \Omega_\Lambda
-  omegamh2:
-    derived: 'lambda omegam, H0: omegam*(H0/100)**2'
-    latex: \Omega_\mathrm{m} h^2
   sigma8:
     latex: \sigma_8
-  s8h5:
-    derived: 'lambda sigma8, H0: sigma8*(H0*1e-2)**(-0.5)'
-    latex: \sigma_8/h^{0.5}
-  s8omegamp5:
-    derived: 'lambda sigma8, omegam: sigma8*omegam**0.5'
-    latex: \sigma_8 \Omega_\mathrm{m}^{0.5}
-  s8omegamp25:
-    derived: 'lambda sigma8, omegam: sigma8*omegam**0.25'
-    latex: \sigma_8 \Omega_\mathrm{m}^{0.25}
-  age:
-    latex: '{\rm{Age}}/\mathrm{Gyr}'
-  omegan2:
-    latex: \Omega_\mathrm{\\nu} h^2
-  omegan:
-    derived: 'lambda omegan2, H0: omegan2/((H0/100)**2)'
-    latex: \Omega_\mathrm{\\nu}
   DES_BARYON_Q1:
     value: 0.0
 
 theory:
-  camb:
-    path: ./external_modules/code/CAMB
+  classy:
+    path: ./external_modules/code/class_public
     stop_at_error: True
     use_renames: True
     extra_args:
-      halofit_version: takahashi
-      AccuracyBoost: 1.1
-      lens_potential_accuracy: 1.1
-      num_massive_neutrinos: 1
-      nnu: 3.046
-      dark_energy_model: ppf
-      accurate_massive_neutrino_transfers: false
-      k_per_logint: 20
+      non linear: halofit
+      N_ncdm: 1
+      N_ur: 2.0328
+      #non linear: "hmcode"
 
 sampler:
   evaluate:
@@ -156,7 +119,7 @@ sampler:
       H0: 67.32
       omegab: 0.04
       omegam: 0.3
-      mnu: 0.06
+      m_ncdm: 0.0
       DES_DZ_S1: 0.0414632
       DES_DZ_S2: 0.00147332
       DES_DZ_S3: 0.0237035
@@ -177,9 +140,6 @@ sampler:
       DES_B1_3: 1.61423
       DES_B1_4: 1.92886
       DES_B1_5: 2.11633
-      w: -1.0
-      wa: 0.0
 
-      
 
 output: ./projects/desy1xplanck/chains/EXAMPLE_EVALUATE1
