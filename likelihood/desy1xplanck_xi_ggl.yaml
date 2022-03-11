@@ -1,6 +1,7 @@
 path: null
 data_file: Y1xplanck.dataset
-acc: 1
+accuracyboost: 1.0
+samplingboost: 1.0
 speed: 1
 
 print_intermediate_products: False
