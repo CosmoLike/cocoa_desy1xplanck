@@ -104,7 +104,8 @@ void cpp_initial_setup()
   spdlog::debug("\x1b[90m{}\x1b[0m: Ends", "initial_setup");
 }
 
-void cpp_init_accuracy_boost(const double accuracy_boost, const double sampling_boost)
+void cpp_init_accuracy_boost(const double accuracy_boost, const double sampling_boost,
+const int integration_accuracy)
 {
   Ntable.N_a = static_cast<int>(ceil(Ntable.N_a*accuracy_boost));
   Ntable.N_ell_TATT = static_cast<int>(ceil(Ntable.N_ell_TATT*accuracy_boost));
@@ -122,6 +123,8 @@ void cpp_init_accuracy_boost(const double accuracy_boost, const double sampling_
   precision.medium /= accuracy_boost;
   precision.high /= accuracy_boost;
   precision.insane /= accuracy_boost; 
+
+  like.high_def_integration = integration_accuracy;
 }
 
 void cpp_init_probes(std::string possible_probes)
@@ -2306,7 +2309,8 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
     &cpp_init_accuracy_boost,
     "Init Accuracy and Sampling Boost (can slow down Cosmolike a lot)",
     py::arg("accuracy_boost"),
-    py::arg("sampling_boost")
+    py::arg("sampling_boost"),
+    py::arg("integration_accuracy")
   );
 
   // --------------------------------------------------------------------
