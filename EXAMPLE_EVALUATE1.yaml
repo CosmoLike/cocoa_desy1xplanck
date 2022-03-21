@@ -2,7 +2,6 @@ timing: True
 debug: True
 stop_at_error: True
 
-
 likelihood:
   #desy1xplanck.desy1xplanck_xi_ggl:
   #  path: ./external_modules/data/desy1xplanck
@@ -11,13 +10,20 @@ likelihood:
   #desy1xplanck.desy1xplanck_2x2pt:
   #  path: ./external_modules/data/desy1xplanck
   #desy1xplanck.desy1xplanck_3x2pt:
+  #  accuracyboost: 1.0
+  #  samplingboost: 1.0
+  #  integration_accuracy: 0
   #  path: ./external_modules/data/desy1xplanck
   desy1xplanck.desy1xplanck_6x2pt:
     path: ./external_modules/data/desy1xplanck
     ### Create baryon effects PCs during example evaluation
     #create_baryon_pca: True
-    #filename_baryon_pca: ./external_modules/data/desy1xplanck/6x2pt_baseline_PCA
-   
+    #filename_baryon_pca: ./external_modules/data/desy1xplanck/6x2pt_baseline_PCA  
+    accuracyboost: 1.0
+    samplingboost: 1.0
+    # integration_accuracy 0, 1 or 2 (zero is enough for DESY1)
+    integration_accuracy: 0
+
 params:
   As_1e9:
     prior:

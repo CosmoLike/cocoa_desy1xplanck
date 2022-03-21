@@ -130,7 +130,7 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
     # ------------------------------------------------------------------------
 
     ci.initial_setup()
-    ci.init_accuracy_boost(self.accuracyboost, self.samplingboost)
+    ci.init_accuracy_boost(self.accuracyboost, self.samplingboost, self.integration_accuracy)
     
     ci.init_probes(possible_probes=self.probe)
 
@@ -160,8 +160,9 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
       self.ncl = ini.int("n_cl")
       self.l_min = ini.float("l_min")
       self.l_max = ini.float("l_max")
+      self.fwhm  = ini.float("fwhm")
       ci.init_binning_fourier(self.ncl, self.l_min, self.l_max)
-      ci.init_cmb(self.lmin_kappa_cmb, self.lmax_kappa_cmb)
+      ci.init_cmb(self.lmin_kappa_cmb, self.lmax_kappa_cmb, self.fwhm)
     else:
       self.lmax_kappa_cmb = 0
 
