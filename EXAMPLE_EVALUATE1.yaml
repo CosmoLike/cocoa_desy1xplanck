@@ -12,6 +12,7 @@ likelihood:
     path: ./external_modules/data/desy1xplanck
     accuracyboost: 1.0
     samplingboost: 1.0
+    # integration_accuracy 0, 1 or 2 (zero is enough for DESY1)
     integration_accuracy: 0
 
 params:
