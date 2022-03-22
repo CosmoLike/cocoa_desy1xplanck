@@ -4,4 +4,4 @@
 *.pyo
 *.cfg
 chains/
-EXAMPLE*
+#EXAMPLE*
