@@ -1,12 +1,12 @@
 timing: True
-debug: True
+debug: False
 stop_at_error: False
 
-
 likelihood:
-  desy1xplanck.desy1xplanck_6x2pt:
+  desy1xplanck.desy1xplanck_3x2pt:
     path: ./external_modules/data/desy1xplanck
-       
+    use_baryon_pca: False
+
 params:
   As_1e9:
     prior:
@@ -74,10 +74,21 @@ params:
       loc: 0.25
       scale: 0.1
     proposal: 0.05
+  w0pwa:
+    prior:
+      min: -5 
+      max: -0.01
+    ref:
+      dist: norm
+      loc: -0.99
+      scale: 0.05
+    proposal: 0.05
+    latex: w_{0,\mathrm{DE}}+w_{a,\mathrm{DE}}
+    drop: true
   w:
     prior:
       min: -3
-      max: 1
+      max: -0.01
     ref:
       dist: norm
       loc: -0.99
@@ -85,14 +96,7 @@ params:
     proposal: 0.05
     latex: w_{0,\mathrm{DE}}
   wa:
-    prior:
-      min: -3
-      max: 2
-    ref:
-      dist: norm
-      loc: 0
-      scale: 0.35
-    proposal: 0.2
+    value: 'lambda w0pwa, w: w0pwa - w'
     latex: w_{a,\mathrm{DE}}
   omegabh2:
     value: 'lambda omegab, H0: omegab*(H0/100)**2'
@@ -119,49 +123,19 @@ params:
   s8omegamp25:
     derived: 'lambda sigma8, omegam: sigma8*omegam**0.25'
     latex: \sigma_8 \Omega_\mathrm{m}^{0.25}
-  age:
-    latex: '{\rm{Age}}/\mathrm{Gyr}'
   omegan2:
     latex: \Omega_\mathrm{\\nu} h^2
   omegan:
     derived: 'lambda omegan2, H0: omegan2/((H0/100)**2)'
     latex: \Omega_\mathrm{\\nu}
-  # ------------------------------------------------------------------------
-  # ------------------------------------------------------------------------
-  # ------------------------------------------------------------------------
-  # Baryonic effects PCs amplitudes
   DES_BARYON_Q1:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 16.0
-    ref:
-      dist: norm
-      loc: 0
-      scale: 1.6
-    proposal: 0.2
-    latex: Q_\mathrm{DES}^1
+    value: 0.0
+    latex: Q_\mathrm{DES}^2
   DES_BARYON_Q2:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 2.0
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 0.2
-    proposal: 0.2
+    value: 0.0
     latex: Q_\mathrm{DES}^2
   DES_BARYON_Q3:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 0.8
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 0.08
-    proposal: 0.2
+    value: 0.0
     latex: Q_\mathrm{DES}^3
   DES_BARYON_Q4:
     value: 0.0
@@ -170,7 +144,6 @@ params:
 theory:
   camb:
     path: ./external_modules/code/CAMB
-    stop_at_error: False
     use_renames: True
     extra_args:
       halofit_version: takahashi
@@ -215,7 +188,7 @@ sampler:
     # Exploiting speed hierarchy
     # ---------------------------------------------------------------------
     # ---------------------------------------------------------------------
-    measure_speeds: True
+    measure_speeds: False
     drag: False
     oversample_power: 0
     oversample_thin: True
