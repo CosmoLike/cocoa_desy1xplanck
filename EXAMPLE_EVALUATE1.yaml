@@ -3,17 +3,12 @@ debug: True
 stop_at_error: True
 
 likelihood:
-  #desy1xplanck.desy1xplanck_3x2pt:
-  #  accuracyboost: 1.0
-  #  samplingboost: 1.0
-  #  integration_accuracy: 0
-  #  path: ./external_modules/data/desy1xplanck
   desy1xplanck.desy1xplanck_6x2pt:
     path: ./external_modules/data/desy1xplanck
-    accuracyboost: 1.0
-    samplingboost: 1.0
-    # integration_accuracy 0, 1 or 2 (zero is enough for DESY1)
-    integration_accuracy: 0
+    use_baryon_pca: False
+    filename_baryon_pca: "./projects/desy1xplanck/6x2pt_baseline_PCA"
+    print_datavector: True
+    print_datavector_file: "./projects/desy1xplanck/chains/example_evaluate1.modelvector"
 
 params:
   As_1e9:
@@ -137,6 +132,5 @@ sampler:
       DES_B1_3: 1.61423
       DES_B1_4: 1.92886
       DES_B1_5: 2.11633
-
 
 output: ./projects/desy1xplanck/chains/EXAMPLE_EVALUATE1

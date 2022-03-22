@@ -2,16 +2,12 @@ timing: True
 debug: False
 stop_at_error: False
 
-
 likelihood:
   desy1xplanck.desy1xplanck_6x2pt:
     path: ./external_modules/data/desy1xplanck
-       
+    use_baryon_pca: False      
+
 params:
-  # -------------------------------------------------------
-  # -------------------------------------------------------
-  # -------------------------------------------------------
-  # sampled cosmology params
   As_1e9:
     prior:
       min: 0.5
@@ -69,27 +65,42 @@ params:
     proposal: 0.02
     latex: \Omega_\mathrm{m}
     drop: true
-  # -------------------------------------------------
-  # -------------------------------------------------
-  # -------------------------------------------------
-  # fixed & misc cosmology params
-  #mnu:
-  #  prior:
-  #    min: 0.06
-  #    max: 0.6
-  #  ref:
-  #    dist: norm
-  #    loc: 0.25
-  #    scale: 0.1
-  #  proposal: 0.05
   mnu:
-    value: 0.05729
+    prior:
+      min: 0.06
+      max: 0.6
+    ref:
+      dist: norm
+      loc: 0.25
+      scale: 0.1
+    proposal: 0.05
+  w0pwa:
+    prior:
+      min: -5 
+      max: -0.01
+    ref:
+      dist: norm
+      loc: -0.99
+      scale: 0.05
+    proposal: 0.05
+    latex: w_{0,\mathrm{DE}}+w_{a,\mathrm{DE}}
+    drop: true
   w:
-    value: -1.0
+    prior:
+      min: -3
+      max: -0.01
+    ref:
+      dist: norm
+      loc: -0.99
+      scale: 0.05
+    proposal: 0.05
     latex: w_{0,\mathrm{DE}}
   wa:
-    value: 0.0
+    value: 'lambda w0pwa, w: w0pwa - w'
     latex: w_{a,\mathrm{DE}}
+  omegabh2:
+    value: 'lambda omegab, H0: omegab*(H0/100)**2'
+    latex: \Omega_\mathrm{b} h^2
   omegach2:
     value: 'lambda omegam, omegab, mnu, H0: (omegam-omegab)*(H0/100)**2-(mnu*(3.046/3)**0.75)/94.0708'
     latex: \Omega_\mathrm{c} h^2
@@ -98,22 +109,11 @@ params:
     latex: \tau_\mathrm{reio}
   omegal:
     latex: \Omega_\Lambda
-  sigma8:
-    latex: \sigma_8
-  age:
-    latex: '{\rm{Age}}/\mathrm{Gyr}'
-  omegan2:
-    latex: \Omega_\mathrm{\\nu} h^2
-  # -------------------------------------------------------
-  # -------------------------------------------------------
-  # -------------------------------------------------------
-  # derived cosmology params
   omegamh2:
     derived: 'lambda omegam, H0: omegam*(H0/100)**2'
     latex: \Omega_\mathrm{m} h^2
-  omegabh2:
-    derived: 'lambda omegab, H0: omegab*(H0/100)**2'
-    latex: \Omega_\mathrm{b} h^2
+  sigma8:
+    latex: \sigma_8
   s8h5:
     derived: 'lambda sigma8, H0: sigma8*(H0*1e-2)**(-0.5)'
     latex: \sigma_8/h^{0.5}
@@ -123,23 +123,14 @@ params:
   s8omegamp25:
     derived: 'lambda sigma8, omegam: sigma8*omegam**0.25'
     latex: \sigma_8 \Omega_\mathrm{m}^{0.25}
+  omegan2:
+    latex: \Omega_\mathrm{\\nu} h^2
   omegan:
     derived: 'lambda omegan2, H0: omegan2/((H0/100)**2)'
     latex: \Omega_\mathrm{\\nu}
-  # ------------------------------------------------------------------------
-  # ------------------------------------------------------------------------
-  # ------------------------------------------------------------------------
-  # Baryonic effects PCs amplitudes
   DES_BARYON_Q1:
-    prior:
-      min: 0.0
-      max: 4.0
-    ref:
-      dist: norm
-      loc: 2
-      scale: 1.6
-    proposal: 0.2
-    latex: Q_\mathrm{DES}^1
+    value: 0.0
+    latex: Q_\mathrm{DES}^2
   DES_BARYON_Q2:
     value: 0.0
     latex: Q_\mathrm{DES}^2
@@ -153,12 +144,11 @@ params:
 theory:
   camb:
     path: ./external_modules/code/CAMB
-    stop_at_error: True
     use_renames: True
     extra_args:
       halofit_version: takahashi
-      AccuracyBoost: 1.1
-      lens_potential_accuracy: 1.1
+      AccuracyBoost: 1.0
+      lens_potential_accuracy: 1.0
       num_massive_neutrinos: 1
       nnu: 3.046
       dark_energy_model: ppf
@@ -216,4 +206,4 @@ sampler:
     # ---------------------------------------------------------------------
     Rminus1_single_split: 4
 
-output: /groups/timeifler/jiachuanxu/cocoa_chains/desy1xplanck/EXAMPLE_fid
+output: ./projects/desy1xplanck/chains/EXAMPLE_MCMC2

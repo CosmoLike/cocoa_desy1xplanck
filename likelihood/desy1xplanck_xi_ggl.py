@@ -36,6 +36,13 @@ class desy1xplanck_xi_ggl(_cosmolike_prototype_base):
       # We have no way of testing user enforced that
       self.set_baryon_related(**params_values)
       datavector = self.add_baryon_pcs_to_datavector(datavector)
-      
-    return self.compute_logp(datavector)
 
+    if self.print_datavector:
+      size = len(datavector)
+      out = np.zeros(shape=(size, 2))
+      out[:,0] = np.arange(0, size)
+      out[:,1] = datavector
+      fmt = '%d', '%1.8e'
+      np.savetxt(self.print_datavector_file, out, fmt = fmt)
+
+    return self.compute_logp(datavector)
