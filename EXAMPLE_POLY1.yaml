@@ -1,4 +1,4 @@
-timing: True
+timing: False
 debug: False
 stop_at_error: False
 
@@ -164,6 +164,7 @@ sampler:
     precision_criterion: 0.05
     boost_posterior: 10
     feedback: 2
+    blocking:
       - [1,
           [
              As_1e9, ns, H0, omegab, omegam, mnu, w0pwa, w
