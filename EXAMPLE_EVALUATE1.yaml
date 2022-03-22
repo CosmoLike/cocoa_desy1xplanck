@@ -5,7 +5,6 @@ stop_at_error: True
 likelihood:
   desy1xplanck.desy1xplanck_6x2pt:
     path: ./external_modules/data/desy1xplanck
-    use_baryon_pca: False
     print_datavector: True
     print_datavector_file: "./projects/desy1xplanck/chains/example_evaluate1.modelvector"
 
