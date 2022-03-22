@@ -4,8 +4,7 @@ stop_at_error: False
 
 likelihood:
   desy1xplanck.desy1xplanck_6x2pt:
-    path: ./external_modules/data/desy1xplanck
-    use_baryon_pca: False      
+    path: ./external_modules/data/desy1xplanck     
 
 params:
   As_1e9:
