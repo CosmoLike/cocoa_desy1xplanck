@@ -1,7 +1,7 @@
 #data_file = xi_desy1xplanck_6x2pt_fid
 #data_file = xi_desy1xplanck_6x2pt_fid_cosmolike_core
 #data_file = xi_desy1xplanck_6x2pt_mv_at_fiducial
-data_file = xi_desy1xplanck_6x2pt_cosmolike_core_fiducial_model_vector
+data_file = xi_desy1xplanck_6x2pt_cosmolike_core_fiducial_model_vector_2
 cov_file = cov_y1xplanck_mix6x2pt_referebceMV_new
 mask_file = xi_desy1xplanck_6x2pt_fid.mask
 nz_lens_file = mcal_1101_lens.nz
