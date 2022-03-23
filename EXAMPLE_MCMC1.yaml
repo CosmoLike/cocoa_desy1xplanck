@@ -197,7 +197,7 @@ sampler:
              As_1e9, ns, H0, omegab, omegam, mnu, w0pwa, w
           ]
         ]
-      - [2,
+      - [3,
           [
             DES_DZ_S1, DES_DZ_S2, DES_DZ_S3, DES_DZ_S4, DES_A1_1, DES_A1_2, DES_DZ_L1, 
             DES_DZ_L2, DES_DZ_L3, DES_DZ_L4, DES_DZ_L5
