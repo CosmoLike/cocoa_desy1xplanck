@@ -5,7 +5,7 @@ stop_at_error: True
 likelihood:
   desy1xplanck.desy1xplanck_6x2pt:
     path: ./external_modules/data/desy1xplanck
-    print_datavector: True
+    print_datavector: False
     print_datavector_file: "./projects/desy1xplanck/chains/example_evaluate1.modelvector"
 
 params:
@@ -67,7 +67,38 @@ params:
     latex: \Omega_\mathrm{m}
     drop: true
   mnu:
-    value: 0.0
+    prior:
+      min: 0.06
+      max: 0.6
+    ref:
+      dist: norm
+      loc: 0.25
+      scale: 0.1
+    proposal: 0.05
+  w0pwa:
+    prior:
+      min: -5 
+      max: -0.01
+    ref:
+      dist: norm
+      loc: -0.99
+      scale: 0.05
+    proposal: 0.05
+    latex: w_{0,\mathrm{DE}}+w_{a,\mathrm{DE}}
+    drop: true
+  w:
+    prior:
+      min: -3
+      max: -0.01
+    ref:
+      dist: norm
+      loc: -0.99
+      scale: 0.05
+    proposal: 0.05
+    latex: w_{0,\mathrm{DE}}
+  wa:
+    value: 'lambda w0pwa, w: w0pwa - w'
+    latex: w_{a,\mathrm{DE}}
   omegabh2:
     value: 'lambda omegab, H0: omegab*(H0/100)**2'
     latex: \Omega_\mathrm{b} h^2
@@ -125,5 +156,8 @@ sampler:
       DES_B1_3: 1.61423
       DES_B1_4: 1.92886
       DES_B1_5: 2.11633
+      mnu: 0.06
+      w0pwa: -0.8
+      w: -0.8
 
 output: ./projects/desy1xplanck/chains/EXAMPLE_EVALUATE1
