@@ -189,7 +189,7 @@ sampler:
     # ---------------------------------------------------------------------
     measure_speeds: False
     drag: False
-    oversample_power: 0
+    oversample_power: 1.0
     oversample_thin: True
     blocking:
       - [1,
