@@ -21,12 +21,12 @@ class desy1xplanck_6x2pt(_cosmolike_prototype_base):
 
     self.set_cosmo_related()
 
-    if self.create_baryon_pca:
-      self.force_cache_false = False
-
     self.set_lens_related(**params_values)
 
     self.set_source_related(**params_values)
+
+    if self.create_baryon_pca:
+      self.force_cache_false = False
 
     # datavector C++ returns a list (not numpy array)
     datavector = np.array(ci.compute_data_vector_masked())
@@ -34,14 +34,15 @@ class desy1xplanck_6x2pt(_cosmolike_prototype_base):
     if self.use_baryon_pca:
       # Warning: we assume the PCs were created with the same mask
       # We have no way of testing user enforced that
-      #print("\n\n\n ??? \n\n\n")
       self.set_baryon_related(**params_values)
       datavector = self.add_baryon_pcs_to_datavector(datavector)
-    #print("Evaluated data vector:\n")
-    dv_fname = "./projects/desy1xplanck/chains/EXAMPLE_EVALUATE1.model_vector"
-    with open(dv_fname, 'w') as fp:
-        for i in range(len(datavector)):
-            #print("i=%d dv = %le\n"%(i,datavector[i]))
-            fp.write("%d %le\n"%(i, datavector[i]))
-    return self.compute_logp(datavector)
 
+    if self.print_datavector:
+      size = len(datavector)
+      out = np.zeros(shape=(size, 2))
+      out[:,0] = np.arange(0, size)
+      out[:,1] = datavector
+      fmt = '%d', '%1.8e'
+      np.savetxt(self.print_datavector_file, out, fmt = fmt)
+
+    return self.compute_logp(datavector)

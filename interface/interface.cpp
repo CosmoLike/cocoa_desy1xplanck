@@ -345,14 +345,13 @@ const double theta_max_arcmin)
     exit(1);
   }
 
-  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.",
-    "init_binning", "Ntheta", Ntheta);
+  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_binning", "Ntheta", Ntheta);
 
-  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.",
-    "init_binning", "theta_min_arcmin", theta_min_arcmin);
+  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_binning", "theta_min_arcmin", 
+    theta_min_arcmin);
 
-  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.",
-    "init_binning", "theta_max_arcmin", theta_max_arcmin);
+  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_binning", "theta_max_arcmin", 
+    theta_max_arcmin);
 
   like.Ntheta = Ntheta;
   like.vtmin = theta_min_arcmin * 2.90888208665721580e-4; // arcmin to rad conversion
@@ -507,9 +506,13 @@ void cpp_init_size_data_vector()
 
   if (tomo.shear_Nbin == 0)
   {
-    spdlog::critical("{}: {} not set prior to this function call",
+    spdlog::debug("{}: {} not set prior to this function call",
       "init_size_data_vector", "tomo.shear_Nbin");
-    exit(1);
+  }
+  if (tomo.clustering_Nbin == 0)
+  {
+    spdlog::debug("{}: {} not set prior to this function call",
+      "init_size_data_vector", "tomo.clustering_Nbin");
   }
   if (like.Ntheta == 0) {
     spdlog::critical("{}: {} not set prior to this function call",
@@ -521,7 +524,7 @@ void cpp_init_size_data_vector()
                         tomo.ggl_Npowerspectra + tomo.clustering_Npowerspectra
                         + tomo.shear_Nbin + tomo.clustering_Nbin) + like.Ncl;
 
-  spdlog::debug("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_size_data_vector", "Ndata",
+  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_size_data_vector", "Ndata",
     like.Ndata);
 
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_size_data_vector");
