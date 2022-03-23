@@ -21,12 +21,12 @@ class desy1xplanck_6x2pt(_cosmolike_prototype_base):
 
     self.set_cosmo_related()
 
-    if self.create_baryon_pca:
-      self.force_cache_false = False
-
     self.set_lens_related(**params_values)
 
     self.set_source_related(**params_values)
+
+    if self.create_baryon_pca:
+      self.force_cache_false = False
 
     # datavector C++ returns a list (not numpy array)
     datavector = np.array(ci.compute_data_vector_masked())
