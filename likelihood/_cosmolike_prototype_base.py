@@ -215,7 +215,7 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
       "omegam": None,
       "Pk_interpolator": {
         "z": self.z_interp_2D,
-        "k_max": 20 * self.accuracyboost,
+        "k_max": self.kmax_boltzmann * self.accuracyboost,
         "nonlinear": (True,False),
         "vars_pairs": ([("delta_tot", "delta_tot")])
       },

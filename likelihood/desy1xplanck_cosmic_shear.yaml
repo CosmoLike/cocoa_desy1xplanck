@@ -3,6 +3,7 @@ data_file: Y1xplanck.dataset
 accuracyboost: 1.0
 samplingboost: 1.0
 integration_accuracy: 0 # integer 0, 1 or 2
+kmax_boltzmann: 20.0
 speed: 5
 
 print_intermediate_products: False
