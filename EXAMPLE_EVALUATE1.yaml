@@ -3,26 +3,10 @@ debug: True
 stop_at_error: True
 
 likelihood:
-  #desy1xplanck.desy1xplanck_xi_ggl:
-  #  path: ./external_modules/data/desy1xplanck
-  #desy1xplanck.desy1xplanck_ggl:
-  #  path: ./external_modules/data/desy1xplanck
-  #desy1xplanck.desy1xplanck_2x2pt:
-  #  path: ./external_modules/data/desy1xplanck
-  #desy1xplanck.desy1xplanck_3x2pt:
-  #  accuracyboost: 1.0
-  #  samplingboost: 1.0
-  #  integration_accuracy: 0
-  #  path: ./external_modules/data/desy1xplanck
   desy1xplanck.desy1xplanck_6x2pt:
     path: ./external_modules/data/desy1xplanck
-    ### Create baryon effects PCs during example evaluation
-    #create_baryon_pca: True
-    #filename_baryon_pca: ./external_modules/data/desy1xplanck/6x2pt_baseline_PCA  
-    accuracyboost: 1.0
-    samplingboost: 1.0
-    # integration_accuracy 0, 1 or 2 (zero is enough for DESY1)
-    integration_accuracy: 0
+    print_datavector: False
+    print_datavector_file: "./projects/desy1xplanck/chains/example_evaluate1.modelvector"
 
 params:
   As_1e9:
@@ -82,20 +66,44 @@ params:
     proposal: 0.02
     latex: \Omega_\mathrm{m}
     drop: true
-  m_ncdm:
+  mnu:
     prior:
-      min: 0.0
+      min: 0.06
       max: 0.6
     ref:
       dist: norm
       loc: 0.25
       scale: 0.1
     proposal: 0.05
+  w0pwa:
+    prior:
+      min: -5 
+      max: -0.01
+    ref:
+      dist: norm
+      loc: -0.99
+      scale: 0.05
+    proposal: 0.05
+    latex: w_{0,\mathrm{DE}}+w_{a,\mathrm{DE}}
+    drop: true
+  w:
+    prior:
+      min: -3
+      max: -0.01
+    ref:
+      dist: norm
+      loc: -0.99
+      scale: 0.05
+    proposal: 0.05
+    latex: w_{0,\mathrm{DE}}
+  wa:
+    value: 'lambda w0pwa, w: w0pwa - w'
+    latex: w_{a,\mathrm{DE}}
   omegabh2:
     value: 'lambda omegab, H0: omegab*(H0/100)**2'
     latex: \Omega_\mathrm{b} h^2
   omegach2:
-    value: 'lambda omegam, omegab, m_ncdm, H0: (omegam-omegab)*(H0/100)**2-(m_ncdm*(3.046/3)**0.75)/94.0708'
+    value: 'lambda omegam, omegab, mnu, H0: (omegam-omegab)*(H0/100)**2-(mnu*(3.046/3)**0.75)/94.0708'
     latex: \Omega_\mathrm{c} h^2
   tau:
     value: 0.0697186
@@ -106,15 +114,18 @@ params:
     value: 0.0
 
 theory:
-  classy:
-    path: ./external_modules/code/class_public
-    stop_at_error: True
+  camb:
+    path: ./external_modules/code/CAMB
     use_renames: True
     extra_args:
-      non linear: halofit
-      N_ncdm: 1
-      N_ur: 2.0328
-      #non linear: "hmcode"
+      halofit_version: takahashi
+      AccuracyBoost: 1.1
+      lens_potential_accuracy: 1.1
+      num_massive_neutrinos: 1
+      nnu: 3.046
+      dark_energy_model: ppf
+      accurate_massive_neutrino_transfers: false
+      k_per_logint: 20
 
 sampler:
   evaluate:
@@ -125,7 +136,6 @@ sampler:
       H0: 67.32
       omegab: 0.04
       omegam: 0.3
-      m_ncdm: 0.0
       DES_DZ_S1: 0.0414632
       DES_DZ_S2: 0.00147332
       DES_DZ_S3: 0.0237035
@@ -146,6 +156,8 @@ sampler:
       DES_B1_3: 1.61423
       DES_B1_4: 1.92886
       DES_B1_5: 2.11633
-
+      mnu: 0.06
+      w0pwa: -0.8
+      w: -0.8
 
 output: ./projects/desy1xplanck/chains/EXAMPLE_EVALUATE1

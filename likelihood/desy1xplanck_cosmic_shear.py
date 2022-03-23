@@ -21,10 +21,10 @@ class desy1xplanck_cosmic_shear(_cosmolike_prototype_base):
 
     self.set_cosmo_related()
 
+    self.set_source_related(**params_values)
+
     if self.create_baryon_pca:
       self.force_cache_false = False
-
-    self.set_source_related(**params_values)
 
     # datavector C++ returns a list (not numpy array)
     datavector = np.array(ci.compute_data_vector_masked())
@@ -35,6 +35,13 @@ class desy1xplanck_cosmic_shear(_cosmolike_prototype_base):
       self.set_baryon_related(**params_values)
       datavector = self.add_baryon_pcs_to_datavector(datavector)
 
+    if self.print_datavector:
+      size = len(datavector)
+      out = np.zeros(shape=(size, 2))
+      out[:,0] = np.arange(0, size)
+      out[:,1] = datavector
+      fmt = '%d', '%1.8e'
+      np.savetxt(self.print_datavector_file, out, fmt = fmt)
+      
     return self.compute_logp(datavector)
-
     
