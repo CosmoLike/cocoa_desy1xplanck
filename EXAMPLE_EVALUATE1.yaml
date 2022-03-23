@@ -5,7 +5,7 @@ stop_at_error: True
 likelihood:
   desy1xplanck.desy1xplanck_6x2pt:
     path: ./external_modules/data/desy1xplanck
-    print_datavector: False
+    print_datavector: True
     print_datavector_file: "./projects/desy1xplanck/chains/example_evaluate1.modelvector"
 
 params:
@@ -116,6 +116,7 @@ params:
 theory:
   camb:
     path: ./external_modules/code/CAMB
+    stop_at_error: True
     use_renames: True
     extra_args:
       halofit_version: takahashi
@@ -156,8 +157,8 @@ sampler:
       DES_B1_3: 1.61423
       DES_B1_4: 1.92886
       DES_B1_5: 2.11633
-      mnu: 0.06
-      w0pwa: -0.8
-      w: -0.8
+      mnu: 0.0
+      w0pwa: -1.0
+      w: -1.0
 
 output: ./projects/desy1xplanck/chains/EXAMPLE_EVALUATE1
