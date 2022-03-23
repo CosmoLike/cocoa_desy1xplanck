@@ -1335,8 +1335,8 @@ std::vector<double> cpp_compute_data_vector_masked()
       const int index = start + i; 
       if (cpp_get_mask(index))
       {
-        //data_vector[index] = C_kk_limber(like.ell[i]);
-		data_vector[index] = C_kk_limber_nointerp(like.ell[i], 0);
+        data_vector[index] = C_kk_limber(like.ell[i]);
+		//data_vector[index] = C_kk_limber_nointerp(like.ell[i], 0, 0);
         //spdlog::info("\x1b[90m{}\x1b[0m: C kk: ell = {} --- C_kk = {} / {}", 
 		//	"compute_data_vector_masked", like.ell[i], data_vector[start+i], instance.get_data_masked(index));
       }
