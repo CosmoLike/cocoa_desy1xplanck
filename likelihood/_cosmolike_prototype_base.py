@@ -187,8 +187,11 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
       if ini.string('baryon_pca_file', default=''):
         baryon_pca_file = ini.relativeFileName('baryon_pca_file')
         self.baryon_pcs = np.loadtxt(baryon_pca_file)
+        self.log.info('use_baryon_pca = True')
+        self.log.info('baryon_pca_file = %s loaded', baryon_pca_file)
         self.use_baryon_pca = True
       else:
+        self.log.info('use_baryon_pca = False')
         self.use_baryon_pca = False
 
     self.baryon_pcs_qs = np.zeros(4)
@@ -404,10 +407,10 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
   # ------------------------------------------------------------------------
 
   def set_baryon_related(self, **params_values):
-    self.baryon_pcs_qs[0] = params_values.get("DES_BARYON_Q1", None)
-    self.baryon_pcs_qs[1] = params_values.get("DES_BARYON_Q2", None)
-    self.baryon_pcs_qs[2] = params_values.get("DES_BARYON_Q3", None)
-    self.baryon_pcs_qs[3] = params_values.get("DES_BARYON_Q4", None)
+    self.baryon_pcs_qs[0] = params_values.get("DES_BARYON_Q1", 0.0)
+    self.baryon_pcs_qs[1] = params_values.get("DES_BARYON_Q2", 0.0)
+    self.baryon_pcs_qs[2] = params_values.get("DES_BARYON_Q3", 0.0)
+    self.baryon_pcs_qs[3] = params_values.get("DES_BARYON_Q4", 0.0)
     
   def add_baryon_pcs_to_datavector(self, datavector):    
     return datavector[:] + self.baryon_pcs_qs[0]*self.baryon_pcs[:,0] \
