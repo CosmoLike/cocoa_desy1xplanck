@@ -87,6 +87,10 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
 
     self.mask_file = ini.relativeFileName('mask_file')
 
+    self.binmat_file = ini.relativeFileName('binmat_file')
+
+    self.offset_file = ini.relativeFileName('offset_file')
+
     self.lmax_kappa_cmb = ini.float("lmax_kappa_cmb", default = -1)
 
     self.lmin_kappa_cmb = ini.float("lmin_kappa_cmb", default = -1)
@@ -157,18 +161,20 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
       self.lens_ntomo = 0
 
     if (self.lmax_kappa_cmb > 0):
-      self.ncl = ini.int("n_cl")
+      #self.ncl = ini.int("n_cl")
+      self.Nbp = ini.int("n_bp", default=-1)
       self.l_min = ini.float("l_min")
       self.l_max = ini.float("l_max")
       self.fwhm  = ini.float("fwhm")
-      ci.init_binning_fourier(self.ncl, self.l_min, self.l_max)
-      ci.init_cmb(self.lmin_kappa_cmb, self.lmax_kappa_cmb, self.fwhm)
+      ci.init_binning_fourier(self.l_min, self.l_max)
+      ci.init_cmb(self.lmin_kappa_cmb, self.lmax_kappa_cmb, self.Nbp, self.fwhm)
     else:
       self.lmax_kappa_cmb = 0
 
     ci.init_size_data_vector()
 
-    ci.init_data(self.cov_file, self.mask_file, self.data_vector_file)
+    ci.init_data(self.cov_file, self.mask_file, self.data_vector_file,
+                 self.binmat_file, self.offset_file)
 
     # ------------------------------------------------------------------------
 

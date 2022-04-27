@@ -63,6 +63,10 @@ public:
 
   void set_inv_cov(std::string COV);
 
+  void set_CMB_binning_mat(std::string BINMAT); // For DESxPlanck 6x2pt
+
+  void set_CMB_theory_offset(std::string OFFSET); // For DESxPlanck 6x2pt
+
   int get_ndim() const;
 
   int get_nreduced_dim() const;
@@ -94,6 +98,14 @@ public:
   double get_inverse_covariance_masked_reduced_dim(const int ci,
     const int cj) const;
 
+  double get_binning_matrix_with_correction(const int ci, const int cj) const;
+
+  arma::Mat<double> get_binning_matrix_with_correction() const;
+
+  double get_Ckk_theory_offset(const int ci) const;
+
+  arma::Mat<double> get_Ckk_theory_offset() const;
+
   double get_chi2(std::vector<double> datavector) const;
 
   bool is_mask_set() const;
@@ -102,6 +114,10 @@ public:
 
   bool is_inv_cov_set() const;
 
+  bool is_binmat_set() const;
+
+  bool is_offset_set() const;
+
   arma::Col<double> get_expand_dim_from_masked_reduced_dim(
     arma::Col<double> reduced_dim_vector) const;
 
@@ -109,13 +125,19 @@ private:
   bool is_mask_set_ = false;
   bool is_data_set_ = false;
   bool is_inv_cov_set_ = false;
+  bool is_binmat_set_ = false;
+  bool is_offset_set_ = false;
 
   int ndata_;
   int ndata_masked_; // for baryon project, reduced dim
+  int nbp_;
+  int ncl_;
 
   std::string mask_filename_;
   std::string cov_filename_;
   std::string data_filename_;
+  std::string binmat_filename_; // DESxPlanck
+  std::string offset_filename_; // DESxPlanck
 
   arma::Col<int> index_reduced_dim_;
   arma::Col<int> mask_;
@@ -127,6 +149,11 @@ private:
   arma::Mat<double> cov_masked_reduced_dim_; // for baryon project, reduced dim
   arma::Mat<double> inv_cov_masked_;
   arma::Mat<double> inv_cov_masked_reduced_dim_;
+
+  // For DES x Planck 6x2pt project
+  // See Eqn 35 in Planck 2018 VIII
+  arma::Mat<double> CMB_binning_matrix_with_correction_;
+  arma::Col<double> CMB_theory_offset_;
 
   RealData() = default;
   RealData(RealData const&) = delete;
