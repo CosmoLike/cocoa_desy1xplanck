@@ -1,0 +1,135 @@
+timing: True
+debug: True
+stop_at_error: True
+
+likelihood:
+  desy1xplanck.desy1xplanck_6x2pt:
+    path: ./external_modules/data/desy1xplanck
+    accuracyboost: 1.0
+    samplingboost: 1.0
+    integration_accuracy: 0
+
+params:
+  As_1e9:
+    prior:
+      min: 0.5
+      max: 5
+    ref:
+      dist: norm
+      loc: 2.1
+      scale: 0.65
+    proposal: 0.4
+    latex: 10^9 A_\mathrm{s}
+    drop: true
+    renames: A
+  As:
+    value: 'lambda As_1e9: 1e-9 * As_1e9'
+    latex: A_\mathrm{s}
+  ns:
+    prior:
+      min: 0.87
+      max: 1.07
+    ref:
+      dist: norm
+      loc: 0.96605
+      scale: 0.01
+    proposal: 0.01
+    latex: n_\mathrm{s}
+  H0:
+    prior:
+      min: 55
+      max: 91
+    ref:
+      dist: norm
+      loc: 67.32
+      scale: 5
+    proposal: 3
+    latex: H_0
+  omegab:
+    prior:
+      min: 0.03
+      max: 0.07
+    ref:
+      dist: norm
+      loc: 0.0495
+      scale: 0.004
+    proposal: 0.004
+    latex: \Omega_\mathrm{b}
+    drop: true
+  omegam:
+    prior:
+      min: 0.1
+      max: 0.9
+    ref:
+      dist: norm
+      loc: 0.316
+      scale: 0.02
+    proposal: 0.02
+    latex: \Omega_\mathrm{m}
+    drop: true
+  m_ncdm:
+    prior:
+      min: 0.0
+      max: 0.6
+    ref:
+      dist: norm
+      loc: 0.25
+      scale: 0.1
+    proposal: 0.05
+  omegabh2:
+    value: 'lambda omegab, H0: omegab*(H0/100)**2'
+    latex: \Omega_\mathrm{b} h^2
+  omegach2:
+    value: 'lambda omegam, omegab, m_ncdm, H0: (omegam-omegab)*(H0/100)**2-(m_ncdm*(3.046/3)**0.75)/94.0708'
+    latex: \Omega_\mathrm{c} h^2
+  tau:
+    value: 0.0697186
+    latex: \tau_\mathrm{reio}
+  sigma8:
+    latex: \sigma_8
+  DES_BARYON_Q1:
+    value: 0.0
+
+theory:
+  classy:
+    path: ./external_modules/code/class_public
+    stop_at_error: True
+    use_renames: True
+    extra_args:
+      non linear: halofit
+      N_ncdm: 1
+      N_ur: 2.0328
+
+sampler:
+  evaluate:
+    N: 1
+    override:
+      As_1e9: 2.1
+      ns: 0.96605
+      H0: 67.32
+      omegab: 0.04
+      omegam: 0.3
+      m_ncdm: 0.0
+      DES_DZ_S1: 0.0414632
+      DES_DZ_S2: 0.00147332
+      DES_DZ_S3: 0.0237035
+      DES_DZ_S4: -0.0773436
+      DES_M1: 0.0191832
+      DES_M2: -0.0431752
+      DES_M3: -0.034961
+      DES_M4: -0.0158096
+      DES_A1_1: 0.606102
+      DES_A1_2: -1.51541
+      DES_DZ_L1: 0.00457604
+      DES_DZ_L2: 0.000309875
+      DES_DZ_L3: 0.00855907
+      DES_DZ_L4: -0.00316269
+      DES_DZ_L5: -0.0146753
+      DES_B1_1: 1.72716
+      DES_B1_2: 1.65168
+      DES_B1_3: 1.61423
+      DES_B1_4: 1.92886
+      DES_B1_5: 2.11633
+
+
+output: ./projects/desy1xplanck/chains/EXAMPLE_EVALUATE1
