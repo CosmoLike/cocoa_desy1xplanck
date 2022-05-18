@@ -20,3 +20,9 @@ lmax_kappa_cmb = 3000
 n_theta = 20
 theta_min_arcmin = 2.5
 theta_max_arcmin = 250.
+
+binmat_file = pttptt_agr2_CMBmarged/binning_matrix_with_correction_table.txt
+offset_file = pttptt_agr2_CMBmarged/Ckk_bandpower_offset.txt
+n_bp = 14
+lmin_bp = 2
+lmax_bp = 2500

@@ -87,25 +87,43 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
 
     self.mask_file = ini.relativeFileName('mask_file')
 
-    self.binmat_file = ini.relativeFileName('binmat_file')
+    self.binmat_file = ini.relativeFileName('binmat_file', default = "")# new
 
-    self.offset_file = ini.relativeFileName('offset_file')
-
+    self.offset_file = ini.relativeFileName('offset_file', default = "")# new
+    # CMB beam cut-off
     self.lmax_kappa_cmb = ini.float("lmax_kappa_cmb", default = -1)
 
     self.lmin_kappa_cmb = ini.float("lmin_kappa_cmb", default = -1)
-
+    
+    self.fwhm  = ini.float("fwhm")# new, FWHM of the CMB beam kernel, in arcmin
+    # lens sample
     self.lens_ntomo = ini.int("lens_ntomo", default = -1) #5
 
+    self.lens_file = ini.relativeFileName('nz_lens_file', default = "")
+    # source sample
     self.source_ntomo = ini.int("source_ntomo") #4
 
     self.source_file = ini.relativeFileName('nz_source_file')
-
+    
+    self.ggl_olap_cut = ini.float("lensing_overlap_cut", default = 0.0)
+    # position space binning
     self.ntheta = ini.int("n_theta")
 
     self.theta_min_arcmin = ini.float("theta_min_arcmin")
 
     self.theta_max_arcmin = ini.float("theta_max_arcmin")
+    # CMB band power binning
+    self.nbp = ini.int("n_bp", default=-1)
+    
+    self.lmin_bp = ini.int("lmin_bp", default=-1)# new, min ell of bin mat
+    
+    self.lmax_bp = ini.int("lmax_bp", default=-1)# new
+    # Fourier space binning
+    self.ncl = ini.float("n_cl", default = -1)
+
+    self.lmin = ini.float("lmin", default = -1)
+
+    self.lmax = ini.float("lmax", default = -1)
 
     self.force_cache_false = False
 
@@ -154,22 +172,21 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
     ci.init_source_sample(self.source_file, self.source_ntomo)
 
     if (self.lens_ntomo > 0):
-      self.lens_file = ini.relativeFileName('nz_lens_file')
-      self.ggl_olap_cut = ini.float("lensing_overlap_cut")
       ci.init_lens_sample(self.lens_file, self.lens_ntomo, self.ggl_olap_cut)
     else:
       self.lens_ntomo = 0
 
-    if (self.lmax_kappa_cmb > 0):
-      #self.ncl = ini.int("n_cl")
-      self.Nbp = ini.int("n_bp", default=-1)
-      self.l_min = ini.float("l_min")
-      self.l_max = ini.float("l_max")
-      self.fwhm  = ini.float("fwhm")
-      ci.init_binning_fourier(self.l_min, self.l_max)
-      ci.init_cmb(self.lmin_kappa_cmb, self.lmax_kappa_cmb, self.Nbp, self.fwhm)
+    ci.init_cmb(self.lmin_kappa_cmb, self.lmax_kappa_cmb, self.Nbp, self.fwhm)
+    
+    if (self.ncl > 0):
+      ci.init_binning_fourier(self.ncl, self.lmin, self.lmax)
     else:
-      self.lmax_kappa_cmb = 0
+      self.ncl = 0
+
+    if (self.nbp > 0):
+      ci.init_binning_bandpower(self.nbp, self.lmin_bp, self.lmax_bp)
+    else:
+      self.nbp = 0
 
     ci.init_size_data_vector()
 

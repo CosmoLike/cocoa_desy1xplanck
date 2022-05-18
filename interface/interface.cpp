@@ -304,35 +304,37 @@ const std::string which_baryonic_simulations_contamination)
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_baryons_contamination");
 }
 
-void cpp_init_binning_fourier(const int Ncl, 
-  const double lmin, const double lmax)
+void cpp_init_binning_fourier(const int Ncl,const double lmin,const double lmax)
 {
   spdlog::info("\x1b[90m{}\x1b[0m: Begins", "init_binning_fourier");
 
   if (!(Ncl > 0))
   {
-    spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} not supported", "init_binning", "like.Ncl", Ncl);
+    spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} not supported", 
+      "init_binning_fourier", "like.Ncl", Ncl);
     exit(1);
   }
 
-  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_binning", "Ncl", Ncl);
+  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", 
+    "init_binning_fourier", "Ncl", Ncl);
 
-  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_binning", "l_min", lmin);
+  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", 
+    "init_binning_fourier", "l_min", lmin);
 
-  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_binning", "l_max", lmax);
+  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", 
+    "init_binning_fourier", "l_max", lmax);
 
   like.Ncl = Ncl;
   like.lmin = lmin;
   like.lmax = lmax;
-  //like.Ncl = lmax-lmin+1;
-  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_binning", "Ncl",
-    like.Ncl);
+
+  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", 
+    "init_binning_fourier", "Ncl", like.Ncl);
   const double logdl = (std::log(like.lmax) - std::log(like.lmin))/like.Ncl;
   like.ell = (double*) malloc(sizeof(double)*like.Ncl);
   for (int i = 0; i < like.Ncl+1; i++)
   {
     like.ell[i] = std::exp(std::log(like.lmin)+(i+0.5)*logdl);
-    //like.ell[i] = lmin+i;
     spdlog::debug("\x1b[90m{}\x1b[0m: Bin {:d} - {} = {:.4e}, {} = {:.4e} and {} = {:.4e}",
      "init_binning_fourier", i, "lmin", lmin, "ell", like.ell[i], "lmax", lmax);
   }
@@ -340,8 +342,35 @@ void cpp_init_binning_fourier(const int Ncl,
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_binning_fourier");
 }
 
-void cpp_init_binning_bandpower(const int Nbp,
-  );
+void cpp_init_binning_bandpower(const int Nbp, const int lmin, const int lmax)
+{
+  spdlog::info("\x1b[90m{}\x1b[0m: Begins", "init_binning_bandpower");
+
+  if (!(Nbp > 0))
+  {
+    spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} not supported", 
+      "init_binning_bandpower", "like.Nbp", Nbp);
+    exit(1);
+  }
+
+  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", 
+    "init_binning_bandpower", "Nbp", Nbp);
+
+  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", 
+    "init_binning_bandpower", "l_min", lmin);
+
+  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", 
+    "init_binning_bandpower", "l_max", lmax);
+
+  like.Nbp = Nbp;
+  like.lmin_bp = lmin;
+  like.lmax_bp = lmax;
+
+  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", 
+    "init_binning_bandpower", "Nbp", like.Nbp);
+
+  spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_binning_bandpower");
+}
 
 void cpp_init_binning(const int Ntheta, const double theta_min_arcmin,
 const double theta_max_arcmin)
@@ -534,12 +563,17 @@ void cpp_init_size_data_vector()
       "init_size_data_vector", "like.Nbp", "like.Ncl");
     exit(1);
   }
+  if ((like.Nbp > 0) && (like.Ncl > 0)) {
+    spdlog::critical("{}: {} and {} cant be set at the same time!",
+      "init_size_data_vector", "like.Nbp", "like.Ncl");
+    exit(1);
+  }
 
   like.Ndata = like.Ntheta*(2*tomo.shear_Npowerspectra +
                         tomo.ggl_Npowerspectra + tomo.clustering_Npowerspectra
                         + tomo.shear_Nbin + tomo.clustering_Nbin);
   if ((like.Nbp > 0) && (like.Ncl == 0)){like.Ndata += like.Nbp;} 
-  else if((like.Nbp == 0) && (like.Ncl == 0)){like.Ndata += like.Ncl;}
+  else if((like.Nbp == 0) && (like.Ncl > 0)){like.Ndata += like.Ncl;}
 
   spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_size_data_vector", "Ndata",
     like.Ndata);
@@ -1181,7 +1215,7 @@ std::vector<double> cpp_compute_data_vector_masked()
   // check Fourier space binning
   if ((like.Nbp <= 0) && (like.Ncl <= 0))
   {
-    spdlog::critical("\x1b[90m{}\x1b[0m: either {} or must be positive",
+    spdlog::critical("\x1b[90m{}\x1b[0m: either {} or {} must be positive",
       "compute_data_vector_masked", "like.Nbp", "like.Ncl");
     exit(1);
   }
@@ -1241,6 +1275,24 @@ std::vector<double> cpp_compute_data_vector_masked()
     spdlog::critical(
       "\x1b[90m{}\x1b[0m: {} not set prior to this function call",
       "compute_data_vector_masked", "inv_cov");
+    exit(1);
+  }
+  if (like.lmin_kappacmb <= 0)
+  {
+    spdlog::critical("\x1b[90m{}\x1b[0m: {} not set prior to this function call",
+      "compute_data_vector_masked", "like.lmin_kappacmb");
+    exit(1);
+  }
+  if (like.lmax_kappacmb <= 0)
+  {
+    spdlog::critical("\x1b[90m{}\x1b[0m: {} not set prior to this function call",
+      "compute_data_vector_masked", "like.lmax_kappacmb");
+    exit(1);
+  }
+  if (cmb.fwhm <= 0)
+  {
+    spdlog::critical("\x1b[90m{}\x1b[0m: {} not set prior to this function call",
+      "compute_data_vector_masked", "cmb.fwhm");
     exit(1);
   }
 
@@ -1921,13 +1973,12 @@ void ima::RealData::set_inv_cov(std::string COV)
   }
 }
 
-void ima::RealData::set_CMB_theory_offset(
-  std::string OFFSET)
+void ima::RealData::set_CMB_theory_offset(std::string OFFSET)
 {
   if (!(like.Nbp>0))
   {
-    spdlog::critical("\x1b[90m{}\x1b[0m: {} not set prior to this function call",
-      "set_CMB_binning_mat", "like.Nbp");
+    spdlog::critical("\x1b[90m{}\x1b[0m: {} not set prior to this call",
+      "set_CMB_theory_offset", "like.Nbp");
     exit(1);
   }
 
@@ -1937,52 +1988,36 @@ void ima::RealData::set_CMB_theory_offset(
   arma::Mat<double> table = ima::read_table(OFFSET);
   for (int i=0; i<this->nbp_; i++)
   {
-    this->CMB_theory_offset_(i) = 
-    static_cast<double>(table(i,0));
+    this->CMB_theory_offset_(i) = static_cast<double>(table(i,0));
   }
 
   this->offset_filename_ = OFFSET;
 
-  spdlog::info(
-    "\x1b[90m{}\x1b[0m: theory Ckk offset file {} has {} elements",
+  spdlog::info("\x1b[90m{}\x1b[0m: {} has {} elements (C_kk not C_phiphi)",
     "set_CMB_theory_offset", OFFSET, this->nbp_);
 
   this->is_offset_set_ = true;
 }
 
-void ima::RealData::set_CMB_binning_mat(
-  std::string BINMAT)
+void ima::RealData::set_CMB_binning_mat(std::string BINMAT)
 {
   if (!(like.Nbp>0))
   {
-    spdlog::critical("\x1b[90m{}\x1b[0m: {} not set prior to this function call",
+    spdlog::critical("\x1b[90m{}\x1b[0m: {} not set prior to this call",
       "set_CMB_binning_mat", "like.Nbp");
     exit(1);
   }
   if ( !( (like.lmin_bp>=0) && (like.lmax_bp>0) ) )
   {
-    spdlog::critical("\x1b[90m{}\x1b[0m: {} and {} not set prior to this function call",
+    spdlog::critical("\x1b[90m{}\x1b[0m: {} and {} not set prior to this call",
       "set_CMB_binning_mat", "like.lmin_bp", "like.lmax_bp");
-    exit(1);
-  }
-  if (!(like.lmin_kappacmb>0))
-  {
-    spdlog::critical("\x1b[90m{}\x1b[0m: {} not set prior to this function call",
-      "set_CMB_binning_mat", "like.lmin_kappacmb");
-    exit(1);
-  }
-  if (!(like.lmax_kappacmb>0))
-  {
-    spdlog::critical("\x1b[90m{}\x1b[0m: {} not set prior to this function call",
-      "set_CMB_binning_mat", "like.lmax_kappacmb");
     exit(1);
   }
 
 
   this->nbp_ = like.Nbp;
   this->ncl_ = like.lmax_bp - like.lmin_bp + 1;
-  this->CMB_binning_matrix_with_correction_.set_size(
-    this->nbp_, this->ncl_);
+  this->CMB_binning_matrix_with_correction_.set_size(this->nbp_, this->ncl_);
 
   arma::Mat<double> table = ima::read_table(BINMAT);
   for (int i=0; i<this->nbp_; i++)
@@ -1990,7 +2025,7 @@ void ima::RealData::set_CMB_binning_mat(
     for (int j=0; j<this->ncl_; j++)
     {
       this->CMB_binning_matrix_with_correction_(i,j) = 
-        static_cast<double>(table(i,j));
+      static_cast<double>(table(i,j));
 
     }
   }
@@ -2146,18 +2181,18 @@ arma::Mat<double> ima::RealData::get_covariance_masked_reduced_dim() const
 double ima::RealData::get_binning_matrix_with_correction(const int ci, 
   const int cj) const
 {
-  if (ci > like.Nbp || ci < 0)
+  if (ci > this->nbp_ || ci < 0)
   {
     spdlog::critical(
       "\x1b[90m{}\x1b[0m: index i = {} is not valid (min = {}, max = {})",
-      "get_binning_matrix_with_correction", ci, 0.0, like.Nbp);
+      "get_binning_matrix_with_correction", ci, 0.0, this->nbp_);
     exit(1);
   }
-  if (cj > like.Ncl || cj < 0)
+  if (cj > this-?ncl_ || cj < 0)
   {
     spdlog::critical(
       "\x1b[90m{}\x1b[0m: index j = {} is not valid (min = {}, max = {})",
-      "get_binning_matrix_with_correction", cj, 0.0, like.Ncl);
+      "get_binning_matrix_with_correction", cj, 0.0, this->ncl_);
     exit(1);
   }
 
@@ -2171,18 +2206,18 @@ arma::Mat<double> ima::RealData::get_binning_matrix_with_correction() const
 
 double ima::RealData::get_Ckk_theory_offset(const int ci) const
 {
-  if (ci > like.Nbp || ci < 0)
+  if (ci > this->nbp_ || ci < 0)
   {
     spdlog::critical(
       "\x1b[90m{}\x1b[0m: index i = {} is not valid (min = {}, max = {})",
-      "get_Ckk_theory_offset", ci, 0.0, like.Nbp);
+      "get_Ckk_theory_offset", ci, 0.0, this->nbp_);
     exit(1);
   }
 
   return this->CMB_theory_offset(ci);
 }
 
-arma::Mat<double> ima::RealData::get_Ckk_theory_offset(const int ci) const
+arma::Mat<double> ima::RealData::get_Ckk_theory_offset() const
 {
   return this->CMB_theory_offset;
 }
@@ -2455,9 +2490,17 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
   m.def("init_binning_fourier",
     &cpp_init_binning_fourier,
     "Init Bining related variables (in fourier space)",
-    //py::arg("Ncl"),
+    py::arg("Ncl"),
     py::arg("l_min"),
     py::arg("l_max")
+  );
+
+  m.def("init_binning_bandpower",
+    &cpp_init_binning_bandpower,
+    "Init Bining related variables (in Fourier band-power space)",
+    py::arg("Nbp"),
+    py::arg("lmin_bp"),
+    py::arg("lmax_bp")
   );
 
   m.def("init_binning",
