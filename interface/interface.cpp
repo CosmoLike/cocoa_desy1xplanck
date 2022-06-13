@@ -113,11 +113,10 @@ const int integration_accuracy)
   Ntable.N_k_lin = static_cast<int>(ceil(Ntable.N_k_lin*sampling_boost));
   Ntable.N_k_nlin = static_cast<int>(ceil(Ntable.N_k_nlin*sampling_boost));
   Ntable.N_ell = static_cast<int>(ceil(Ntable.N_ell*sampling_boost));
-  
-  Ntable.N_theta  = static_cast<int>(ceil(Ntable.N_theta*sampling_boost));
 
-  Ntable.N_S2 = static_cast<int>(ceil(Ntable.N_S2*sampling_boost));
-  Ntable.N_DS = static_cast<int>(ceil(Ntable.N_DS*sampling_boost));
+  Ntable.N_M = static_cast<int>(ceil(Ntable.N_M*sampling_boost));
+
+  Ntable.N_theta  = static_cast<int>(ceil(Ntable.N_theta*sampling_boost));
 
   precision.low /= accuracy_boost;
   precision.medium /= accuracy_boost;

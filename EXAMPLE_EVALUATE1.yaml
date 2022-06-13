@@ -110,8 +110,47 @@ params:
     latex: \tau_\mathrm{reio}
   sigma8:
     latex: \sigma_8
-  DES_BARYON_Q1:
-    value: 0.0
+  # Intrinsic alignment
+  JKDES_A1_1:
+    prior:
+      min: -5
+      max:  5
+    ref:
+      dist: norm
+      loc: 0.8
+      scale: 0.1
+    proposal: 0.1
+    latex: A_\mathrm{1-IA}^1
+  JKDES_A1_2:
+    prior:
+      min: -5
+      max:  5
+    ref:
+      dist: norm
+      loc: 0
+      scale: 0.5
+    proposal: 0.5
+    latex: A_\mathrm{1-IA}^2
+  JKDES_BARYON_Q1:
+    prior:
+      min: -5.0
+      max: 10.0
+    ref:
+      dist: norm
+      loc: 0.5
+      scale: 0.3
+    proposal: 0.3
+    latex: BQ_1
+  JKDES_BARYON_Q2:
+    prior:
+      min: -2.5
+      max: 2.5
+    ref:
+      dist: norm
+      loc: 0
+      scale: 0.3
+    proposal: 0.3
+    latex: BQ_2
 
 theory:
   camb:
@@ -144,8 +183,8 @@ sampler:
       DES_M2: -0.0431752
       DES_M3: -0.034961
       DES_M4: -0.0158096
-      DES_A1_1: 0.606102
-      DES_A1_2: -1.51541
+      JKDES_A1_1: 0.606102
+      JKDES_A1_2: -1.51541
       DES_DZ_L1: 0.00457604
       DES_DZ_L2: 0.000309875
       DES_DZ_L3: 0.00855907
@@ -157,7 +196,9 @@ sampler:
       DES_B1_4: 1.92886
       DES_B1_5: 2.11633
       mnu: 0.06
-      w0pwa: -0.8
-      w: -0.8
-
+      w0pwa: -1.0
+      w: -0.99
+      JKDES_BARYON_Q1: 0.0
+      JKDES_BARYON_Q2: 0.0
+      
 output: ./projects/desy1xplanck/chains/EXAMPLE_EVALUATE1
