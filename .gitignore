@@ -4,7 +4,7 @@
 *.pyo
 *.cfg
 chains/
-#EXAMPLE_EVALUATE1.yaml
+EXAMPLE_EVALUATE1.yaml
 #EXAMPLE_MCMC1_UOFA.sbatch
 #EXAMPLE_MCMC1.yaml
 #EXAMPLE_MCMC2_UOFA.sbatch
