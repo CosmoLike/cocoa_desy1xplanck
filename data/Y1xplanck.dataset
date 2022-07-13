@@ -1,19 +1,25 @@
-#data_file = xi_desy1xplanck_6x2pt_fid
-#data_file = xi_desy1xplanck_6x2pt_fid_cosmolike_core
-#data_file = xi_desy1xplanck_6x2pt_mv_at_fiducial
-data_file = xi_desy1xplanck_6x2pt_cosmolike_core_fiducial_model_vector_2
-cov_file = cov_y1xplanck_mix6x2pt_referebceMV_new
-mask_file = xi_desy1xplanck_6x2pt_fid.mask
+data_file = xi_desy1xplanck_6x2pt_simudata_pp_agr2_CMBmarged_cocoa
+#data_file = xi_desy1xplanck_6x2pt_simudata_pp_agr2_CMBmarged_cosmolike
+#data_file = xi_desy1xplanck_6x2pt_realdata_pp_agr2_CMBmarged
+
+#cov_file = cov_y1xplanck_mix6x2pt_referebceMV_new # this one still assume log-bin for k_cmb
+cov_file = cov_y1xplanck_mix6x2pt_pp_p18cosmo_kkkkFFP10
+
+#mask_file = xi_desy1xplanck_6x2pt_fid.mask # log-bin, not bandpower
+mask_file = xi_desy1xplanck_6x2pt_realdata_pp_agr2_CMBmarged.mask
+#mask_file = xi_desy1xplanck_6x2pt_realdata_pp_agr2_CMBmarged_BPdebug.mask
+
 nz_lens_file = mcal_1101_lens.nz
 nz_source_file = mcal_1101_source.nz
-baryon_pca_file = 6x2pt_baseline_PCA
+#baryon_pca_file = 6x2pt_baseline_PCA
+baryon_pca_file = pca.txt
 lensing_overlap_cut = 0.00
 lens_ntomo = 5
 source_ntomo = 4
 IA_model = 4
-n_cl = 15
-l_min = 40.
-l_max = 2999.999
+#n_cl = 15
+#l_min = 40.
+#l_max = 2999.999
 fwhm = 7
 lmin_kappa_cmb = 40
 lmax_kappa_cmb = 3000
@@ -21,8 +27,8 @@ n_theta = 20
 theta_min_arcmin = 2.5
 theta_max_arcmin = 250.
 
-binmat_file = pttptt_agr2_CMBmarged/binning_matrix_with_correction_table.txt
-offset_file = pttptt_agr2_CMBmarged/Ckk_bandpower_offset.txt
+binmat_file = pp_agr2_CMBmarged/binning_matrix_with_correction_table.txt
+offset_file = pp_agr2_CMBmarged/Ckk_bandpower_offset.txt
 n_bp = 14
 lmin_bp = 2
 lmax_bp = 2500

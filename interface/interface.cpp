@@ -263,13 +263,13 @@ void cpp_init_IA(int N)
 }
 
 void cpp_init_cmb(const double lmin_kappa_cmb, const double lmax_kappa_cmb, 
-  const int Nbp, const double fwhm) 
+  const double fwhm) 
 {
   spdlog::info("\x1b[90m{}\x1b[0m: Begins", "init_cmb");
 
   like.lmin_kappacmb = lmin_kappa_cmb;
   like.lmax_kappacmb = lmax_kappa_cmb;
-  like.Nbp = Nbp;
+  //like.Nbp = Nbp;
 
   // fwhm = beam size in arcmin
   // cmb.fwhm = beam size in rad
@@ -785,8 +785,8 @@ void cpp_init_data(std::string COV, std::string MASK, std::string DATA,
   instance.set_mask(MASK); // set_mask must be called first
   instance.set_data(DATA);
   instance.set_inv_cov(COV);
-  if (strcmp(BINMAT, "")!=0){instance.set_CMB_binning_mat(BINMAT);}
-  if (strcmp(OFFSET, "")!=0){instance.set_CMB_theory_offset(OFFSET);}
+  if (BINMAT != "none" ){instance.set_CMB_binning_mat(BINMAT);}
+  if (OFFSET != "none" ){instance.set_CMB_theory_offset(OFFSET);}
 
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_data");
 
@@ -1464,9 +1464,11 @@ std::vector<double> cpp_compute_data_vector_masked()
     // Fourier space band power bin
     {
       ima::RealData& instance = ima::RealData::get_instance();
+      // Loop through L
       for (int L=like.lmin_bp; L<like.lmax_bp+1; L++)
       {
-        _C_kk_limber = C_kk_limber((double)L);
+        double _C_kk_limber = C_kk_limber((double)L);
+		// Loop through bandpower bins
         for (int j=0; j<like.Nbp; j++)
         {
           const int index = start + j; 
@@ -1474,11 +1476,22 @@ std::vector<double> cpp_compute_data_vector_masked()
           {
             int i = L - like.lmin_bp;
             double _binmat = instance.get_binning_matrix_with_correction(j, i);
-            double _offset = instance.get_Ckk_theory_offset(j);
-            data_vector[index] += (_C_kk_limber * _binmat + _offset);
+            //double _offset = instance.get_Ckk_theory_offset(j);
+            //data_vector[index] += (_C_kk_limber * _binmat + _offset);
+			data_vector[index] += (_C_kk_limber * _binmat);// offset applied out of loop
           }
         }
       }
+	  // add the offset due to marginalizing over primary CMB
+	  for (int j=0; j<like.Nbp; j++)
+	  {
+		const int index = start + j;
+		if (cpp_get_mask(index))
+		{
+		  double _offset = instance.get_Ckk_theory_offset(j);
+		  data_vector[index] -= _offset;
+		}
+	  }
     }
   }
 
@@ -2188,7 +2201,7 @@ double ima::RealData::get_binning_matrix_with_correction(const int ci,
       "get_binning_matrix_with_correction", ci, 0.0, this->nbp_);
     exit(1);
   }
-  if (cj > this-?ncl_ || cj < 0)
+  if (cj > this->ncl_ || cj < 0)
   {
     spdlog::critical(
       "\x1b[90m{}\x1b[0m: index j = {} is not valid (min = {}, max = {})",
@@ -2196,12 +2209,12 @@ double ima::RealData::get_binning_matrix_with_correction(const int ci,
     exit(1);
   }
 
-  return this->CMB_binning_matrix_with_correction(ci, cj);
+  return this->CMB_binning_matrix_with_correction_(ci, cj);
 }
 
 arma::Mat<double> ima::RealData::get_binning_matrix_with_correction() const
 {
-  return this->CMB_binning_matrix_with_correction;
+  return this->CMB_binning_matrix_with_correction_;
 }
 
 double ima::RealData::get_Ckk_theory_offset(const int ci) const
@@ -2214,12 +2227,12 @@ double ima::RealData::get_Ckk_theory_offset(const int ci) const
     exit(1);
   }
 
-  return this->CMB_theory_offset(ci);
+  return this->CMB_theory_offset_(ci);
 }
 
 arma::Mat<double> ima::RealData::get_Ckk_theory_offset() const
 {
-  return this->CMB_theory_offset;
+  return this->CMB_theory_offset_;
 }
 
 double ima::RealData::get_chi2(std::vector<double> datavector) const
@@ -2464,7 +2477,6 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
     "Init CMB l_max",
     py::arg("lmin_kappa_cmb"),
     py::arg("lmax_kappa_cmb"),
-    py::arg("Nbp"),
     py::arg("fwhm")
   );
 

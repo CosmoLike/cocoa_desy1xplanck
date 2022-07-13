@@ -87,9 +87,9 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
 
     self.mask_file = ini.relativeFileName('mask_file')
 
-    self.binmat_file = ini.relativeFileName('binmat_file', default = "")# new
+    self.binmat_file = ini.relativeFileName('binmat_file', default = "none")# new
 
-    self.offset_file = ini.relativeFileName('offset_file', default = "")# new
+    self.offset_file = ini.relativeFileName('offset_file', default = "none")# new
     # CMB beam cut-off
     self.lmax_kappa_cmb = ini.float("lmax_kappa_cmb", default = -1)
 
@@ -176,7 +176,7 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
     else:
       self.lens_ntomo = 0
 
-    ci.init_cmb(self.lmin_kappa_cmb, self.lmax_kappa_cmb, self.Nbp, self.fwhm)
+    ci.init_cmb(self.lmin_kappa_cmb, self.lmax_kappa_cmb, self.fwhm)
     
     if (self.ncl > 0):
       ci.init_binning_fourier(self.ncl, self.lmin, self.lmax)

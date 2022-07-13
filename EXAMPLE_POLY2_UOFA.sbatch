@@ -1,21 +1,24 @@
 #!/bin/bash
 
-#SBATCH --job-name=DESY1_PL_POLY1
-#SBATCH --output=DESY1_PL_POLY1-%j.out 
+#SBATCH --job-name=DESY1_PL_POLY2
+#SBATCH --output=DESY1_PL_POLY2-%j.out 
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=30
-#SBATCH --cpus-per-task=3
+#SBATCH --ntasks-per-node=10
+#SBATCH --ntasks-per-socket=5
+#SBATCH --cpus-per-task=8
 #SBATCH --partition=high_priority
 #SBATCH --qos=user_qos_timeifler
 #SBATCH --account=timeifler
-#SBATCH --time=60:00:00
-#SBATCH --exclusive
+#SBATCH --time=200:00:00
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=jiachuanxu@email.arizona.edu
+###SBATCH --exclusive
 
 # Clear the environment from any previously loaded modules
 module purge > /dev/null 2>&1
 module load anaconda
 conda init bash
-source ~/.bashrc  
+source ~/.bashrc 
 
 echo Running on host `hostname`
 echo Time is `date`

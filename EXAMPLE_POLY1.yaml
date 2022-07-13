@@ -1,4 +1,4 @@
-timing: False
+timing: True
 debug: False
 stop_at_error: False
 
@@ -13,7 +13,7 @@ params:
       max: 5
     ref:
       dist: norm
-      loc: 2.1
+      loc: 2.141626
       scale: 0.65
     proposal: 0.4
     latex: 10^9 A_\mathrm{s})
@@ -28,7 +28,7 @@ params:
       max: 1.07
     ref:
       dist: norm
-      loc: 0.96605
+      loc: 0.964
       scale: 0.01
     proposal: 0.01
     latex: n_\mathrm{s}
@@ -38,7 +38,7 @@ params:
       max: 91
     ref:
       dist: norm
-      loc: 67.32
+      loc: 67.00
       scale: 5
     proposal: 3
     latex: H_0
@@ -48,7 +48,7 @@ params:
       max: 0.07
     ref:
       dist: norm
-      loc: 0.0495
+      loc: 0.04937
       scale: 0.004
     proposal: 0.004
     latex: \Omega_\mathrm{b}
@@ -59,27 +59,29 @@ params:
       max: 0.9
     ref:
       dist: norm
-      loc: 0.316
+      loc: 0.31735
       scale: 0.02
     proposal: 0.02
     latex: \Omega_\mathrm{m}
     drop: true
   mnu:
-    prior:
-      min: 0.06
-      max: 0.6
-    ref:
-      dist: norm
-      loc: 0.25
-      scale: 0.1
-    proposal: 0.05
+#    prior:
+#      min: 0.06
+#      max: 0.6
+#    ref:
+#      dist: norm
+#      loc: 0.25
+#      scale: 0.1
+#    proposal: 0.05
+    value: 0.06
+    latex: m_{\\nu}
   w0pwa:
     prior:
       min: -5 
       max: -0.01
     ref:
       dist: norm
-      loc: -0.99
+      loc: -1.00
       scale: 0.05
     proposal: 0.05
     latex: w_{0,\mathrm{DE}}+w_{a,\mathrm{DE}}
@@ -90,7 +92,7 @@ params:
       max: -0.01
     ref:
       dist: norm
-      loc: -0.99
+      loc: -1.00
       scale: 0.05
     proposal: 0.05
     latex: w_{0,\mathrm{DE}}
@@ -128,17 +130,23 @@ params:
     derived: 'lambda omegan2, H0: omegan2/((H0/100)**2)'
     latex: \Omega_\mathrm{\\nu}
   DES_BARYON_Q1:
-    value: 0.0
-    latex: Q_\mathrm{DES}^2
+    prior:
+      min: -7.5
+      max:  7.5
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 2.0
+    latex: Q_\mathrm{DES}^{(1)}
   DES_BARYON_Q2:
     value: 0.0
-    latex: Q_\mathrm{DES}^2
+    latex: Q_\mathrm{DES}^{(2)}
   DES_BARYON_Q3:
     value: 0.0
-    latex: Q_\mathrm{DES}^3
+    latex: Q_\mathrm{DES}^{(3)}
   DES_BARYON_Q4:
     value: 0.0
-    latex: Q_\mathrm{DES}^4
+    latex: Q_\mathrm{DES}^{(4)}
 
 theory:
   camb:
@@ -148,8 +156,8 @@ theory:
       halofit_version: takahashi
       AccuracyBoost: 1.1
       lens_potential_accuracy: 1.1
-      num_massive_neutrinos: 1
-      nnu: 3.046
+      num_massive_neutrinos: 3
+      nnu: 0.00641
       dark_energy_model: ppf
       accurate_massive_neutrino_transfers: false
       k_per_logint: 20
@@ -166,7 +174,7 @@ sampler:
     blocking:
       - [1,
           [
-             As_1e9, ns, H0, omegab, omegam, mnu, w0pwa, w
+             As_1e9, ns, H0, omegab, omegam, w0pwa, w
           ]
         ]
       - [3,
@@ -177,8 +185,8 @@ sampler:
         ]
       - [25,
           [
-            DES_M1, DES_M2, DES_M3, DES_M4,DES_B1_1, DES_B1_2, DES_B1_3, DES_B1_4, DES_B1_5
+            DES_M1, DES_M2, DES_M3, DES_M4,DES_B1_1, DES_B1_2, DES_B1_3, DES_B1_4, DES_B1_5, DES_BARYON_Q1
           ]
         ]
 
-output: ./projects/desy1xplanck/chains/POLY1
+output: ./projects/desy1xplanck/chains/3x2pt_simudata/EXAMPLE_POLY1

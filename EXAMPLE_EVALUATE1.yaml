@@ -122,8 +122,11 @@ theory:
       halofit_version: takahashi
       AccuracyBoost: 1.1
       lens_potential_accuracy: 1.1
-      num_massive_neutrinos: 1
-      nnu: 3.046
+      # default: 1
+      num_massive_neutrinos: 3
+      # what's this? N_ur = 2.0328 for 1 massive + 2 massless; 3.046 for massless
+      # default 3.046
+      nnu: 0.00641
       dark_energy_model: ppf
       accurate_massive_neutrino_transfers: false
       k_per_logint: 20
@@ -132,11 +135,11 @@ sampler:
   evaluate:
     N: 1
     override:
-      As_1e9: 2.1
-      ns: 0.96605
-      H0: 67.32
-      omegab: 0.04
-      omegam: 0.3
+      As_1e9: 2.141626
+      ns: 0.964
+      H0: 67.00
+      omegab: 0.04937
+      omegam: 0.31735
       DES_DZ_S1: 0.0414632
       DES_DZ_S2: 0.00147332
       DES_DZ_S3: 0.0237035
@@ -157,7 +160,7 @@ sampler:
       DES_B1_3: 1.61423
       DES_B1_4: 1.92886
       DES_B1_5: 2.11633
-      mnu: 0.0
+      mnu: 0.06
       w0pwa: -1.0
       w: -1.0
 
