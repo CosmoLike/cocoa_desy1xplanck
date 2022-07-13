@@ -1,15 +1,15 @@
 #!/bin/bash
 
-#SBATCH --job-name=DESY1_PL_MC1
-#SBATCH --output=DESY1_PL_MC1-%j.out
+#SBATCH --job-name=DESY1PL
+#SBATCH --output=DESY1PL-%A_%a.out
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=4
-#SBATCH --ntasks-per-socket=2
-#SBATCH --cpus-per-task=11
+#SBATCH --ntasks-per-node=8
+#SBATCH --cpus-per-task=10
 #SBATCH --partition=high_priority
 #SBATCH --qos=user_qos_timeifler
 #SBATCH --account=timeifler
-#SBATCH --time=100:00:00
+#SBATCH --time=15:00:00
+#SBATCH --exclusive
 
 # Clear the environment from any previously loaded modules
 module purge > /dev/null 2>&1
@@ -34,4 +34,5 @@ else
   export OMP_NUM_THREADS=1
 fi
 
-mpirun -n ${SLURM_NTASKS} --mca btl tcp,self --bind-to core --map-by numa:pe=${OMP_NUM_THREADS} cobaya-run ./projects/desy1xplanck/EXAMPLE_MCMC1.yaml -r
+mpirun -n ${SLURM_NTASKS} --mca btl tcp,self --oversubscribe --bind-to core --map-by numa:pe=${OMP_NUM_THREADS} cobaya-run ./projects/desy1xplanck/EXAMPLE_MCMC${SLURM_ARRAY_TASK_ID}.yaml -r
+
