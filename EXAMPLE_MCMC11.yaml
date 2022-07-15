@@ -6,6 +6,11 @@ likelihood:
   desy1xplanck.desy1xplanck_cosmic_shear:
     path: ./external_modules/data/desy1xplanck
     data_file: des_kids.dataset
+  kids.kids_cosmic_shear:
+    path: ./external_modules/data/kids
+    data_file: kids_cosmic_shear.mask
+    integration_accuracy: 0
+    print_datavector: False 
 
 params:
   As_1e9:
@@ -86,6 +91,12 @@ params:
   DES_BARYON_Q4:
     value: 0.0
     latex: Q_\mathrm{DES}^4
+  KIDS_BARYON_Q1:
+    pvalue: 0.0
+    latex: Q1_\mathrm{KiDS}^1
+  KIDS_BARYON_Q2:
+    value: 0.0
+    latex: Q2_\mathrm{KiDS}^1
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
@@ -215,6 +226,133 @@ params:
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
+  # Shear calibration parameters
+  KIDS_M1:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    proposal: 0.005
+    latex: m_\mathrm{}^1
+  KIDS_M2:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    proposal: 0.005
+    latex: m_\mathrm{}^2
+  KIDS_M3:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    proposal: 0.005
+    latex: m_\mathrm{}^3
+  KIDS_M4:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    proposal: 0.005
+    latex: m_\mathrm{}^4
+  KIDS_M5:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    proposal: 0.005
+    latex: m_\mathrm{}^5  
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # WL photo-z errors
+  KIDS_DZ_S1:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.0106
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.0106
+    proposal: 0.0005
+    latex: \Delta z_\mathrm{s}^1
+  KIDS_DZ_S2:
+    prior:
+      dist: norm
+      loc: 0.002
+      scale: 0.0113
+    ref:
+      dist: norm
+      loc: 0.002
+      scale: 0.0113
+    proposal: 0.0005
+    latex: \Delta z_\mathrm{s}^2
+  KIDS_DZ_S3:
+    prior:
+      dist: norm
+      loc: 0.013
+      scale: 0.0118
+    ref:
+      dist: norm
+      loc: 0.013
+      scale: 0.0118
+    proposal: 0.0005
+    latex: \Delta z_\mathrm{s}^3
+  KIDS_DZ_S4:
+    prior:
+      dist: norm
+      loc: 0.011
+      scale: 0.0087
+    ref:
+      dist: norm
+      loc: 0.011
+      scale: 0.0087
+    proposal: 0.0005
+    latex: \Delta z_\mathrm{s}^4
+  KIDS_DZ_S5:
+    prior:
+      dist: norm
+      loc: -0.006
+      scale: 0.0097
+    ref:
+      dist: norm
+      loc: -0.006
+      scale: 0.0097
+    proposal: 0.0005
+    latex: \Delta z_\mathrm{s}^5
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  KIDS_A1_1:
+    value: 'lambda DES_A1_1: DES_A1_1'
+    latex: A_\mathrm{1-IA}^1
+  KIDS_A1_2:
+    value: 'lambda DES_A1_2: DES_A1_2'
+    latex: A_\mathrm{1-IA}^2
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
 
 theory:
   camb:
@@ -279,12 +417,13 @@ sampler:
         ]
       - [3,
           [
-            DES_DZ_S1, DES_DZ_S2, DES_DZ_S3, DES_DZ_S4, DES_A1_1, DES_A1_2
+            DES_DZ_S1, DES_DZ_S2, DES_DZ_S3, DES_DZ_S4, DES_A1_1, DES_A1_2, 
+            KIDS_DZ_S1, KIDS_DZ_S2, KIDS_DZ_S3, KIDS_DZ_S4, KIDS_DZ_S5,
           ]
         ]
       - [25,
           [
-            DES_M1, DES_M2, DES_M3, DES_M4,
+            DES_M1, DES_M2, DES_M3, DES_M4, KIDS_M1, KIDS_M2, KIDS_M3, KIDS_M4, KIDS_M5
           ]
         ]
     # ---------------------------------------------------------------------
@@ -301,4 +440,4 @@ sampler:
     # ---------------------------------------------------------------------
     Rminus1_single_split: 4
 
-output: ./projects/desy1xplanck/chains/EXAMPLE_MCMC10
+output: ./projects/desy1xplanck/chains/EXAMPLE_MCMC11
