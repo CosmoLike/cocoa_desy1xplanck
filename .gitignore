@@ -5,5 +5,6 @@
 *.cfg
 chains/
 #EXAMPLE_EVALUATE1.yaml
+#EXAMPLE_EVALUATE2.yaml
 #EXAMPLE_MCMC1.yaml
 #EXAMPLE_MCMC2.yaml
