@@ -346,7 +346,6 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
         ]
       ]
     )
-
     ci.set_nuisance_ia(
       A1 = [
         params_values.get(p, None) for p in [
