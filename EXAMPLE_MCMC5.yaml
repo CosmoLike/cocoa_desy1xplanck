@@ -6,6 +6,9 @@ likelihood:
   desy1xplanck.desy1xplanck_cosmic_shear:
     path: ./external_modules/data/desy1xplanck
     data_file: Y1xplanck.dataset
+  kids.kids_cosmic_shear:
+    path: ./external_modules/data/kids
+    data_file: kids_wb.dataset
 
 params:
   As_1e9:
@@ -111,6 +114,34 @@ params:
   DES_DZ_S4:
     value: -0.018
     latex: \Delta z_\mathrm{s}^4
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # WL photo-z errors
+  KIDS_DZ_S1:
+    value: 0.0
+    latex: \Delta z_\mathrm{s}^1
+  KIDS_DZ_S2:
+    value: 0.002
+    latex: \Delta z_\mathrm{s}^2
+  KIDS_DZ_S3:
+    value: 0.013
+    latex: \Delta z_\mathrm{s}^3
+  KIDS_DZ_S4:
+    value: 0.011
+    latex: \Delta z_\mathrm{s}^4
+  KIDS_DZ_S5:
+    value: -0.006
+    latex: \Delta z_\mathrm{s}^5
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  KIDS_A1_1:
+    value: 'lambda DES_A1_1: DES_A1_1'
+    latex: A_\mathrm{1-IA}^1
+  KIDS_A1_2:
+    value: 'lambda DES_A1_2: DES_A1_2'
+    latex: A_\mathrm{1-IA}^2
 
 theory:
   camb:
@@ -165,7 +196,7 @@ sampler:
     # ---------------------------------------------------------------------
     measure_speeds: False
     drag: False
-    oversample_power: 0.5
+    oversample_power: 0.25
     oversample_thin: True
     blocking:
       - [1,
@@ -180,7 +211,7 @@ sampler:
         ]
       - [25,
           [
-            DES_M1, DES_M2, DES_M3, DES_M4
+            KIDS_M1, KIDS_M2, KIDS_M3, KIDS_M4, KIDS_M5, DES_M1, DES_M2, DES_M3, DES_M4
           ]
         ]
     # ---------------------------------------------------------------------

@@ -1,14 +1,16 @@
-timing: True
+timing: False
 debug: False
 stop_at_error: False
 
 likelihood:
   desy1xplanck.desy1xplanck_cosmic_shear:
     path: ./external_modules/data/desy1xplanck
-    data_file: Y1xplanck.dataset
+    data_file: des_kids.dataset
   kids.kids_cosmic_shear:
     path: ./external_modules/data/kids
-    data_file: kids_wb.dataset
+    data_file: kids_des.dataset
+    integration_accuracy: 0
+    print_datavector: False 
 
 params:
   As_1e9:
@@ -37,10 +39,25 @@ params:
     proposal: 0.01
     latex: n_\mathrm{s}
   H0:
-    value: 71.1
+    prior:
+      min: 55
+      max: 91
+    ref:
+      dist: norm
+      loc: 71.1
+      scale: 5
+    proposal: 3
     latex: H_0
   omegab:
-    value: 0.0455
+    prior:
+      min: 0.03
+      max: 0.07
+    ref:
+      dist: norm
+      loc: 0.0455
+      scale: 0.004
+    proposal: 0.004
+    latex: \Omega_\mathrm{b}
     drop: true
   omegam:
     prior:
@@ -57,17 +74,38 @@ params:
     value: 0.06
     latex: \m_\\nu
   w:
-    value: -1.0
+    value: -1
     latex: w_{0,\mathrm{DE}}
+  tau:
+    value: 0.0697186
+    latex: \tau_\mathrm{reio}
+  DES_BARYON_Q1:
+    value: 0.0
+    latex: Q_\mathrm{DES}^2
+  DES_BARYON_Q2:
+    value: 0.0
+    latex: Q_\mathrm{DES}^2
+  DES_BARYON_Q3:
+    value: 0.0
+    latex: Q_\mathrm{DES}^3
+  DES_BARYON_Q4:
+    value: 0.0
+    latex: Q_\mathrm{DES}^4
+  KIDS_BARYON_Q1:
+    pvalue: 0.0
+    latex: Q1_\mathrm{KiDS}^1
+  KIDS_BARYON_Q2:
+    value: 0.0
+    latex: Q2_\mathrm{KiDS}^1
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
   omegabh2:
     value: 'lambda omegab, H0: omegab*(H0/100)**2'
     latex: \Omega_\mathrm{b} h^2
   omegach2:
     value: 'lambda omegam, omegab, mnu, H0: (omegam-omegab)*(H0/100)**2-(mnu*(3.046/3)**0.75)/94.0708'
     latex: \Omega_\mathrm{c} h^2
-  tau:
-    value: 0.0697186
-    latex: \tau_\mathrm{reio}
   omegal:
     latex: \Omega_\Lambda
   omegamh2:
@@ -89,49 +127,219 @@ params:
   omegan:
     derived: 'lambda omegan2, H0: omegan2/((H0/100)**2)'
     latex: \Omega_\mathrm{\\nu}
-  DES_BARYON_Q1:
-    value: 0.0
-    latex: Q_\mathrm{DES}^2
-  DES_BARYON_Q2:
-    value: 0.0
-    latex: Q_\mathrm{DES}^2
-  DES_BARYON_Q3:
-    value: 0.0
-    latex: Q_\mathrm{DES}^3
-  DES_BARYON_Q4:
-    value: 0.0
-    latex: Q_\mathrm{DES}^4
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
   # WL photo-z errors
   DES_DZ_S1:
-    value: -0.001
-    latex: \Delta z_\mathrm{s}^1
+    prior:
+      dist: norm
+      loc: 0.0414632
+      scale: 0.016
+    ref:
+      dist: norm
+      loc: -0.001
+      scale: 0.016
+    proposal: 0.016
+    latex: \Delta z_\mathrm{s,DES}^1
   DES_DZ_S2:
-    value: -0.019
-    latex: \Delta z_\mathrm{s}^2
+    prior:
+      dist: norm
+      loc: 0.00147332
+      scale: 0.013
+    ref:
+      dist: norm
+      loc: -0.019
+      scale: 0.015
+    proposal: 0.013
+    latex: \Delta z_\mathrm{s,DES}^2
   DES_DZ_S3:
-    value: 0.009
-    latex: \Delta z_\mathrm{s}^3
+    prior:
+      dist: norm
+      loc: 0.0237035
+      scale: 0.011
+    ref:
+      dist: norm
+      loc: 0.009
+      scale: 0.011
+    proposal: 0.011
+    latex: \Delta z_\mathrm{s,DES}^3
   DES_DZ_S4:
-    value: -0.018
-    latex: \Delta z_\mathrm{s}^4
+    prior:
+      dist: norm
+      loc: -0.0773436
+      scale: 0.022
+    ref:
+      dist: norm
+      loc: -0.018
+      scale: 0.022
+    proposal: 0.022
+    latex: \Delta z_\mathrm{s,DES}^4
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # Shear calibration parameters
+  DES_M1:
+    prior:
+      dist: norm
+      loc: 0.0191832
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.05
+    proposal: 0.03
+    latex: m_\mathrm{DES}^1
+  DES_M2:
+    prior:
+      dist: norm
+      loc: -0.0431752
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.012
+      scale: 0.05
+    proposal: 0.03
+    latex: m_\mathrm{DES}^2
+  DES_M3:
+    prior:
+      dist: norm
+      loc: -0.034961
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.012
+      scale: 0.05
+    proposal: 0.03
+    latex: m_\mathrm{DES}^3
+  DES_M4:
+    prior:
+      dist: norm
+      loc: -0.0158096
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.05
+    proposal: 0.03
+    latex: m_\mathrm{DES}^4 
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # Shear calibration parameters
+  KIDS_M1:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    proposal: 0.005
+    latex: m_\mathrm{}^1
+  KIDS_M2:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    proposal: 0.005
+    latex: m_\mathrm{}^2
+  KIDS_M3:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    proposal: 0.005
+    latex: m_\mathrm{}^3
+  KIDS_M4:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    proposal: 0.005
+    latex: m_\mathrm{}^4
+  KIDS_M5:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.005
+    proposal: 0.005
+    latex: m_\mathrm{}^5  
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # WL photo-z errors
   KIDS_DZ_S1:
-    value: 0.0
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.0106
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.0106
+    proposal: 0.0005
     latex: \Delta z_\mathrm{s}^1
   KIDS_DZ_S2:
-    value: 0.002
+    prior:
+      dist: norm
+      loc: 0.002
+      scale: 0.0113
+    ref:
+      dist: norm
+      loc: 0.002
+      scale: 0.0113
+    proposal: 0.0005
     latex: \Delta z_\mathrm{s}^2
   KIDS_DZ_S3:
-    value: 0.013
+    prior:
+      dist: norm
+      loc: 0.013
+      scale: 0.0118
+    ref:
+      dist: norm
+      loc: 0.013
+      scale: 0.0118
+    proposal: 0.0005
     latex: \Delta z_\mathrm{s}^3
   KIDS_DZ_S4:
-    value: 0.011
+    prior:
+      dist: norm
+      loc: 0.011
+      scale: 0.0087
+    ref:
+      dist: norm
+      loc: 0.011
+      scale: 0.0087
+    proposal: 0.0005
     latex: \Delta z_\mathrm{s}^4
   KIDS_DZ_S5:
-    value: -0.006
+    prior:
+      dist: norm
+      loc: -0.006
+      scale: 0.0097
+    ref:
+      dist: norm
+      loc: -0.006
+      scale: 0.0097
+    proposal: 0.0005
     latex: \Delta z_\mathrm{s}^5
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
@@ -142,6 +350,9 @@ params:
   KIDS_A1_2:
     value: 'lambda DES_A1_2: DES_A1_2'
     latex: A_\mathrm{1-IA}^2
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
 
 theory:
   camb:
@@ -196,22 +407,23 @@ sampler:
     # ---------------------------------------------------------------------
     measure_speeds: False
     drag: False
-    oversample_power: 0.5
+    oversample_power: 0.25
     oversample_thin: True
     blocking:
       - [1,
           [
-             As_1e9, ns, omegam
+            As_1e9, ns, H0, omegab, omegam
           ]
         ]
       - [3,
           [
-            DES_A1_1, DES_A1_2
+            DES_DZ_S1, DES_DZ_S2, DES_DZ_S3, DES_DZ_S4, DES_A1_1, DES_A1_2, 
+            KIDS_DZ_S1, KIDS_DZ_S2, KIDS_DZ_S3, KIDS_DZ_S4, KIDS_DZ_S5,
           ]
         ]
       - [25,
           [
-            KIDS_M1, KIDS_M2, KIDS_M3, KIDS_M4, KIDS_M5, DES_M1, DES_M2, DES_M3, DES_M4
+            DES_M1, DES_M2, DES_M3, DES_M4, KIDS_M1, KIDS_M2, KIDS_M3, KIDS_M4, KIDS_M5
           ]
         ]
     # ---------------------------------------------------------------------
