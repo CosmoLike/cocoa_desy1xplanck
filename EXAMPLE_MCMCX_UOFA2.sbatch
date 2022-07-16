@@ -4,7 +4,7 @@
 #SBATCH --output=DESY1PL-%A_%a.out
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=5
 #SBATCH --partition=high_priority
 #SBATCH --qos=user_qos_timeifler
 #SBATCH --account=timeifler
@@ -33,5 +33,5 @@ else
   export OMP_NUM_THREADS=1
 fi
 
-mpirun -n ${SLURM_NTASKS} --mca btl tcp,self --oversubscribe --bind-to core --map-by numa:pe=${OMP_NUM_THREADS} cobaya-run ./projects/desy1xplanck/EXAMPLE_MCMC${SLURM_ARRAY_TASK_ID}.yaml -r
+mpirun -n ${SLURM_NTASKS} --mca btl tcp,self --oversubscribe --bind-to core --map-by node:pe=${OMP_NUM_THREADS} cobaya-run ./projects/desy1xplanck/EXAMPLE_MCMC${SLURM_ARRAY_TASK_ID}.yaml -r
 
