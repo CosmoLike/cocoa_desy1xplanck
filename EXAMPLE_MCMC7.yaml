@@ -8,7 +8,7 @@ likelihood:
     data_file: des_kids.dataset
   kids.kids_cosmic_shear:
     path: ./external_modules/data/kids
-    data_file: kids_des.dataset
+    data_file: kids_baseline_des.dataset
     integration_accuracy: 0
     print_datavector: False 
 

@@ -301,4 +301,4 @@ sampler:
     # ---------------------------------------------------------------------
     Rminus1_single_split: 4
 
-output: ./projects/desy1xplanck/chains/EXAMPLE_MCMC6
+output: ./projects/desy1xplanck/chains/EXAMPLE_MCMC10
