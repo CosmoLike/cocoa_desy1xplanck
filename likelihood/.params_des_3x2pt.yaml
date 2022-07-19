@@ -1,49 +1,45 @@
-### These priors are tweaked to match the fiducial parameters
-### used in the synthetic data vector chains, not the ones used
-### in real DES analysis
-
   # WL photo-z errors
   DES_DZ_S1:
     prior:
       dist: norm
-      loc: 0.0414632
+      loc: -0.001
       scale: 0.016
     ref:
       dist: norm
-      loc: 0.0414632
+      loc: -0.001
       scale: 0.016
     proposal: 0.016
     latex: \Delta z_\mathrm{s,DES}^1
   DES_DZ_S2:
     prior:
       dist: norm
-      loc: 0.00147332
+      loc: -0.019
       scale: 0.013
     ref:
       dist: norm
-      loc: 0.00147332
+      loc: -0.019
       scale: 0.015
     proposal: 0.013
     latex: \Delta z_\mathrm{s,DES}^2
   DES_DZ_S3:
     prior:
       dist: norm
-      loc: 0.0237035
+      loc: 0.009
       scale: 0.011
     ref:
       dist: norm
-      loc: 0.0237035
+      loc: 0.009
       scale: 0.011
     proposal: 0.011
     latex: \Delta z_\mathrm{s,DES}^3
   DES_DZ_S4:
     prior:
       dist: norm
-      loc: -0.0773436
+      loc: -0.018
       scale: 0.022
     ref:
       dist: norm
-      loc: -0.0773436
+      loc: -0.018
       scale: 0.022
     proposal: 0.022
     latex: \Delta z_\mathrm{s,DES}^4
@@ -57,7 +53,7 @@
       max:  5
     ref:
       dist: norm
-      loc: 0.606102
+      loc: 0.7
       scale: 0.5
     proposal: 0.75
     latex: A_\mathrm{1-IA,DES}^1
@@ -67,7 +63,7 @@
       max:  5
     ref:
       dist: norm
-      loc: -1.51541
+      loc: -1.7
       scale: 0.5
     proposal: 0.75
     latex: A_\mathrm{1-IA,DES}^2
@@ -114,55 +110,55 @@
   DES_DZ_L1:
     prior:
       dist: norm
-      loc: 0.00457604
+      loc: 0.001
       scale: 0.008
     ref:
       dist: norm
-      loc: 0.00457604
+      loc: 0.001
       scale: 0.008
     proposal: 0.008
     latex: \Delta z_\mathrm{l,DES}^1
   DES_DZ_L2:
     prior:
       dist: norm
-      loc: 0.000309875
+      loc: 0.001
       scale: 0.007
     ref:
       dist: norm
-      loc: 0.000309875
+      loc: 0.001
       scale: 0.007
     proposal: 0.007
     latex: \Delta z_\mathrm{l,DES}^2
   DES_DZ_L3:
     prior:
       dist: norm
-      loc: 0.00855907
+      loc: 0.003
       scale: 0.007
     ref:
       dist: norm
-      loc: 0.00855907
+      loc: 0.003
       scale: 0.007
     proposal: 0.007
     latex: \Delta z_\mathrm{l,DES}^3
   DES_DZ_L4:
     prior:
       dist: norm
-      loc: -0.00316269
+      loc: 0.0
       scale: 0.01
     ref:
       dist: norm
-      loc: -0.00316269
+      loc: 0
       scale: 0.01
     proposal: 0.01
     latex: \Delta z_\mathrm{l,DES}^4
   DES_DZ_L5:
     prior:
       dist: norm
-      loc: -0.0146753
+      loc: 0.0
       scale: 0.01 
     ref:
       dist: norm
-      loc: -0.0146753
+      loc: 0
       scale: 0.01
     proposal: 0.01
     latex: \Delta z_\mathrm{l,DES}^5
@@ -176,7 +172,7 @@
       max: 3
     ref:
       dist: norm
-      loc: 1.72716
+      loc: 1.5
       scale: 0.1
     proposal: 0.1
     latex: b_\mathrm{1-DES}^1
@@ -186,7 +182,7 @@
       max: 3
     ref:
       dist: norm
-      loc: 1.65168
+      loc: 1.6
       scale: 0.1
     proposal: 0.1
     latex: b_\mathrm{1-DES}^2
@@ -196,7 +192,7 @@
       max: 3
     ref:
       dist: norm
-      loc: 1.61423
+      loc: 1.7
       scale: 0.1
     proposal: 0.1
     latex: b_\mathrm{1-DES}^3
@@ -206,7 +202,7 @@
       max: 3
     ref:
       dist: norm
-      loc: 1.92886
+      loc: 1.8
       scale: 0.1
     proposal: 0.1
     latex: b_\mathrm{1-DES}^4
@@ -216,7 +212,7 @@
       max: 3
     ref:
       dist: norm
-      loc: 2.11633
+      loc: 2.0
       scale: 0.1
     proposal: 0.1
     latex: b_\mathrm{1-DES}^5
@@ -264,44 +260,44 @@
   DES_M1:
     prior:
       dist: norm
-      loc: 0.0191832
+      loc: 0.012
       scale: 0.023
     ref:
       dist: norm
-      loc: 0.0191832
+      loc: 0.0
       scale: 0.05
     proposal: 0.03
     latex: m_\mathrm{DES}^1
   DES_M2:
     prior:
       dist: norm
-      loc: -0.0431752
+      loc: 0.012
       scale: 0.023
     ref:
       dist: norm
-      loc: -0.0431752
+      loc: 0.012
       scale: 0.05
     proposal: 0.03
     latex: m_\mathrm{DES}^2
   DES_M3:
     prior:
       dist: norm
-      loc: -0.034961
+      loc: 0.012
       scale: 0.023
     ref:
       dist: norm
-      loc: -0.034961
+      loc: 0.012
       scale: 0.05
     proposal: 0.03
     latex: m_\mathrm{DES}^3
   DES_M4:
     prior:
       dist: norm
-      loc: -0.0158096
+      loc: 0.012
       scale: 0.023
     ref:
       dist: norm
-      loc: -0.0158096
+      loc: 0.0
       scale: 0.05
     proposal: 0.03
     latex: m_\mathrm{DES}^4 
