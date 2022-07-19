@@ -5,8 +5,16 @@ stop_at_error: True
 likelihood:
   desy1xplanck.desy1xplanck_6x2pt:
     path: ./external_modules/data/desy1xplanck
-    print_datavector: True
-    print_datavector_file: "./projects/desy1xplanck/chains/example_evaluate1.modelvector"
+    ### Planck DR4 version
+    ### ==================
+    # overwrite: data file
+    data_file: Y1xplanck_dr4_consext8_CMBmarg.dataset
+    # overwrite: print model vector
+    print_datavector: False
+    print_datavector_file: "./projects/desy1xplanck/chains/example_evaluate1_dr4_consext8.modelvector"
+    # overwrite: create baryon PCAs
+    create_baryon_pca: False
+    filename_baryon_pca:  "./projects/desy1xplanck/data/6x2pt_pca_dr4_consext8.txt"
 
 params:
   As_1e9:

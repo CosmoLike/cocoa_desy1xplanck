@@ -168,7 +168,7 @@ sampler:
     # File (w/ path) or matrix defining a covariance matrix for the proposal:
     # - null (default): will be generated from params info (prior and proposal)
     # - matrix: remember to set `covmat_params` to the parameters in the matrix
-    covmat:
+    covmat: ./projects/desy1xplanck/EXAMPLE_MCMC1.covmat
     covmat_params:
     # ---------------------------------------------------------------------
     # ---------------------------------------------------------------------
@@ -178,6 +178,12 @@ sampler:
     learn_proposal: True
     # Don't learn if convergence better than...
     learn_proposal_Rminus1_min: 0.03
+
+    # Don't learn if convergence is worse than...
+    learn_proposal_Rminus1_max: 100.
+    # # (even earlier if a param is not in the given covariance matrix)
+    learn_proposal_Rminus1_max_early: 1000.
+
     # ---------------------------------------------------------------------
     # ---------------------------------------------------------------------
     # Convergence and stopping
@@ -205,15 +211,16 @@ sampler:
              As_1e9, ns, H0, omegab, omegam, w0pwa, w
           ]
         ]
-      - [5,
+      - [2,
           [
             DES_DZ_S1, DES_DZ_S2, DES_DZ_S3, DES_DZ_S4, DES_A1_1, DES_A1_2, DES_DZ_L1, 
-            DES_DZ_L2, DES_DZ_L3, DES_DZ_L4, DES_DZ_L5
+            DES_DZ_L2, DES_DZ_L3, DES_DZ_L4, DES_DZ_L5, 
+DES_B1_1, DES_B1_2, DES_B1_3, DES_B1_4, DES_B1_5, 
           ]
         ]
       - [25,
           [
-            DES_M1, DES_M2, DES_M3, DES_M4,DES_B1_1, DES_B1_2, DES_B1_3, DES_B1_4, DES_B1_5, DES_BARYON_Q1
+            DES_M1, DES_M2, DES_M3, DES_M4,DES_BARYON_Q1
           ]
         ]
     # ---------------------------------------------------------------------

@@ -3,13 +3,13 @@
 #SBATCH --job-name=DESY1_PL_MC2
 #SBATCH --output=DESY1_PL_MC2-%j.out
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=10
-#SBATCH --ntasks-per-socket=5
+#SBATCH --ntasks-per-node=4
+#SBATCH --ntasks-per-socket=2
 #SBATCH --cpus-per-task=8
 #SBATCH --partition=high_priority
 #SBATCH --qos=user_qos_timeifler
 #SBATCH --account=timeifler
-#SBATCH --time=100:00:00
+#SBATCH --time=12:00:00
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=jiachuanxu@email.arizona.edu
 

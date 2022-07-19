@@ -166,7 +166,7 @@ sampler:
   polychord:
     path: null
     nlive: 128
-    num_repeats: 3d
+    num_repeats: 2d
     do_clustering: false
     precision_criterion: 0.05
     boost_posterior: 10
@@ -177,7 +177,7 @@ sampler:
              As_1e9, ns, H0, omegab, omegam, w0pwa, w
           ]
         ]
-      - [3,
+      - [2,
           [
             DES_DZ_S1, DES_DZ_S2, DES_DZ_S3, DES_DZ_S4, DES_A1_1, DES_A1_2, DES_DZ_L1, 
             DES_DZ_L2, DES_DZ_L3, DES_DZ_L4, DES_DZ_L5
