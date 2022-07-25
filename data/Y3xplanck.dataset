@@ -1,0 +1,49 @@
+### data vector
+# use simulated data
+data_file = xi_desy1xplanck_6x2pt_simudata_pp_agr2_CMBmarged_cocoa
+#data_file = xi_desy1xplanck_6x2pt_simudata_pp_agr2_CMBmarged_cosmolike
+# or, use real Y3 x Planck 18 data
+#data_file = xi_desy3xplanck_6x2pt_realdata_pp_agr2_CMBmarged
+
+### covariance
+# NOTE: The Ckk-Ckk part is taken from Planck 18 DR3, Hartlap factor
+# has not been applied yet.
+cov_file = cov_y3xplanck_mix6x2pt_pp_p18cosmo_kkkkFFP10
+
+### mask
+# can just take from Y1 for now...
+mask_file = xi_desy1xplanck_6x2pt_realdata_pp_agr2_CMBmarged.mask
+
+### Y3 redshift distribution
+nz_lens_file = mcal_3401_lens.nz
+nz_source_file = mcal_3401_source.nz
+
+### Y3 baryon PCA file
+baryon_pca_file = 6x2pt_pca_Y3xplanck_pp_agr2.txt
+
+lensing_overlap_cut = 0.00
+lens_ntomo = 5
+source_ntomo = 4
+IA_model = 4
+
+### Binning
+# real space
+n_theta = 20
+theta_min_arcmin = 2.5
+theta_max_arcmin = 250.
+# CMB beam
+fwhm = 7
+lmin_kappa_cmb = 40
+lmax_kappa_cmb = 3000
+### CMB in Log-bins
+### set those only if using logrithmic bins for Ckk
+#n_cl = 15
+#l_min = 40.
+#l_max = 2999.999
+### CMB in band-powers
+# use the CMBmarged, agr2, MV estimators
+binmat_file = pp_agr2_CMBmarged/binning_matrix_with_correction_table.txt
+offset_file = pp_agr2_CMBmarged/Ckk_bandpower_offset.txt
+n_bp = 14
+lmin_bp = 2
+lmax_bp = 2500
