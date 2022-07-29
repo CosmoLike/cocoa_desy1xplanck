@@ -15,7 +15,7 @@ create_baryon_pca: False
 baryon_pca_select_simulations: TNG100/HzAGN/mb2/illustris/eagle/owls_AGN_T80/owls_AGN_T85/owls_AGN_T87/BAHAMAS_T76/BAHAMAS_T78/BAHAMAS_T80
 filename_baryon_pca: "./projects/desy1xplanck/data/pca.txt"
 
-print_datavector: True
+print_datavector: False
 print_datavector_file: "./projects/desy1xplanck/chains/example_evaluate1.modelvector"
 
 params: !defaults [params_des_3x2pt]

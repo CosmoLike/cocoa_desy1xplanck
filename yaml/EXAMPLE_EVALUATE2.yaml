@@ -2,20 +2,16 @@ timing: True
 debug: True
 stop_at_error: True
 
-likelihood:
-  desy1xplanck.desy1xplanck_6x2pt:
-    path: ./external_modules/data/desy1xplanck
-    ### Planck DR4 version
-    ### ==================
-    # overwrite: data file
-    data_file: Y1xplanck_dr4_consext8_CMBmarg.dataset
-    # overwrite: print model vector
-    print_datavector: False
-    print_datavector_file: "./projects/desy1xplanck/chains/example_evaluate1_dr4_consext8.modelvector"
-    # overwrite: create baryon PCAs
-    create_baryon_pca: False
-    filename_baryon_pca:  "./projects/desy1xplanck/data/6x2pt_pca_dr4_consext8.txt"
 
+likelihood:
+  desy1xplanck.desy1xplanck_3x2pt:
+    path: ./external_modules/data/desy1xplanck
+    print_datavector: False
+    print_datavector_file: "./projects/desy1xplanck/chains/example_evaluate2.modelvector"
+    ### Create baryon effects PCs during example evaluation
+    create_baryon_pca: False
+    #filename_baryon_pca: ./external_modules/data/desy1xplanck/6x2pt_baseline_PCA
+   
 params:
   As_1e9:
     prior:
@@ -83,21 +79,10 @@ params:
       loc: 0.25
       scale: 0.1
     proposal: 0.05
-  w0pwa:
-    prior:
-      min: -5 
-      max: -0.01
-    ref:
-      dist: norm
-      loc: -0.99
-      scale: 0.05
-    proposal: 0.05
-    latex: w_{0,\mathrm{DE}}+w_{a,\mathrm{DE}}
-    drop: true
-  w:
+  w0_fld:
     prior:
       min: -3
-      max: -0.01
+      max: 1
     ref:
       dist: norm
       loc: -0.99
@@ -105,7 +90,14 @@ params:
     proposal: 0.05
     latex: w_{0,\mathrm{DE}}
   wa:
-    value: 'lambda w0pwa, w: w0pwa - w'
+    prior:
+      min: -3
+      max: 2
+    ref:
+      dist: norm
+      loc: 0
+      scale: 0.35
+    proposal: 0.2
     latex: w_{a,\mathrm{DE}}
   omegabh2:
     value: 'lambda omegab, H0: omegab*(H0/100)**2'
@@ -118,23 +110,61 @@ params:
     latex: \tau_\mathrm{reio}
   sigma8:
     latex: \sigma_8
+#  s8h5:
+#    derived: 'lambda sigma8, H0: sigma8*(H0*1e-2)**(-0.5)'
+#    latex: \sigma_8/h^{0.5}
+#  s8omegamp5:
+#    derived: 'lambda sigma8, omegam: sigma8*omegam**0.5'
+#    latex: \sigma_8 \Omega_\mathrm{m}^{0.5}
+#  s8omegamp25:
+#    derived: 'lambda sigma8, omegam: sigma8*omegam**0.25'
+#    latex: \sigma_8 \Omega_\mathrm{m}^{0.25}
+#  age:
+#    latex: '{\rm{Age}}/\mathrm{Gyr}'
+#  omegan2:
+#    latex: \Omega_\mathrm{\\nu} h^2
+#  omegan:
+#    derived: 'lambda omegan2, H0: omegan2/((H0/100)**2)'
+#    latex: \Omega_\mathrm{\\nu}
   DES_BARYON_Q1:
     value: 0.0
 
 theory:
-  camb:
-    path: ./external_modules/code/CAMB
+  classy:
+    path: ./external_modules/code/class_public
     stop_at_error: True
-    use_renames: True
+    use_renames: False
+#    renames:
+#      As: A_s
+#      ns: n_s
+#      nrun: alpha_s
+#      nrunrun: beta_s
+#      nt: n_t
+#      ntrun: alpha_t
+#      drag: rs_drag
+#      omegak: Omega_k
+#      omegal: Omega_Lambda
+#      w: w0_fld
+#      wa: wa_fld
+#      omegabh2: omega_b
+#      omegab: Omega_b
+#      omegach2: omega_cdm
+#      omegac: Omega_cdm
+#      omegam: Omega_m
+#      omegan: Omega_nu
+#      tau: tau_reio
+#      zrei: z_reio
+#      deltazrei: reionization_width
+#      helium_redshift: helium_fullreio_redshift
+#      helium_delta_redshift: helium_fullreio_width
+#      yhe: YHe
+#      yheused: YHe
     extra_args:
       halofit_version: takahashi
       AccuracyBoost: 1.1
       lens_potential_accuracy: 1.1
-      # default: 1
-      num_massive_neutrinos: 3
-      # what's this? N_ur = 2.0328 for 1 massive + 2 massless; 3.046 for massless
-      # default 3.046
-      nnu: 0.00641
+      num_massive_neutrinos: 1
+      nnu: 3.046
       dark_energy_model: ppf
       accurate_massive_neutrino_transfers: false
       k_per_logint: 20
@@ -143,11 +173,11 @@ sampler:
   evaluate:
     N: 1
     override:
-      As_1e9: 2.141626
-      ns: 0.964
-      H0: 67.00
-      omegab: 0.04937
-      omegam: 0.31735
+      As_1e9: 2.1
+      ns: 0.96605
+      H0: 67.32
+      omegab: 0.04
+      omegam: 0.3
       DES_DZ_S1: 0.0414632
       DES_DZ_S2: 0.00147332
       DES_DZ_S3: 0.0237035
@@ -169,7 +199,7 @@ sampler:
       DES_B1_4: 1.92886
       DES_B1_5: 2.11633
       mnu: 0.06
-      w0pwa: -1.0
-      w: -1.0
+      w0_fld: -1.0
+      wa: 0.0
 
-output: ./projects/desy1xplanck/chains/EXAMPLE_EVALUATE1
+output: ./projects/desy1xplanck/chains/EXAMPLE_EVALUATE2
