@@ -1,0 +1,29 @@
+data_file = xi_desy3xplanck_6x2pt_realdata_pp_agr2_CMBmarged
+cov_file = cov_y3xplanck_mix6x2pt_pp_p18cosmo_kkkkFFP10
+mask_file = xi_desy1xplanck_6x2pt_realdata_pp_agr2_CMBmarged.mask
+
+nz_lens_file = mcal_3401_lens.nz
+nz_source_file = mcal_3401_source.nz
+
+#baryon_pca_file = pca.txt
+
+lensing_overlap_cut = 0.00
+lens_ntomo = 5
+source_ntomo = 4
+IA_model = 4
+
+n_theta = 20
+theta_min_arcmin = 2.5
+theta_max_arcmin = 250.
+
+fwhm = 7
+lmin_kappa_cmb = 40
+lmax_kappa_cmb = 3000
+
+is_cmb_bandpower = 1
+binmat_file = pp_agr2_CMBmarged/binning_matrix_with_correction_table.txt
+offset_file = pp_agr2_CMBmarged/Ckk_bandpower_offset.txt
+
+n_bp = 14
+lmin_bp = 2
+lmax_bp = 2500

@@ -5,6 +5,7 @@ stop_at_error: True
 likelihood:
   desy1xplanck.desy1xplanck_6x2pt:
     path: ./external_modules/data/desy1xplanck
+    data_file: Y1xplanck.dataset
     integration_accuracy: 0
     print_datavector: True
     print_datavector_file: "./projects/desy1xplanck/chains/theory_des_kids.modelvector"
@@ -16,10 +17,10 @@ params:
       max: 5
     ref:
       dist: norm
-      loc: 2.866
+      loc: 2.1
       scale: 0.65
     proposal: 0.4
-    latex: 10^9 A_\mathrm{s})
+    latex: 10^9 A_\mathrm{s}
     drop: true
     renames: A
   As:
@@ -31,7 +32,7 @@ params:
       max: 1.07
     ref:
       dist: norm
-      loc: 0.928
+      loc: 0.96605
       scale: 0.01
     proposal: 0.01
     latex: n_\mathrm{s}
@@ -41,7 +42,7 @@ params:
       max: 91
     ref:
       dist: norm
-      loc: 71.1
+      loc: 67.32
       scale: 5
     proposal: 3
     latex: H_0
@@ -52,8 +53,8 @@ params:
     ref:
       dist: norm
       loc: 0.0455
-      scale: 0.004
-    proposal: 0.004
+      scale: 0.01
+    proposal: 0.01
     latex: \Omega_\mathrm{b}
     drop: true
   omegam:
@@ -76,9 +77,6 @@ params:
   tau:
     value: 0.0697186
     latex: \tau_\mathrm{reio}
-  DES_BARYON_Q1:
-    value: 0.0
-    latex: BQ2_\mathrm{DES}^1
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
@@ -104,6 +102,12 @@ params:
   s8omegamp25:
     derived: 'lambda sigma8, omegam: sigma8*omegam**0.25'
     latex: \sigma_8 \Omega_\mathrm{m}^{0.25}
+  age:
+    latex: '{\rm{Age}}/\mathrm{Gyr}'
+  rdrag:
+    latex: r_\mathrm{drag}
+  yheused:
+    latex: Y_P^\mathrm{BBN}
   omegan2:
     latex: \Omega_\mathrm{\\nu} h^2
   omegan:
@@ -112,6 +116,53 @@ params:
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  DES_BMAG_1:
+    value: -0.19375
+    latex: b_\mathrm{BMAG-DES}^1
+  DES_BMAG_2:
+    value: -0.6285407
+    latex: b_\mathrm{BMAG-DES}^2
+  DES_BMAG_3:
+    value: -0.69319886
+    latex: b_\mathrm{BMAG-DES}^3
+  DES_BMAG_4:
+    value: 1.17735723
+    latex: b_\mathrm{BMAG-DES}^4
+  DES_BMAG_5:
+    value: 1.87509758
+    latex: b_\mathrm{BMAG-DES}^5
+  # Point Mass parameters
+  DES_PM1:
+    value: 0.0
+    latex: PM_\mathrm{DES}^1
+  DES_PM2:
+    value: 0.0
+    latex: PM_\mathrm{DES}^2
+  DES_PM3:
+    value: 0.0
+    latex: PM_\mathrm{DES}^3
+  DES_PM4:
+    value: 0.0
+    latex: PM_\mathrm{DES}^4
+  DES_PM5:
+    value: 0.0
+    latex: PM_\mathrm{DES}^5
+  # Baryonic effects PCs amplitudes
+  DES_BARYON_Q1:
+    value: 0.0
+    latex: Q_\mathrm{DES}^1
+  DES_BARYON_Q2:
+    value: 0.0
+    latex: Q_\mathrm{DES}^2
+  DES_BARYON_Q3:
+    value: 0.0
+    latex: Q_\mathrm{DES}^3
+  DES_BARYON_Q4:
+    value: 0.0
+    latex: Q_\mathrm{DES}^4
 
 theory:
   camb:
