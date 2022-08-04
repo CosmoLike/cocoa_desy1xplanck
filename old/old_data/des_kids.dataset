@@ -1,0 +1,50 @@
+data_file = theory_des_kids.modelvector
+cov_file = cov_y1xplanck_mix6x2pt_referebceMV_new
+mask_file = xi_desy1xplanck_6x2pt_fid.mask
+nz_lens_file = mcal_1101_lens.nz
+nz_source_file = mcal_1101_source.nz
+baryon_pca_file = 6x2pt_baseline_PCA
+lensing_overlap_cut = 0.00
+lens_ntomo = 5
+source_ntomo = 4
+IA_model = 4
+is_cmb_bandpower = 0
+n_cl = 15
+lmin = 40.
+lmax = 2999.999
+fwhm = 7
+lmin_kappa_cmb = 40
+lmax_kappa_cmb = 3000
+n_theta = 20
+theta_min_arcmin = 2.5
+theta_max_arcmin = 250.
+
+#sampler:
+#  evaluate:
+#    N: 1
+#    override:
+#      As_1e9: 2.1
+#      ns: 0.96605
+#      H0: 67.32
+#      omegab: 0.04
+#      omegam: 0.3
+#      DES_DZ_S1: 0.0414632
+#      DES_DZ_S2: 0.00147332
+#      DES_DZ_S3: 0.0237035
+#      DES_DZ_S4: -0.0773436
+#      DES_M1: 0.0191832
+#      DES_M2: -0.0431752
+#      DES_M3: -0.034961
+#      DES_M4: -0.0158096
+#      DES_A1_1: 0.606102
+#      DES_A1_2: -1.51541
+#      DES_DZ_L1: 0.00457604
+#      DES_DZ_L2: 0.000309875
+#      DES_DZ_L3: 0.00855907
+#      DES_DZ_L4: -0.00316269
+#      DES_DZ_L5: -0.0146753
+#      DES_B1_1: 1.72716
+#      DES_B1_2: 1.65168
+#      DES_B1_3: 1.61423
+#      DES_B1_4: 1.92886
+#      DES_B1_5: 2.11633
