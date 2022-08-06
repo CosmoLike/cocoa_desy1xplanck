@@ -3,7 +3,7 @@ debug: False
 stop_at_error: False
 
 likelihood:
-  desy1xplanck.desy1xplanck_6x2pt:
+  desy1xplanck.desy1xplanck_3x2pt:
     path: ./external_modules/data/desy1xplanck
     data_file: Y1xplanck.dataset
     integration_accuracy: 0
@@ -409,4 +409,4 @@ sampler:
     # ---------------------------------------------------------------------
     Rminus1_single_split: 4
 
-output: ./projects/desy1xplanck/chains/EXAMPLE_MCMC1
+output: ./projects/desy1xplanck/chains/EXAMPLE_MCMC3

@@ -116,22 +116,163 @@ params:
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
-  DES_BMAG_1:
-    value: -0.19375
-    latex: b_\mathrm{BMAG-DES}^1
-  DES_BMAG_2:
-    value: -0.6285407
-    latex: b_\mathrm{BMAG-DES}^2
-  DES_BMAG_3:
-    value: -0.69319886
-    latex: b_\mathrm{BMAG-DES}^3
-  DES_BMAG_4:
-    value: 1.17735723
-    latex: b_\mathrm{BMAG-DES}^4
-  DES_BMAG_5:
-    value: 1.87509758
-    latex: b_\mathrm{BMAG-DES}^5
-  # Point Mass parameters
+  # DES-Y1 3x2 nuissance parameter begins
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  DES_DZ_S1:
+    prior:
+      dist: norm
+      loc: -0.001
+      scale: 0.016
+    ref:
+      dist: norm
+      loc: -0.001
+      scale: 0.016
+    proposal: 0.005
+    latex: \Delta z_\mathrm{s,DES}^1
+  DES_DZ_S2:
+    prior:
+      dist: norm
+      loc: -0.019 
+      scale: 0.013
+    ref:
+      dist: norm
+      loc: -0.019
+      scale: 0.013
+    proposal: 0.005
+    latex: \Delta z_\mathrm{s,DES}^2
+  DES_DZ_S3:
+    prior:
+      dist: norm
+      loc: 0.009
+      scale: 0.011
+    ref:
+      dist: norm
+      loc: 0.009
+      scale: 0.011
+    proposal: 0.005
+    latex: \Delta z_\mathrm{s,DES}^3
+  DES_DZ_S4:
+    prior:
+      dist: norm
+      loc: -0.018 
+      scale: 0.022
+    ref:
+      dist: norm
+      loc: -0.018
+      scale: 0.022
+    proposal: 0.005
+    latex: \Delta z_\mathrm{s,DES}^4
+  DES_M1:
+    prior:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    proposal: 0.005
+    latex: m_\mathrm{DES}^1
+  DES_M2:
+    prior:
+      dist: norm
+      loc: 0.012 
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    proposal: 0.005
+    latex: m_\mathrm{DES}^2
+  DES_M3:
+    prior:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    proposal: 0.005
+    latex: m_\mathrm{DES}^3
+  DES_M4:
+    prior:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    proposal: 0.005
+    latex: m_\mathrm{DES}^4
+  DES_A2_1: #TATT, not used for Y1
+    value: 0.0
+    latex: A_\mathrm{2-IA,DES}^1 
+  DES_A2_2: #TATT, not used for Y1
+    value: 0.0
+    latex: A_\mathrm{2-IA,DES}^2
+  DES_BTA_1: #TATT, not used for Y1
+    value: 1.0
+    latex: A_\mathrm{BTA-IA,DES}^1
+ # Lensing photo-z errors
+  DES_DZ_L1:
+    prior:
+      dist: norm
+      loc: 0.008
+      scale: 0.007
+    ref:
+      dist: norm
+      loc: 0.008
+      scale: 0.007
+    proposal: 0.004
+    latex: \Delta z_\mathrm{l,DES}^1
+  DES_DZ_L2:
+    prior:
+      dist: norm
+      loc: -0.005 
+      scale: 0.007
+    ref:
+      dist: norm
+      loc: -0.005
+      scale: 0.007
+    proposal: 0.003
+    latex: \Delta z_\mathrm{l,DES}^2
+  DES_DZ_L3:
+    prior:
+      dist: norm
+      loc: 0.006
+      scale: 0.006
+    ref:
+      dist: norm
+      loc: 0.006
+      scale: 0.006
+    proposal: 0.003
+    latex: \Delta z_\mathrm{l,DES}^3
+  DES_DZ_L4:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.01
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.01
+    proposal: 0.005
+    latex: \Delta z_\mathrm{l,DES}^4
+  DES_DZ_L5:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.01
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.01
+    proposal: 0.005
+    latex: \Delta z_\mathrm{l,DES}^5
   DES_PM1:
     value: 0.0
     latex: PM_\mathrm{DES}^1
@@ -147,6 +288,21 @@ params:
   DES_PM5:
     value: 0.0
     latex: PM_\mathrm{DES}^5
+  DES_BMAG_1:
+    value: 1.0
+    latex: b_\mathrm{BMAG-DES}^1
+  DES_BMAG_2:
+    value: 1.0
+    latex: b_\mathrm{BMAG-DES}^2
+  DES_BMAG_3:
+    value: 1.0
+    latex: b_\mathrm{BMAG-DES}^3
+  DES_BMAG_4:
+    value: 1.0
+    latex: b_\mathrm{BMAG-DES}^4
+  DES_BMAG_5:
+    value: 1.0
+    latex: b_\mathrm{BMAG-DES}^5
   # Baryonic effects PCs amplitudes
   DES_BARYON_Q1:
     value: 0.0
@@ -160,6 +316,13 @@ params:
   DES_BARYON_Q4:
     value: 0.0
     latex: Q_\mathrm{DES}^4
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # DES-Y1 3x2 nuissance parameter ends
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
 
 theory:
   camb:
@@ -184,21 +347,21 @@ sampler:
       H0: 67.32
       omegab: 0.04
       omegam: 0.3
-      DES_DZ_S1: 0.0414632
-      DES_DZ_S2: 0.00147332
-      DES_DZ_S3: 0.0237035
-      DES_DZ_S4: -0.0773436
-      DES_M1: 0.0191832
-      DES_M2: -0.0431752
-      DES_M3: -0.034961
-      DES_M4: -0.0158096
+      DES_DZ_S1: -0.001 
+      DES_DZ_S2: -0.019 
+      DES_DZ_S3: 0.009  
+      DES_DZ_S4: -0.018
+      DES_M1: 0.012 
+      DES_M2: 0.012 
+      DES_M3: 0.012 
+      DES_M4: 0.012 
       DES_A1_1: 0.606102
       DES_A1_2: -1.51541
-      DES_DZ_L1: 0.00457604
-      DES_DZ_L2: 0.000309875
-      DES_DZ_L3: 0.00855907
-      DES_DZ_L4: -0.00316269
-      DES_DZ_L5: -0.0146753
+      DES_DZ_L1: 0.008 
+      DES_DZ_L2: -0.005 
+      DES_DZ_L3: 0.006 
+      DES_DZ_L4: 0.0 
+      DES_DZ_L5: 0.0
       DES_B1_1: 1.72716
       DES_B1_2: 1.65168
       DES_B1_3: 1.61423

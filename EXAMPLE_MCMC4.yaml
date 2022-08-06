@@ -3,11 +3,11 @@ debug: False
 stop_at_error: False
 
 likelihood:
-  desy1xplanck.desy1xplanck_6x2pt:
+  desy1xplanck.desy1xplanck_3x2pt:
     path: ./external_modules/data/desy1xplanck
-    data_file: Y1xplanck.dataset
-    integration_accuracy: 0
-    
+    data_file: Y3xplanck.dataset
+    integration_accuracy: 0 
+
 params:
   As_1e9:
     prior:
@@ -114,192 +114,168 @@ params:
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
-  # DES-Y1 3x2 nuissance parameter begins
+  # DES-Y3 3x2 nuissance parameter Start
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   DES_DZ_S1:
     prior:
       dist: norm
-      loc: -0.001
-      scale: 0.016
+      loc: 0.0
+      scale: 0.018
     ref:
       dist: norm
-      loc: -0.001
-      scale: 0.016
+      loc: 0.0
+      scale: 0.018
     proposal: 0.005
     latex: \Delta z_\mathrm{s,DES}^1
   DES_DZ_S2:
     prior:
       dist: norm
-      loc: -0.019 
-      scale: 0.013
+      loc: 0.0
+      scale: 0.015
     ref:
       dist: norm
-      loc: -0.019
-      scale: 0.013
+      loc: 0.0
+      scale: 0.015
     proposal: 0.005
     latex: \Delta z_\mathrm{s,DES}^2
   DES_DZ_S3:
     prior:
       dist: norm
-      loc: 0.009
+      loc: 0.0
       scale: 0.011
     ref:
       dist: norm
-      loc: 0.009
+      loc: 0.0
       scale: 0.011
     proposal: 0.005
     latex: \Delta z_\mathrm{s,DES}^3
   DES_DZ_S4:
     prior:
       dist: norm
-      loc: -0.018 
-      scale: 0.022
+      loc: 0.0
+      scale: 0.017
     ref:
       dist: norm
-      loc: -0.018
-      scale: 0.022
+      loc: 0.0
+      scale: 0.017
     proposal: 0.005
     latex: \Delta z_\mathrm{s,DES}^4
   DES_M1:
     prior:
       dist: norm
-      loc: 0.012
-      scale: 0.023
+      loc: -0.006
+      scale: 0.009
     ref:
       dist: norm
-      loc: 0.012
-      scale: 0.023
-    proposal: 0.005
+      loc: -0.006
+      scale: 0.009
+    proposal: 0.004
     latex: m_\mathrm{DES}^1
   DES_M2:
     prior:
       dist: norm
-      loc: 0.012 
-      scale: 0.023
+      loc: -0.02 
+      scale: 0.008
     ref:
       dist: norm
-      loc: 0.012
-      scale: 0.023
-    proposal: 0.005
+      loc: -0.02
+      scale: 0.008
+    proposal: 0.004
     latex: m_\mathrm{DES}^2
   DES_M3:
     prior:
       dist: norm
-      loc: 0.012
-      scale: 0.023
+      loc: -0.024
+      scale: 0.008
     ref:
       dist: norm
-      loc: 0.012
-      scale: 0.023
-    proposal: 0.005
+      loc: -0.024
+      scale: 0.008
+    proposal: 0.004
     latex: m_\mathrm{DES}^3
   DES_M4:
     prior:
       dist: norm
-      loc: 0.012
-      scale: 0.023
+      loc: -0.037 
+      scale: 0.008
     ref:
       dist: norm
-      loc: 0.012
-      scale: 0.023
-    proposal: 0.005
+      loc: -0.037
+      scale: 0.008
+    proposal: 0.003
     latex: m_\mathrm{DES}^4
-  DES_A2_1: #TATT, not used for Y1
-    value: 0.0
-    latex: A_\mathrm{2-IA,DES}^1 
-  DES_A2_2: #TATT, not used for Y1
-    value: 0.0
-    latex: A_\mathrm{2-IA,DES}^2
-  DES_BTA_1: #TATT, not used for Y1
-    value: 1.0
-    latex: A_\mathrm{BTA-IA,DES}^1
  # Lensing photo-z errors
   DES_DZ_L1:
     prior:
       dist: norm
-      loc: 0.008
-      scale: 0.007
+      loc: 0.006
+      scale: 0.004
     ref:
       dist: norm
-      loc: 0.008
-      scale: 0.007
-    proposal: 0.004
+      loc: 0.006
+      scale: 0.004
+    proposal: 0.002
     latex: \Delta z_\mathrm{l,DES}^1
   DES_DZ_L2:
     prior:
       dist: norm
-      loc: -0.005 
-      scale: 0.007
+      loc: 0.001 
+      scale: 0.003
     ref:
       dist: norm
-      loc: -0.005
-      scale: 0.007
-    proposal: 0.003
+      loc: 0.0001
+      scale: 0.003
+    proposal: 0.001
     latex: \Delta z_\mathrm{l,DES}^2
   DES_DZ_L3:
     prior:
       dist: norm
-      loc: 0.006
-      scale: 0.006
+      loc: 0.004
+      scale: 0.003
     ref:
       dist: norm
-      loc: 0.006
-      scale: 0.006
-    proposal: 0.003
+      loc: 0.0004
+      scale: 0.003
+    proposal: 0.001
     latex: \Delta z_\mathrm{l,DES}^3
   DES_DZ_L4:
     prior:
       dist: norm
-      loc: 0.0
-      scale: 0.01
+      loc: -0.002 
+      scale: 0.005
     ref:
       dist: norm
-      loc: 0.0
-      scale: 0.01
-    proposal: 0.005
+      loc: -0.002
+      scale: 0.005
+    proposal: 0.002
     latex: \Delta z_\mathrm{l,DES}^4
   DES_DZ_L5:
     prior:
       dist: norm
-      loc: 0.0
+      loc: -0.007
       scale: 0.01
     ref:
       dist: norm
-      loc: 0.0
+      loc: -0.007
       scale: 0.01
     proposal: 0.005
     latex: \Delta z_\mathrm{l,DES}^5
-  DES_PM1:
-    value: 0.0
-    latex: PM_\mathrm{DES}^1
-  DES_PM2:
-    value: 0.0
-    latex: PM_\mathrm{DES}^2
-  DES_PM3:
-    value: 0.0
-    latex: PM_\mathrm{DES}^3
-  DES_PM4:
-    value: 0.0
-    latex: PM_\mathrm{DES}^4
-  DES_PM5:
-    value: 0.0
-    latex: PM_\mathrm{DES}^5
   DES_BMAG_1:
-    value: 1.0
+    value: 0.63
     latex: b_\mathrm{BMAG-DES}^1
   DES_BMAG_2:
-    value: 1.0
+    value: -3.04
     latex: b_\mathrm{BMAG-DES}^2
   DES_BMAG_3:
-    value: 1.0
+    value: -1.33
     latex: b_\mathrm{BMAG-DES}^3
   DES_BMAG_4:
-    value: 1.0
+    value: 2.50
     latex: b_\mathrm{BMAG-DES}^4
   DES_BMAG_5:
-    value: 1.0
+    value: 1.93
     latex: b_\mathrm{BMAG-DES}^5
   # Baryonic effects PCs amplitudes
   DES_BARYON_Q1:
@@ -317,7 +293,7 @@ params:
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
-  # DES-Y1 3x2 nuissance parameter ends
+  # DES-Y3 3x2 nuissance parameter End
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
@@ -328,8 +304,8 @@ theory:
     use_renames: True
     extra_args:
       halofit_version: takahashi
-      AccuracyBoost: 1.1
-      lens_potential_accuracy: 1.1
+      AccuracyBoost: 1.0
+      lens_potential_accuracy: 1.0
       num_massive_neutrinos: 1
       nnu: 3.046
       dark_energy_model: ppf
@@ -353,7 +329,7 @@ sampler:
     # Don't learn if convergence better than...
     learn_proposal_Rminus1_min: 0.03
     # Don't learn if convergence is worse than...
-    learn_proposal_Rminus1_max: 50.
+    learn_proposal_Rminus1_max: 50.0
     # (even earlier if a param is not in the given covariance matrix)
     learn_proposal_Rminus1_max_early: 2000.
     # ---------------------------------------------------------------------
@@ -409,4 +385,4 @@ sampler:
     # ---------------------------------------------------------------------
     Rminus1_single_split: 4
 
-output: ./projects/desy1xplanck/chains/EXAMPLE_MCMC1
+output: ./projects/desy1xplanck/chains/EXAMPLE_MCMC4

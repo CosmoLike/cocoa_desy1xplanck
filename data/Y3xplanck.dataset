@@ -1,4 +1,5 @@
-data_file = xi_desy3xplanck_6x2pt_realdata_pp_agr2_CMBmarged
+#data_file = xi_desy3xplanck_6x2pt_realdata_pp_agr2_CMBmarged
+data_file = desy3_theory_LCDM.modelvector
 cov_file = cov_y3xplanck_mix6x2pt_pp_p18cosmo_kkkkFFP10
 mask_file = xi_desy1xplanck_6x2pt_realdata_pp_agr2_CMBmarged.mask
 
