@@ -332,7 +332,7 @@ void cpp_init_binning_fourier(const int Ncl, const double lmin, const double lma
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_binning_fourier");
 }
 
-void cpp_init_binning_cmb_bandpower(const int Nbp, const int lmin, const int lmax)
+void cpp_init_binning_cmb_bandpower(const int Nbp, const double lmin, const double lmax)
 {
   spdlog::info("\x1b[90m{}\x1b[0m: Begins", "init_binning_cmb_bandpower");
 

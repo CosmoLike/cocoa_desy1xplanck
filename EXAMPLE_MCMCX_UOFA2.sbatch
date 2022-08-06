@@ -4,6 +4,7 @@
 #SBATCH --output=DESY1PL-%A_%a.out
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
+#SBATCH --ntasks-per-socket=2
 #SBATCH --cpus-per-task=10
 #SBATCH --partition=standard
 #SBATCH --account=timeifler
