@@ -129,7 +129,7 @@ params:
     latex: \Omega_\mathrm{\\nu}
   DES_BARYON_Q1:
     value: 0.0
-    latex: Q_\mathrm{DES}^2
+    latex: Q_\mathrm{DES}^1
   DES_BARYON_Q2:
     value: 0.0
     latex: Q_\mathrm{DES}^2
