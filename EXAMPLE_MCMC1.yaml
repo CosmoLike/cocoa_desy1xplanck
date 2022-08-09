@@ -3,9 +3,11 @@ debug: False
 stop_at_error: False
 
 likelihood:
-  desy1xplanck.desy1xplanck_3x2pt:
+  desy1xplanck.desy1xplanck_6x2pt:
     path: ./external_modules/data/desy1xplanck
-
+    data_file: Y1xplanck.dataset
+    integration_accuracy: 0
+    
 params:
   As_1e9:
     prior:
@@ -16,7 +18,7 @@ params:
       loc: 2.1
       scale: 0.65
     proposal: 0.4
-    latex: 10^9 A_\mathrm{s})
+    latex: 10^9 A_\mathrm{s}
     drop: true
     renames: A
   As:
@@ -48,7 +50,7 @@ params:
       max: 0.07
     ref:
       dist: norm
-      loc: 0.0495
+      loc: 0.0455
       scale: 0.004
     proposal: 0.004
     latex: \Omega_\mathrm{b}
@@ -59,53 +61,29 @@ params:
       max: 0.9
     ref:
       dist: norm
-      loc: 0.316
+      loc: 0.211
       scale: 0.02
     proposal: 0.02
     latex: \Omega_\mathrm{m}
     drop: true
   mnu:
-    prior:
-      min: 0.06
-      max: 0.6
-    ref:
-      dist: norm
-      loc: 0.25
-      scale: 0.1
-    proposal: 0.05
-  w0pwa:
-    prior:
-      min: -5 
-      max: -0.01
-    ref:
-      dist: norm
-      loc: -0.99
-      scale: 0.05
-    proposal: 0.05
-    latex: w_{0,\mathrm{DE}}+w_{a,\mathrm{DE}}
-    drop: true
+    value: 0.06
+    latex: \m_\\nu
   w:
-    prior:
-      min: -3
-      max: -0.01
-    ref:
-      dist: norm
-      loc: -0.99
-      scale: 0.05
-    proposal: 0.05
+    value: -1
     latex: w_{0,\mathrm{DE}}
-  wa:
-    value: 'lambda w0pwa, w: w0pwa - w'
-    latex: w_{a,\mathrm{DE}}
+  tau:
+    value: 0.0697186
+    latex: \tau_\mathrm{reio}
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
   omegabh2:
     value: 'lambda omegab, H0: omegab*(H0/100)**2'
     latex: \Omega_\mathrm{b} h^2
   omegach2:
     value: 'lambda omegam, omegab, mnu, H0: (omegam-omegab)*(H0/100)**2-(mnu*(3.046/3)**0.75)/94.0708'
     latex: \Omega_\mathrm{c} h^2
-  tau:
-    value: 0.0697186
-    latex: \tau_\mathrm{reio}
   omegal:
     latex: \Omega_\Lambda
   omegamh2:
@@ -122,11 +100,208 @@ params:
   s8omegamp25:
     derived: 'lambda sigma8, omegam: sigma8*omegam**0.25'
     latex: \sigma_8 \Omega_\mathrm{m}^{0.25}
+  age:
+    latex: '{\rm{Age}}/\mathrm{Gyr}'
+  rdrag:
+    latex: r_\mathrm{drag}
+  yheused:
+    latex: Y_P^\mathrm{BBN}
   omegan2:
     latex: \Omega_\mathrm{\\nu} h^2
   omegan:
     derived: 'lambda omegan2, H0: omegan2/((H0/100)**2)'
     latex: \Omega_\mathrm{\\nu}
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # DES-Y1 3x2 nuissance parameter begins
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  DES_DZ_S1:
+    prior:
+      dist: norm
+      loc: -0.001
+      scale: 0.016
+    ref:
+      dist: norm
+      loc: -0.001
+      scale: 0.016
+    proposal: 0.005
+    latex: \Delta z_\mathrm{s,DES}^1
+  DES_DZ_S2:
+    prior:
+      dist: norm
+      loc: -0.019 
+      scale: 0.013
+    ref:
+      dist: norm
+      loc: -0.019
+      scale: 0.013
+    proposal: 0.005
+    latex: \Delta z_\mathrm{s,DES}^2
+  DES_DZ_S3:
+    prior:
+      dist: norm
+      loc: 0.009
+      scale: 0.011
+    ref:
+      dist: norm
+      loc: 0.009
+      scale: 0.011
+    proposal: 0.005
+    latex: \Delta z_\mathrm{s,DES}^3
+  DES_DZ_S4:
+    prior:
+      dist: norm
+      loc: -0.018 
+      scale: 0.022
+    ref:
+      dist: norm
+      loc: -0.018
+      scale: 0.022
+    proposal: 0.005
+    latex: \Delta z_\mathrm{s,DES}^4
+  DES_M1:
+    prior:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    proposal: 0.005
+    latex: m_\mathrm{DES}^1
+  DES_M2:
+    prior:
+      dist: norm
+      loc: 0.012 
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    proposal: 0.005
+    latex: m_\mathrm{DES}^2
+  DES_M3:
+    prior:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    proposal: 0.005
+    latex: m_\mathrm{DES}^3
+  DES_M4:
+    prior:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    proposal: 0.005
+    latex: m_\mathrm{DES}^4
+  DES_A2_1: #TATT, not used for Y1
+    value: 0.0
+    latex: A_\mathrm{2-IA,DES}^1 
+  DES_A2_2: #TATT, not used for Y1
+    value: 0.0
+    latex: A_\mathrm{2-IA,DES}^2
+  DES_BTA_1: #TATT, not used for Y1
+    value: 1.0
+    latex: A_\mathrm{BTA-IA,DES}^1
+ # Lensing photo-z errors
+  DES_DZ_L1:
+    prior:
+      dist: norm
+      loc: 0.008
+      scale: 0.007
+    ref:
+      dist: norm
+      loc: 0.008
+      scale: 0.007
+    proposal: 0.004
+    latex: \Delta z_\mathrm{l,DES}^1
+  DES_DZ_L2:
+    prior:
+      dist: norm
+      loc: -0.005 
+      scale: 0.007
+    ref:
+      dist: norm
+      loc: -0.005
+      scale: 0.007
+    proposal: 0.003
+    latex: \Delta z_\mathrm{l,DES}^2
+  DES_DZ_L3:
+    prior:
+      dist: norm
+      loc: 0.006
+      scale: 0.006
+    ref:
+      dist: norm
+      loc: 0.006
+      scale: 0.006
+    proposal: 0.003
+    latex: \Delta z_\mathrm{l,DES}^3
+  DES_DZ_L4:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.01
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.01
+    proposal: 0.005
+    latex: \Delta z_\mathrm{l,DES}^4
+  DES_DZ_L5:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.01
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.01
+    proposal: 0.005
+    latex: \Delta z_\mathrm{l,DES}^5
+  DES_PM1:
+    value: 0.0
+    latex: PM_\mathrm{DES}^1
+  DES_PM2:
+    value: 0.0
+    latex: PM_\mathrm{DES}^2
+  DES_PM3:
+    value: 0.0
+    latex: PM_\mathrm{DES}^3
+  DES_PM4:
+    value: 0.0
+    latex: PM_\mathrm{DES}^4
+  DES_PM5:
+    value: 0.0
+    latex: PM_\mathrm{DES}^5
+  DES_BMAG_1:
+    value: 1.0
+    latex: b_\mathrm{BMAG-DES}^1
+  DES_BMAG_2:
+    value: 1.0
+    latex: b_\mathrm{BMAG-DES}^2
+  DES_BMAG_3:
+    value: 1.0
+    latex: b_\mathrm{BMAG-DES}^3
+  DES_BMAG_4:
+    value: 1.0
+    latex: b_\mathrm{BMAG-DES}^4
+  DES_BMAG_5:
+    value: 1.0
+    latex: b_\mathrm{BMAG-DES}^5
+  # Baryonic effects PCs amplitudes
   DES_BARYON_Q1:
     value: 0.0
     latex: Q_\mathrm{DES}^1
@@ -139,6 +314,13 @@ params:
   DES_BARYON_Q4:
     value: 0.0
     latex: Q_\mathrm{DES}^4
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # DES-Y1 3x2 nuissance parameter ends
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
 
 theory:
   camb:
@@ -160,7 +342,7 @@ sampler:
     # File (w/ path) or matrix defining a covariance matrix for the proposal:
     # - null (default): will be generated from params info (prior and proposal)
     # - matrix: remember to set `covmat_params` to the parameters in the matrix
-    covmat:
+    covmat: ./projects/desy1xplanck/EXAMPLE_MCMC1002.covmat
     covmat_params:
     # ---------------------------------------------------------------------
     # ---------------------------------------------------------------------
@@ -170,6 +352,10 @@ sampler:
     learn_proposal: True
     # Don't learn if convergence better than...
     learn_proposal_Rminus1_min: 0.03
+    # Don't learn if convergence is worse than...
+    learn_proposal_Rminus1_max: 50.
+    # (even earlier if a param is not in the given covariance matrix)
+    learn_proposal_Rminus1_max_early: 2000.
     # ---------------------------------------------------------------------
     # ---------------------------------------------------------------------
     # Convergence and stopping
@@ -189,23 +375,24 @@ sampler:
     # ---------------------------------------------------------------------
     measure_speeds: False
     drag: False
-    oversample_power: 1.0
+    oversample_power: 0.25
     oversample_thin: True
     blocking:
       - [1,
           [
-             As_1e9, ns, H0, omegab, omegam, mnu, w0pwa, w
+             As_1e9, ns, H0, omegab, omegam
           ]
         ]
-      - [5,
+      - [3,
           [
             DES_DZ_S1, DES_DZ_S2, DES_DZ_S3, DES_DZ_S4, DES_A1_1, DES_A1_2, DES_DZ_L1, 
-            DES_DZ_L2, DES_DZ_L3, DES_DZ_L4, DES_DZ_L5
+            DES_DZ_L2, DES_DZ_L3, DES_DZ_L4, DES_DZ_L5, DES_B1_1, DES_B1_2, DES_B1_3, 
+            DES_B1_4, DES_B1_5
           ]
         ]
       - [25,
           [
-            DES_M1, DES_M2, DES_M3, DES_M4,DES_B1_1, DES_B1_2, DES_B1_3, DES_B1_4, DES_B1_5
+            DES_M1, DES_M2, DES_M3, DES_M4,
           ]
         ]
     # ---------------------------------------------------------------------
