@@ -78,3 +78,13 @@ input_nuisance_params_y3 in = {
 >    char mask_file[500] = "./yaml/xi_desy1xplanck_6x2pt_fid.mask";
 >    char test_model_file[500] = "./datav/xi_desy1xplanck_6x2pt_mv_at_fiducial";
 >    int IA_model = 4; // 4 = NLA
+
+## File Description
+
+`cov_y1xplanck_mix6x2pt_pp_p18cosmo_kk_sim`: mix 6x2pt covariance matrix, with CMB lensing in band power. The CMB lensing auto-covariance is from Planck 2018 data release
+
+`pp_agr2_CMBmarged`: data files of Planck lensing likelihood, assumes minimum-variance estimator
+
+`pttptt_agr2_CMBmarged`: data files of Planck lensing likelihood, assumes TT-only estimator
+
+`xi_desy1xplanck_6x2pt_bp.mask`: mask file, assume 14 CMB lensing band power bins

@@ -1,0 +1,1 @@
+### NOTE: the covariance has Ckk-Ckk block from Planck 2018 covariance, and the Hartlap factor has to be applied to the inverse covariance when calculating the likelihood. The covariance matrix itself doesn't include that factor!!!
