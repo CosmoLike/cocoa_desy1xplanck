@@ -1932,6 +1932,15 @@ void ima::RealData::set_inv_cov(std::string COV)
         "set_inv_cov", COV);
       exit(1);
   }
+  // test positive-definite
+  arma::Col<double> eigvals = arma::eig_sym(this->inv_cov_masked_);
+  for(int i=0; i<this->ndata_; i++)
+  {
+    if(eigvals(i)<0){
+      spdlog::critical("{}: covmat not positive definite!", "set_inv_cov");
+      exit(-1);
+    }
+  }
 
   this->inv_cov_masked_ = arma::inv(this->inv_cov_masked_);
 
@@ -2277,6 +2286,9 @@ double ima::RealData::get_chi2(std::vector<double> datavector) const
         {
           const double y = datavector[j] - this->get_data_masked(j);
           chi2 += x*this->get_inverse_covariance_masked(i,j)*y;
+          if(chi2>1.0e300){
+            spdlog::critical("\x1b[90m{}\x1b[0m: dangerous chi2 = {}", "get_chi2", chi2);
+          }
         }
       }
     }
@@ -2286,6 +2298,7 @@ double ima::RealData::get_chi2(std::vector<double> datavector) const
     spdlog::critical("\x1b[90m{}\x1b[0m: chi2 = {} (invalid)", "get_chi2", chi2);
     exit(1);
   }
+  spdlog::info("\x1b[90m{}\x1b[0m: chi2 = {}","get_chi2", chi2);
   return chi2;
 }
 

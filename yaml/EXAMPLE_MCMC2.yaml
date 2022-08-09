@@ -242,4 +242,4 @@ sampler:
     # -----------------------------------------------------------------
     Rminus1_single_split: 4
 
-output: ./projects/desy1xplanck/chains/6x2pt_simudata_LCDM_2/EXAMPLE_MCMC2
+output: ./projects/desy1xplanck/chains/6x2pt_simudata_LCDM_3/EXAMPLE_MCMC2

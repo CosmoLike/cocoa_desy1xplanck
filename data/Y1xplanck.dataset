@@ -1,6 +1,6 @@
-data_file = xi_desy1xplanck_6x2pt_simudata_pp_agr2_CMBmarged_cocoa
+#data_file = xi_desy1xplanck_6x2pt_simudata_pp_agr2_CMBmarged_cocoa
 #data_file = xi_desy1xplanck_6x2pt_simudata_pp_agr2_CMBmarged_cosmolike
-#data_file = xi_desy1xplanck_6x2pt_realdata_pp_agr2_CMBmarged
+data_file = xi_desy1xplanck_6x2pt_realdata_pp_agr2_CMBmarged
 
 #cov_file = cov_y1xplanck_mix6x2pt_referebceMV_new # this one still assume log-bin for k_cmb
 cov_file = cov_y1xplanck_mix6x2pt_pp_p18cosmo_kkkkFFP10

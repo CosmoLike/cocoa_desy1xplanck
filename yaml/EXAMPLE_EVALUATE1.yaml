@@ -146,9 +146,9 @@ theory:
 
 sampler:
   evaluate:
-    N: 1
+    N: 5
     override:
-      As_1e9: 1.994734
+      #As_1e9: 1.994734
       ns: 0.9948623
       H0: 5.742381e+01
       omegab: 6.973287e-02
