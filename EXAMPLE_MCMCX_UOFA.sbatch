@@ -10,6 +10,8 @@
 #SBATCH --qos=user_qos_timeifler
 #SBATCH --account=timeifler
 #SBATCH --time=70:00:00
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=jiachuanxu@arizona.edu
 
 # Clear the environment from any previously loaded modules
 module purge > /dev/null 2>&1
