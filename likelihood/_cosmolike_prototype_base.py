@@ -116,6 +116,17 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
       self.ncl = 0
       self.lmin = 0
       self.lmax = 0
+
+      self.is_cmb_kkkk_cov_from_sim = ini.int("is_cmb_kkkk_cov_from_sim", default = -1)
+      if(self.is_cmb_kkkk_cov_from_sim == 1):
+        Nvar = ini.float("Hartlap_Nvar")
+        self.alpha_Hartlap = (Nvar - self.nbp -2.0)/(Nvar - 1.0) # < 1
+      elif(self.is_cmb_kkkk_cov_from_sim == -1 or self.is_cmb_kkkk_cov_from_sim > 1):
+        raise LoggedError(self.log, 
+            "MUST SPECIFY is_cmb_kkkk_cov_from_sim (0 or 1) IN THE DATA FILE!")
+      else:
+        self.is_cmb_kkkk_cov_from_sim = 0
+        self.alpha_Hartlap = 1.0
     else:
       self.is_cmb_bandpower = 0
       
@@ -163,7 +174,7 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
     
     ci.init_binning(self.ntheta, self.theta_min_arcmin, self.theta_max_arcmin)
 
-    ci.init_cmb_bandpower(self.is_cmb_bandpower)
+    ci.init_cmb_bandpower(self.is_cmb_bandpower, self.is_cmb_kkkk_cov_from_sim, self.alpha_Hartlap)
 
     ci.init_cmb(self.lmin_kappa_cmb, self.lmax_kappa_cmb, self.fwhm)
 

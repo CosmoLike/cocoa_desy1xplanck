@@ -768,11 +768,13 @@ void cpp_init_distances(std::vector<double> io_z, std::vector<double> io_chi)
   return;
 }
 
-void cpp_init_cmb_bandpower(const int is_cmb_bandpower)
+void cpp_init_cmb_bandpower(const int is_cmb_bandpower, const int is_cmb_kkkk_cov_from_sim, const double alpha)
 {
   spdlog::info("\x1b[90m{}\x1b[0m: Begins", "init_cmb_bandpower");
 
   like.is_cmb_bandpower = is_cmb_bandpower;
+  like.is_cmb_kkkk_cov_from_sim = is_cmb_kkkk_cov_from_sim;
+  like.alpha_Hartlap_kkkk = alpha;
 
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_cmb_bandpower");
 }
@@ -1906,8 +1908,17 @@ void ima::RealData::set_inv_cov(std::string COV)
         const int j = static_cast<int>(table(i,0));
         const int k = static_cast<int>(table(i,1));
 
+        double hartlap_factor = 1.0;// <= 1
+        if((like.is_cmb_bandpower == 1) && (like.is_cmb_kkkk_cov_from_sim == 1))
+        {
+          if((j >= this->ndata_ - like.Nbp) && (k >= this->ndata_ - like.Nbp))
+          {
+            hartlap_factor = like.alpha_Hartlap_kkkk;
+          }
+        }
+
         this->cov_masked_(j,k) = table(i,2);
-        this->inv_cov_masked_(j,k) = table(i,2);
+        this->inv_cov_masked_(j,k) = table(i,2) / hartlap_factor / hartlap_factor;
 
         if (j!=k)
         {
@@ -1932,8 +1943,17 @@ void ima::RealData::set_inv_cov(std::string COV)
         const int j = static_cast<int>(table(i,0));
         const int k = static_cast<int>(table(i,1));
 
+        double hartlap_factor = 1.0;
+        if((like.is_cmb_bandpower == 1) && (like.is_cmb_kkkk_cov_from_sim == 1))
+        {
+          if((j >= this->ndata_ - like.Nbp) && (k >= this->ndata_ - like.Nbp))
+          {
+            hartlap_factor = like.alpha_Hartlap_kkkk;
+          }
+        }
+
         this->cov_masked_(j,k) = table(i,2) + table(i,3);
-        this->inv_cov_masked_(j,k) = table(i,2) + table(i,3);
+        this->inv_cov_masked_(j,k) = (table(i,2) + table(i,3))/hartlap_factor/hartlap_factor;
 
         if (j!=k)
         {
@@ -1958,8 +1978,17 @@ void ima::RealData::set_inv_cov(std::string COV)
         const int j = static_cast<int>(table(i,0));
         const int k = static_cast<int>(table(i,1));
 
+        double hartlap_factor = 1.0;
+        if((like.is_cmb_bandpower == 1) && (like.is_cmb_kkkk_cov_from_sim == 1))
+        {
+          if((j >= this->ndata_ - like.Nbp) && (k >= this->ndata_ - like.Nbp))
+          {
+            hartlap_factor = like.alpha_Hartlap_kkkk;
+          }
+        }
+
         this->cov_masked_(j,k) = table(i,8) + table(i,9);
-        this->inv_cov_masked_(j,k) = table(i,8) + table(i,9);
+        this->inv_cov_masked_(j,k) = (table(i,8) + table(i,9))/hartlap_factor/hartlap_factor;
 
         if (j!=k)
         {
@@ -2568,7 +2597,9 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
   m.def("init_cmb_bandpower",
     &cpp_init_cmb_bandpower,
     "Init is_cmb_bandpower bool variable",
-    py::arg("is_cmb_bandpower")
+    py::arg("is_cmb_bandpower"),
+    py::arg("is_cmb_kkkk_cov_from_sim"),
+    py::arg("Hartlap_factor")
   );
 
   m.def("init_cmb_bandpower_data",
