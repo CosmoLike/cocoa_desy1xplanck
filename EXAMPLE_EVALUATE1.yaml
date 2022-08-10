@@ -8,7 +8,7 @@ likelihood:
     data_file: Y1xplanck.dataset
     integration_accuracy: 0
     print_datavector: True
-    print_datavector_file: "./projects/desy1xplanck/chains/desy1_theory_LCDM.modelvector"
+    print_datavector_file: "./projects/desy1xplanck/chains/desy1_theory_LCDM.modelvector_2"
 
 params:
   As_1e9:
