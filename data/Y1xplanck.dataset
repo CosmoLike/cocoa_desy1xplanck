@@ -1,12 +1,13 @@
 #data_file = xi_desy1xplanck_6x2pt_realdata_pp_agr2_CMBmarged
-data_file = desy1_theory_LCDM.modelvector
+#data_file = desy1_theory_LCDM.modelvector
+data_file = desy1_theory_LCDM_mnu0.25.modelvector
 cov_file = cov_y1xplanck_mix6x2pt_pp_p18cosmo_kkkkFFP10
 mask_file = xi_desy1xplanck_6x2pt_realdata_pp_agr2_CMBmarged.mask
 
 nz_lens_file = mcal_1101_lens.nz
 nz_source_file = mcal_1101_source.nz
 
-#baryon_pca_file = pca.txt
+baryon_pca_file = PCs/6x2pt_pp_agr2_DEFAULT.txt
 
 lensing_overlap_cut = 0.00
 lens_ntomo = 5
