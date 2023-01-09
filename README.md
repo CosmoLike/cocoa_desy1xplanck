@@ -11,6 +11,9 @@ To compare the data vector predictions from `cosmolike_core` and `cocoa`, run
 
 > $ mpirun -n 1 --mca btl tcp,self --bind-to core --rank-by core --map-by numa:pe=4 cobaya-run ./projects/desy1xplanck/EXAMPLE_EVALUATE1.yaml -f
 
+Or,
+> $ mpirun -n 1 --mca btl tcp,self cobaya-run ./projects/desy1xplanck/yaml/EXAMPLE_EVALUATE1.yaml -f
+
 The fiducial `cosmolike_core` data vector is `./data/xi_desy1xplanck_6x2pt_fid_cosmolike_core`
 The fiducial parameters to generate `cosmolike_core` data vector is recorded in `./data/README.md`
 The `./likelihood/desy1xplanck_6x2pt.py` will write the data vector at fiducial parameters to `./chains/EXAMPLE_EVALUATE1.model_vector`
