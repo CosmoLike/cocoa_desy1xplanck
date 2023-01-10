@@ -93,7 +93,7 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
     self.lens_ntomo = ini.int("lens_ntomo", default = -1)
     self.lens_file = ini.relativeFileName('nz_lens_file')
     self.ggl_olap_cut = ini.float("lensing_overlap_cut")
- 
+
     self.ntheta = ini.int("n_theta")
     self.theta_min_arcmin = ini.float("theta_min_arcmin")
     self.theta_max_arcmin = ini.float("theta_max_arcmin")
@@ -102,17 +102,17 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
     self.lmax_kappa_cmb = ini.float("lmax_kappa_cmb", default = -1)
     self.lmin_kappa_cmb = ini.float("lmin_kappa_cmb", default = -1)
     self.fwhm  = ini.float("fwhm") # FWHM of the CMB beam kernel, in arcmin
-        
+
     self.is_cmb_bandpower = ini.int("is_cmb_bandpower")
 
     if (self.is_cmb_bandpower == 1):
       self.binmat_file = ini.relativeFileName('binmat_file')
       self.offset_file = ini.relativeFileName('offset_file')
-      
+
       self.nbp = ini.int("n_bp")
       self.lmin_bp = ini.float("lmin_bp")
       self.lmax_bp = ini.float("lmax_bp")
-      
+
       self.ncl = 0
       self.lmin = 0
       self.lmax = 0
@@ -129,11 +129,11 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
         self.alpha_Hartlap = 1.0
     else:
       self.is_cmb_bandpower = 0
-      
+
       self.ncl = ini.int("n_cl")
       self.lmin = ini.float("lmin")
       self.lmax = ini.float("lmax")
-      
+
       self.binmat_file = 'none'
       self.offset_file = 'none'
       self.nbp = 0
@@ -167,11 +167,11 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
     # ------------------------------------------------------------------------
 
     ci.initial_setup()
-    
+
     ci.init_accuracy_boost(self.accuracyboost, self.samplingboost, self.integration_accuracy)
     
     ci.init_probes(possible_probes=self.probe)
-    
+
     ci.init_binning(self.ntheta, self.theta_min_arcmin, self.theta_max_arcmin)
 
     ci.init_cmb_bandpower(self.is_cmb_bandpower, self.is_cmb_kkkk_cov_from_sim, self.alpha_Hartlap)
@@ -201,10 +201,10 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
     ci.init_size_data_vector()
 
     ci.init_data(self.cov_file, self.mask_file, self.data_vector_file)
-    
+
     if (self.is_cmb_bandpower == 1):
       ci.init_cmb_bandpower_data(self.binmat_file, self.offset_file)
-    
+
     # ------------------------------------------------------------------------
 
     # FOR ALLOWED OPTIONS FOR `which_baryonic_simulations`, SEE BARYONS.C
