@@ -63,7 +63,7 @@ public:
 
   void set_inv_cov(std::string COV);
 
-  void set_cmb_binning_mat(std::string BINMAT);  
+  void set_cmb_binning_mat(std::string BINMAT);
 
   void set_cmb_theory_offset(std::string OFFSET);
 
@@ -145,7 +145,7 @@ private:
   arma::Col<double> data_masked_reduced_dim_; // for baryon project, reduced dim
 
   arma::Mat<double> cov_masked_;
-  arma::Mat<double> cov_masked_reduced_dim_;  // for baryon project, reduced dim
+  arma::Mat<double> cov_masked_reduced_dim_; // for baryon project, reduced dim
   arma::Mat<double> inv_cov_masked_;
   arma::Mat<double> inv_cov_masked_reduced_dim_;
 
