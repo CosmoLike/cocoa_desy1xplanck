@@ -1504,12 +1504,12 @@ std::vector<double> cpp_compute_data_vector_masked()
           }
         }
       }
-	  for (int j=0; j<like.Nbp; j++)
+      for (int j=0; j<like.Nbp; j++)
       {// add the offset due to marginalizing over primary CMB
         const int index = start + j;
-		if (cpp_get_mask(index))
+        if (cpp_get_mask(index))
         {
-	      data_vector[index] -= instance.get_cmb_theory_offset(j);
+          data_vector[index] -= instance.get_cmb_theory_offset(j);
         }
       }
     }
