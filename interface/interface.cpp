@@ -204,7 +204,7 @@ void cpp_init_probes(std::string possible_probes)
   }
   else
   {
-    spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} probe not supported", 
+    spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} probe not supported",
       "init_probes", "possible_probes", possible_probes);
     exit(1);
   }
@@ -350,7 +350,7 @@ void cpp_init_binning_cmb_bandpower(const int Nbp, const double lmin, const doub
   like.Nbp = Nbp;
   like.lmin_bp = lmin;
   like.lmax_bp = lmax;
-
+  
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_binning_cmb_bandpower");
 }
 
