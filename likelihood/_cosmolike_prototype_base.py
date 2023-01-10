@@ -95,9 +95,7 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
     self.ggl_olap_cut = ini.float("lensing_overlap_cut")
 
     self.ntheta = ini.int("n_theta")
-
     self.theta_min_arcmin = ini.float("theta_min_arcmin")
-
     self.theta_max_arcmin = ini.float("theta_max_arcmin")
 
     # CMB beam cut-off
