@@ -63,7 +63,7 @@ void cpp_initial_setup()
   like.lmax_kappacmb = 0;
 
   like.is_cmb_bandpower = -1;
-  like.lmin_bp = 0;
+  like.lmin_bp = 0; 
   like.lmax_bp = 0;
   like.Nbp = 0;
 
@@ -180,7 +180,8 @@ void cpp_init_probes(std::string possible_probes)
     like.shear_shear = 1;
     like.shear_pos = 1;
 
-    spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected", "init_probes", "possible_probes", "xi + ggl (2x2pt)");
+    spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected", "init_probes", "possible_probes", 
+	  "xi + ggl (2x2pt)");
   }
   else if (possible_probes.compare("5x2pt") == 0)
   {
@@ -189,7 +190,8 @@ void cpp_init_probes(std::string possible_probes)
     like.pos_pos = 1;
     like.gk = 1;
     like.ks = 1;
-    spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected", "init_probes", "possible_probes", "5x2pt");
+    spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected", 
+	  "init_probes", "possible_probes", "5x2pt");
   }
   else if (possible_probes.compare("6x2pt") == 0)
   {
@@ -240,7 +242,6 @@ void cpp_init_cosmo_runmode(const bool is_linear)
   memcpy(pdeltaparams.runmode, mode.c_str(), size + 1);
 
   spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected", "init_cosmo_runmode", "runmode", mode);
-
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_cosmo_runmode");
 }
 
@@ -307,20 +308,18 @@ void cpp_init_binning_fourier(const int Ncl, const double lmin, const double lma
 
   if (!(Ncl > 0))
   {
-    spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} not supported", "init_binning_fourier", "like.Ncl", Ncl);
+    spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} not supported", "init_binning_fourier", 
+	  "like.Ncl", Ncl);
     exit(1);
   }
 
   spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_binning_fourier", "Ncl", Ncl);
-
   spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_binning_fourier", "l_min", lmin);
-
   spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_binning_fourier", "l_max", lmax);
 
   like.Ncl = Ncl;
   like.lmin = lmin;
   like.lmax = lmax;
-
   spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_binning_fourier", "Ncl", like.Ncl);
   const double logdl = (std::log(like.lmax) - std::log(like.lmin))/like.Ncl;
   like.ell = (double*) malloc(sizeof(double)*like.Ncl);
@@ -340,20 +339,18 @@ void cpp_init_binning_cmb_bandpower(const int Nbp, const double lmin, const doub
 
   if (!(Nbp > 0))
   {
-    spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} not supported", "init_binning_cmb_bandpower", "like.Nbp", Nbp);
+    spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} not supported", "init_binning_cmb_bandpower", 
+	  "like.Nbp", Nbp);
     exit(1);
   }
 
   spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_binning_cmb_bandpower", "Nbp", Nbp);
-
   spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_binning_cmb_bandpower", "l_min", lmin);
-
   spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_binning_cmb_bandpower", "l_max", lmax);
 
   like.Nbp = Nbp;
   like.lmin_bp = lmin;
   like.lmax_bp = lmax;
-
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_binning_cmb_bandpower");
 }
 
@@ -466,6 +463,7 @@ void cpp_init_lens_sample(std::string multihisto_file, const int Ntomo, const do
     spdlog::info("\x1b[90m{}\x1b[0m: tomo.ggl_Npowerspectra = {}",
       "init_lens_sample", tomo.ggl_Npowerspectra);
   }
+
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_lens_sample");
 }
 
@@ -516,6 +514,7 @@ void cpp_init_source_sample(std::string multihisto_file, const int Ntomo)
 
   spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_source_sample",
     "shear_Nbin", Ntomo);
+
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_source_sample");
 }
 
@@ -562,9 +561,8 @@ void cpp_init_size_data_vector()
         "init_size_data_vector", "is_cmb_bandpower");
   }
 
-  like.Ndata = like.Ntheta*(2*tomo.shear_Npowerspectra +
-                        tomo.ggl_Npowerspectra + tomo.clustering_Npowerspectra
-                        + tomo.shear_Nbin + tomo.clustering_Nbin);
+  like.Ndata = like.Ntheta*(2*tomo.shear_Npowerspectra + tomo.ggl_Npowerspectra + 
+				  tomo.clustering_Npowerspectra + tomo.shear_Nbin + tomo.clustering_Nbin);
 
   if (like.is_cmb_bandpower == 0)
   {
@@ -573,11 +571,10 @@ void cpp_init_size_data_vector()
   else
   {
     like.Ndata += like.Nbp;
-  } 
-
+  }
+  
   spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_size_data_vector", "Ndata",
     like.Ndata);
-
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_size_data_vector");
 }
 
@@ -805,7 +802,7 @@ void cpp_init_cmb_bandpower_data(std::string BINMAT, std::string OFFSET)
 
   instance.set_cmb_binning_mat(BINMAT);
   instance.set_cmb_theory_offset(OFFSET);
-
+  
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_cmb_bandpower_data");
 
   return;
@@ -1275,7 +1272,6 @@ std::vector<double> cpp_compute_data_vector_masked()
       "compute_data_vector_masked", "like.is_cmb_bandpower");
     exit(1);
   }
-
   if (!ima::RealData::get_instance().is_mask_set())
   {
     spdlog::critical(
@@ -1509,13 +1505,13 @@ std::vector<double> cpp_compute_data_vector_masked()
         }
       }
 	  for (int j=0; j<like.Nbp; j++)
-	  {// add the offset due to marginalizing over primary CMB
-		const int index = start + j;
+      {// add the offset due to marginalizing over primary CMB
+        const int index = start + j;
 		if (cpp_get_mask(index))
-		{
-		  data_vector[index] -= instance.get_Ckk_theory_offset(j);
-		}
-	  }
+        {
+	      data_vector[index] -= instance.get_cmb_theory_offset(j);
+        }
+      }
     }
   }
 /*
@@ -1525,11 +1521,13 @@ std::vector<double> cpp_compute_data_vector_masked()
   spdlog::info("\x1b[90m{}\x1b[0m: Try int_for_C_kk_limber(a = 0.3, ell=1000) = {}",
             "compute_data_vector_masked", test_int );
   spdlog::debug("\x1b[90m{}\x1b[0m: Ends", "compute_data_vector_masked");
+
   // test chi integration
   int Nz_tfi = 10000;
   double zmin_tfi = 1e-5, zmax_tfi = 1090.0;
   double dz_tfi = log(zmax_tfi/zmin_tfi) / Nz_tfi;
   double z_tfi = 0.0, chi_tfi=0.0;
+
   char tfi_filename[500];
   sprintf(tfi_filename, "/home/u17/jiachuanxu/cocoa/Cocoa/test_chi_precision_cocoa.dat");
   FILE *tfi_file;
@@ -1799,7 +1797,7 @@ void ima::RealData::set_mask(std::string MASK)
     const int N = like.Ntheta*(2*tomo.shear_Npowerspectra +
       tomo.ggl_Npowerspectra+tomo.clustering_Npowerspectra +
       tomo.clustering_Nbin+tomo.shear_Nbin);
-    const int M = (like.is_cmb_bandpower == 1) ? N + like.Nbp : N + like.Ncl;
+    const int M = (like.is_cmb_bandpower == 1) ?  N + like.Nbp : N + like.Ncl;
     for (int i=N; i<M; i++) 
     {
       this->mask_(i) = 0.0;
@@ -1920,7 +1918,7 @@ void ima::RealData::set_inv_cov(std::string COV)
         }
 
         this->cov_masked_(j,k) = table(i,2);
-        this->inv_cov_masked_(j,k) = table(i,2)/ hartlap_factor / hartlap_factor;
+        this->inv_cov_masked_(j,k) = table(i,2) / hartlap_factor / hartlap_factor;
 
         if (j!=k)
         {
@@ -1945,7 +1943,7 @@ void ima::RealData::set_inv_cov(std::string COV)
         const int j = static_cast<int>(table(i,0));
         const int k = static_cast<int>(table(i,1));
 
-		double hartlap_factor = 1.0;
+        double hartlap_factor = 1.0;
         if((like.is_cmb_bandpower == 1) && (like.is_cmb_kkkk_cov_from_sim == 1))
         {
           if((j >= this->ndata_ - like.Nbp) && (k >= this->ndata_ - like.Nbp))
@@ -1980,7 +1978,7 @@ void ima::RealData::set_inv_cov(std::string COV)
         const int j = static_cast<int>(table(i,0));
         const int k = static_cast<int>(table(i,1));
 
-		double hartlap_factor = 1.0;
+        double hartlap_factor = 1.0;
         if((like.is_cmb_bandpower == 1) && (like.is_cmb_kkkk_cov_from_sim == 1))
         {
           if((j >= this->ndata_ - like.Nbp) && (k >= this->ndata_ - like.Nbp))
@@ -2078,7 +2076,7 @@ void ima::RealData::set_cmb_theory_offset(std::string OFFSET)
 {
   if (!(like.Nbp>0))
   {
-    spdlog::critical("\x1b[90m{}\x1b[0m: {} not set prior to this call",
+    spdlog::critical("\x1b[90m{}\x1b[0m: {} not set prior to this call", 
       "set_cmb_theory_offset", "like.Nbp");
     exit(1);
   }
@@ -2092,8 +2090,6 @@ void ima::RealData::set_cmb_theory_offset(std::string OFFSET)
   {
     this->cmb_theory_offset_(i) = static_cast<double>(table(i,0));
   }
-
-  this->offset_filename_ = OFFSET;
 
   spdlog::info("\x1b[90m{}\x1b[0m: {} has {} elements",
     "set_cmb_theory_offset", OFFSET, this->nbp_);
@@ -2115,13 +2111,12 @@ void ima::RealData::set_cmb_binning_mat(std::string BINMAT)
       "set_cmb_binning_mat", "like.Nbp");
     exit(1);
   } 
-  if (!( (like.lmin_bp>=0) && (like.lmax_bp>0)))
+  if (!((like.lmin_bp>=0) && (like.lmax_bp>0)))
   {
     spdlog::critical("\x1b[90m{}\x1b[0m: {} and {} not set prior to this call",
       "set_cmb_binning_mat", "like.lmin_bp", "like.lmax_bp");
     exit(1);
   }
-
 
   this->nbp_ = like.Nbp;
   this->ncl_ = like.lmax_bp - like.lmin_bp + 1;
@@ -2133,12 +2128,11 @@ void ima::RealData::set_cmb_binning_mat(std::string BINMAT)
   {
     for (int j=0; j<this->ncl_; j++)
     {
-      this->CMB_binning_matrix_with_correction_(i,j) = static_cast<double>(table(i,j));
+      this->cmb_binning_matrix_with_correction_(i,j) = static_cast<double>(table(i,j));
     }
   }
 
-  spdlog::info(
-    "\x1b[90m{}\x1b[0m: binning matrix file {} has {} x {} elements",
+  spdlog::info("\x1b[90m{}\x1b[0m: binning matrix file {} has {} x {} elements",
     "set_CMB_binning_mat", BINMAT, this->nbp_, this->ncl_);
 
   this->is_cmb_binmat_set_ = true;
@@ -2311,7 +2305,7 @@ double ima::RealData::get_cmb_theory_offset(const int ci) const
   if (ci > this->nbp_ || ci < 0)
   {
     spdlog::critical("\x1b[90m{}\x1b[0m: index i = {} is not valid (min = {}, max = {})",
-      "get_Ckk_theory_offset", ci, 0.0, this->nbp_);
+      "get_cmb_theory_offset", ci, 0.0, this->nbp_);
     exit(1);
   }
 
@@ -2368,14 +2362,14 @@ double ima::RealData::get_chi2(std::vector<double> datavector) const
   return chi2;
 }
 
-bool ima::RealData::is_cmb_mask_set() const
+bool ima::RealData::is_mask_set() const
 {
-  return this->is_cmb_mask_set_;
+  return this->is_mask_set_;
 }
 
-bool ima::RealData::is_cmb_data_set() const
+bool ima::RealData::is_data_set() const
 {
-  return this->is_cmb_data_set_;
+  return this->is_data_set_;
 }
 
 bool ima::RealData::is_inv_cov_set() const
