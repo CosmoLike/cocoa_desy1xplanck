@@ -63,9 +63,9 @@ public:
 
   void set_inv_cov(std::string COV);
 
-  void set_CMB_binning_mat(std::string BINMAT); // For DESxPlanck 6x2pt
+  void set_cmb_binning_mat(std::string BINMAT);
 
-  void set_CMB_theory_offset(std::string OFFSET); // For DESxPlanck 6x2pt
+  void set_cmb_theory_offset(std::string OFFSET);
 
   int get_ndim() const;
 
@@ -95,16 +95,15 @@ public:
 
   arma::Mat<double> get_inverse_covariance_masked_reduced_dim() const;
 
-  double get_inverse_covariance_masked_reduced_dim(const int ci,
-    const int cj) const;
+  double get_inverse_covariance_masked_reduced_dim(const int ci, const int cj) const;
 
   double get_binning_matrix_with_correction(const int ci, const int cj) const;
 
   arma::Mat<double> get_binning_matrix_with_correction() const;
 
-  double get_Ckk_theory_offset(const int ci) const;
+  double get_cmb_theory_offset(const int ci) const;
 
-  arma::Mat<double> get_Ckk_theory_offset() const;
+  arma::Mat<double> get_cmb_theory_offset() const;
 
   double get_chi2(std::vector<double> datavector) const;
 
@@ -114,9 +113,9 @@ public:
 
   bool is_inv_cov_set() const;
 
-  bool is_binmat_set() const;
+  bool is_cmb_binmat_set() const;
 
-  bool is_offset_set() const;
+  bool is_cmb_offset_set() const;
 
   arma::Col<double> get_expand_dim_from_masked_reduced_dim(
     arma::Col<double> reduced_dim_vector) const;
@@ -125,8 +124,8 @@ private:
   bool is_mask_set_ = false;
   bool is_data_set_ = false;
   bool is_inv_cov_set_ = false;
-  bool is_binmat_set_ = false;
-  bool is_offset_set_ = false;
+  bool is_cmb_binmat_set_ = false;
+  bool is_cmb_offset_set_ = false;
 
   int ndata_;
   int ndata_masked_; // for baryon project, reduced dim
@@ -150,10 +149,8 @@ private:
   arma::Mat<double> inv_cov_masked_;
   arma::Mat<double> inv_cov_masked_reduced_dim_;
 
-  // For DES x Planck 6x2pt project
-  // See Eqn 35 in Planck 2018 VIII
-  arma::Mat<double> CMB_binning_matrix_with_correction_;
-  arma::Col<double> CMB_theory_offset_;
+  arma::Mat<double> cmb_binning_matrix_with_correction_; // DESxPlanck, see Eqn 35 Planck 2018 VIII
+  arma::Col<double> cmb_theory_offset_;                  // DESxPlanck, see Eqn 35 Planck 2018 VIII
 
   RealData() = default;
   RealData(RealData const&) = delete;
