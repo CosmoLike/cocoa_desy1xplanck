@@ -181,7 +181,7 @@ void cpp_init_probes(std::string possible_probes)
     like.shear_pos = 1;
 
     spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected", "init_probes", "possible_probes", 
-	  "xi + ggl (2x2pt)");
+      "xi + ggl (2x2pt)");
   }
   else if (possible_probes.compare("5x2pt") == 0)
   {
@@ -190,8 +190,7 @@ void cpp_init_probes(std::string possible_probes)
     like.pos_pos = 1;
     like.gk = 1;
     like.ks = 1;
-    spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected", 
-	  "init_probes", "possible_probes", "5x2pt");
+    spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected", "init_probes", "possible_probes", "5x2pt");
   }
   else if (possible_probes.compare("6x2pt") == 0)
   {
@@ -205,7 +204,8 @@ void cpp_init_probes(std::string possible_probes)
   }
   else
   {
-    spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} probe not supported", "init_probes", "possible_probes", possible_probes);
+    spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} probe not supported", 
+      "init_probes", "possible_probes", possible_probes);
     exit(1);
   }
 
@@ -309,7 +309,7 @@ void cpp_init_binning_fourier(const int Ncl, const double lmin, const double lma
   if (!(Ncl > 0))
   {
     spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} not supported", "init_binning_fourier", 
-	  "like.Ncl", Ncl);
+      "like.Ncl", Ncl);
     exit(1);
   }
 
@@ -320,7 +320,6 @@ void cpp_init_binning_fourier(const int Ncl, const double lmin, const double lma
   like.Ncl = Ncl;
   like.lmin = lmin;
   like.lmax = lmax;
-  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_binning_fourier", "Ncl", like.Ncl);
   const double logdl = (std::log(like.lmax) - std::log(like.lmin))/like.Ncl;
   like.ell = (double*) malloc(sizeof(double)*like.Ncl);
   for (int i = 0; i < like.Ncl; i++)
@@ -340,7 +339,7 @@ void cpp_init_binning_cmb_bandpower(const int Nbp, const double lmin, const doub
   if (!(Nbp > 0))
   {
     spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} not supported", "init_binning_cmb_bandpower", 
-	  "like.Nbp", Nbp);
+      "like.Nbp", Nbp);
     exit(1);
   }
 
@@ -351,6 +350,7 @@ void cpp_init_binning_cmb_bandpower(const int Nbp, const double lmin, const doub
   like.Nbp = Nbp;
   like.lmin_bp = lmin;
   like.lmax_bp = lmax;
+
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_binning_cmb_bandpower");
 }
 
@@ -562,7 +562,7 @@ void cpp_init_size_data_vector()
   }
 
   like.Ndata = like.Ntheta*(2*tomo.shear_Npowerspectra + tomo.ggl_Npowerspectra + 
-				  tomo.clustering_Npowerspectra + tomo.shear_Nbin + tomo.clustering_Nbin);
+                  tomo.clustering_Npowerspectra + tomo.shear_Nbin + tomo.clustering_Nbin);
 
   if (like.is_cmb_bandpower == 0)
   {
@@ -573,7 +573,7 @@ void cpp_init_size_data_vector()
     like.Ndata += like.Nbp;
   }
   
-  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_size_data_vector", "Ndata",
+  spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected.", "init_size_data_vector", "Ndata", 
     like.Ndata);
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_size_data_vector");
 }
@@ -2091,7 +2091,7 @@ void ima::RealData::set_cmb_theory_offset(std::string OFFSET)
     this->cmb_theory_offset_(i) = static_cast<double>(table(i,0));
   }
 
-  spdlog::info("\x1b[90m{}\x1b[0m: {} has {} elements",
+  spdlog::info("\x1b[90m{}\x1b[0m: {} has {} elements", 
     "set_cmb_theory_offset", OFFSET, this->nbp_);
 
   this->is_cmb_offset_set_ = true;
@@ -2133,7 +2133,7 @@ void ima::RealData::set_cmb_binning_mat(std::string BINMAT)
   }
 
   spdlog::info("\x1b[90m{}\x1b[0m: binning matrix file {} has {} x {} elements",
-    "set_CMB_binning_mat", BINMAT, this->nbp_, this->ncl_);
+    "set_cmb_binning_mat", BINMAT, this->nbp_, this->ncl_);
 
   this->is_cmb_binmat_set_ = true;
 }
@@ -2377,14 +2377,14 @@ bool ima::RealData::is_inv_cov_set() const
   return this->is_inv_cov_set_;
 }
 
-bool ima::RealData::is_binmat_set() const
+bool ima::RealData::is_cmb_binmat_set() const
 {
-  return this->is_binmat_set_;
+  return this->is_cmb_binmat_set_;
 }
 
-bool ima::RealData::is_offset_set() const
+bool ima::RealData::is_cmb_offset_set() const
 {
-  return this->is_offset_set_;
+  return this->is_cmb_offset_set_;
 }
 
 arma::Col<double> ima::RealData::get_expand_dim_from_masked_reduced_dim(
