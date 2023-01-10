@@ -326,7 +326,7 @@ void cpp_init_binning_fourier(const int Ncl, const double lmin, const double lma
   {
     like.ell[i] = std::exp(std::log(like.lmin)+(i+0.5)*logdl);
     spdlog::debug("\x1b[90m{}\x1b[0m: Bin {:d} - {} = {:.4e}, {} = {:.4e} and {} = {:.4e}",
-     "init_binning", i, "lmin", lmin, "ell", like.ell[i], "lmax", lmax);
+     "init_binning_fourier", i, "lmin", lmin, "ell", like.ell[i], "lmax", lmax);
   }
 
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_binning_fourier");
@@ -1467,11 +1467,11 @@ std::vector<double> cpp_compute_data_vector_masked()
   {
     if (like.is_cmb_bandpower == 0)
     {
-  	  for (int i=0; i<like.Ncl; i++)
-  	  {
-  	    const int index = start + i; 
-  	    if (cpp_get_mask(index))
-  	    {
+      for (int i=0; i<like.Ncl; i++)
+      {
+        const int index = start + i; 
+        if (cpp_get_mask(index))
+        {
           const double l = like.ell[i];
           if (l <= limits.LMIN_tab)
           {
@@ -1491,7 +1491,7 @@ std::vector<double> cpp_compute_data_vector_masked()
       {
         const double Ckk = 
           (L <= limits.LMIN_tab) ? C_kk_limber_nointerp((double) L, 0, 0) : C_kk_limber((double) L);
-		  
+
         const int i = L - like.lmin_bp;
 
         for (int j=0; j<like.Nbp; j++)
@@ -1504,14 +1504,14 @@ std::vector<double> cpp_compute_data_vector_masked()
           }
         }
       }
-  	  for (int j=0; j<like.Nbp; j++)
-  	  { // add the offset due to marginalizing over primary CMB
-    		const int index = start + j;
-    		if (cpp_get_mask(index))
-    		{
-    		  data_vector[index] -= instance.get_cmb_theory_offset(j);
-    		}
-  	  }
+      for (int j=0; j<like.Nbp; j++)
+      { // add the offset due to marginalizing over primary CMB
+        const int index = start + j;
+        if (cpp_get_mask(index))
+        {
+          data_vector[index] -= instance.get_cmb_theory_offset(j);
+        }
+      }
     }
   }
 /*
@@ -2010,6 +2010,15 @@ void ima::RealData::set_inv_cov(std::string COV)
       spdlog::critical("{}: data format for covariance file = {} is invalid",
         "set_inv_cov", COV);
       exit(1);
+  }
+  // test positive-definite
+  arma::Col<double> eigvals = arma::eig_sym(this->inv_cov_masked_);
+  for(int i=0; i<this->ndata_; i++)
+  {
+    if(eigvals(i)<0){
+      spdlog::critical("{}: covmat not positive definite!", "set_inv_cov");
+      exit(-1);
+    }
   }
 
   this->inv_cov_masked_ = arma::inv(this->inv_cov_masked_);
