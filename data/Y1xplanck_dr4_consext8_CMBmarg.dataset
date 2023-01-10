@@ -24,7 +24,7 @@ is_cmb_bandpower = 1
 binmat_file = dr4_consext8_CMBmarged/binning_matrix_with_correction_table.txt
 offset_file = dr4_consext8_CMBmarged/Ckk_bandpower_offset.txt
 is_cmb_kkkk_cov_from_sim = 1
-Hartlap_Nvar = 240
+Hartlap_Nvar = 240 
 
 n_bp = 9
 lmin_bp = 2
