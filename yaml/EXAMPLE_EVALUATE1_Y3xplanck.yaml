@@ -10,11 +10,12 @@ likelihood:
     # overwrite: data file
     data_file: Y3xplanck.dataset
     # overwrite: print model vector
-    print_datavector: True
+    print_datavector: true
     print_datavector_file: "./projects/desy1xplanck/chains/example_evaluate1_Y3xplanck_pp_agr2.modelvector"
     # overwrite: create baryon PCAs
-    create_baryon_pca: True
+    create_baryon_pca: false
     filename_baryon_pca:  "./projects/desy1xplanck/data/6x2pt_pca_Y3xplanck_pp_agr2.txt"
+    non_linear_emul: 2
 
 params:
   As_1e9:
@@ -62,7 +63,6 @@ params:
       scale: 0.004
     proposal: 0.004
     latex: \Omega_\mathrm{b}
-    drop: true
   omegam:
     prior:
       min: 0.1
@@ -73,7 +73,6 @@ params:
       scale: 0.02
     proposal: 0.02
     latex: \Omega_\mathrm{m}
-    drop: true
   mnu:
     prior:
       min: 0.06
