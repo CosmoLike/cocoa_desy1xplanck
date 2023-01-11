@@ -102,6 +102,7 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
     self.lmax_kappa_cmb = ini.float("lmax_kappa_cmb", default = -1)
     self.lmin_kappa_cmb = ini.float("lmin_kappa_cmb", default = -1)
     self.fwhm  = ini.float("fwhm") # FWHM of the CMB beam kernel, in arcmin
+    self.pathHealpixWinFunc = ini.relativeFileName('pathHealpixWinFunc')
 
     self.is_cmb_bandpower = ini.int("is_cmb_bandpower")
 
@@ -176,7 +177,7 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
 
     ci.init_cmb_bandpower(self.is_cmb_bandpower, self.is_cmb_kkkk_cov_from_sim, self.alpha_Hartlap)
 
-    ci.init_cmb(self.lmin_kappa_cmb, self.lmax_kappa_cmb, self.fwhm)
+    ci.init_cmb(self.lmin_kappa_cmb, self.lmax_kappa_cmb, self.fwhm, self.pathHealpixWinFunc)
 
     if (self.is_cmb_bandpower == 1):      
       ci.init_binning_cmb_bandpower(self.nbp, self.lmin_bp, self.lmax_bp)
