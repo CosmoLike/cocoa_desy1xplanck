@@ -263,7 +263,7 @@ void cpp_init_IA(int N)
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_IA");
 }
 
-void cpp_init_cmb(const double lmin_kappa_cmb, const double lmax_kappa_cmb, const double fwhm) 
+void cpp_init_cmb(const double lmin_kappa_cmb, const double lmax_kappa_cmb, const double fwhm, std::string pixwin_file) 
 {
   spdlog::info("\x1b[90m{}\x1b[0m: Begins", "init_cmb");
 
@@ -273,6 +273,7 @@ void cpp_init_cmb(const double lmin_kappa_cmb, const double lmax_kappa_cmb, cons
 
   // fwhm = beam size in arcmin - cmb.fwhm = beam size in rad
   cmb.fwhm = fwhm*2.90888208665721580e-4;
+  memcpy(cmb.pathHealpixWinFunc, pixwin_file.c_str(), pixwin_file.size()+1);
   
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_cmb");
 }
@@ -2549,7 +2550,8 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
     "Init CMB l_max",
     py::arg("lmin_kappa_cmb"),
     py::arg("lmax_kappa_cmb"),
-    py::arg("fwhm")
+    py::arg("fwhm"),
+    py::arg("pathHealpixWinFunc")
   );
 
   m.def("init_cosmo_runmode",
