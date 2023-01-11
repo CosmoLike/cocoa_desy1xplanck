@@ -12,6 +12,8 @@ from cobaya.likelihoods._base_classes import _DataSetLikelihood
 from cobaya.log import LoggedError
 from getdist import IniFile
 
+import euclidemu2
+
 import cosmolike_desy1xplanck_interface as ci
 
 # default is best fit LCDM - just need to be an ok Cosmology
@@ -312,19 +314,51 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
 
     lnPL = np.empty(self.len_pkz_interp_2D)
     lnPNL = np.empty(self.len_pkz_interp_2D)
-    #for i in range(self.len_k_interp_2D) :
-    #  lnPNL[i*self.len_z_interp_2D:(i+1)*self.len_z_interp_2D] = PKNL.logP(self.z_interp_2D, self.k_interp_2D[i])[0:self.len_z_interp_2D]
-    #  lnPL[i*self.len_z_interp_2D:(i+1)*self.len_z_interp_2D] = PKL.logP(self.z_interp_2D, self.k_interp_2D[i])[0:self.len_z_interp_2D]
-    tmp1 = PKNL.logP(self.z_interp_2D, self.k_interp_2D).flatten()
-    tmp2 = PKL.logP(self.z_interp_2D, self.k_interp_2D).flatten()
-    for i in range(self.len_z_interp_2D):
-      lnPNL[i::self.len_z_interp_2D] = tmp1[i*self.len_k_interp_2D:(i+1)*self.len_k_interp_2D]
-      lnPL[i::self.len_z_interp_2D] = tmp2[i*self.len_k_interp_2D:(i+1)*self.len_k_interp_2D]
-
+    t1 = PKNL.logP(self.z_interp_2D, self.k_interp_2D).flatten()
+    t2 = PKL.logP(self.z_interp_2D, self.k_interp_2D).flatten()
     # Cosmolike wants k in h/Mpc
     log10k_interp_2D = self.log10k_interp_2D - np.log10(h)
-    lnPNL += np.log((h**3))
-    lnPL += np.log((h**3))
+
+    if self.non_linear_emul == 1:
+      for i in range(self.len_z_interp_2D):
+        lnPL[i::self.len_z_interp_2D]  = t2[i*self.len_k_interp_2D:(i+1)*self.len_k_interp_2D]
+      lnPL += np.log((h**3))  
+      
+      params = {
+        'Omm'  : self.provider.get_param("omegam"),
+        'As'   : self.provider.get_param("As"),
+        'Omb'  : self.provider.get_param("omegab"),
+        'ns'   : self.provider.get_param("ns"),
+        'h'    : h,
+        'mnu'  : self.provider.get_param("mnu"), 
+        'w'    : self.provider.get_param("w"),
+        'wa'   : self.provider.get_param("wa")
+      }
+
+      kbt = np.power(10.0, np.linspace(-2.0589, 0.973, self.len_k_interp_2D))
+      kbt, tmp_bt = self.emulator.get_boost(params, self.z_interp_2D, kbt)
+      logkbt = np.log10(kbt)
+
+      for i in range(self.len_z_interp_2D):    
+        interp = interp1d(logkbt, 
+            np.log(tmp_bt[i]), 
+            kind = 'linear', 
+            fill_value = 'extrapolate', 
+            assume_sorted = True
+          )
+
+        lnbt = interp(log10k_interp_2D)
+        lnbt[np.power(10,log10k_interp_2D) < 8.73e-3] = 0.0
+    
+        lnPNL[i::self.len_z_interp_2D] = lnPL[i::self.len_z_interp_2D] + lnbt
+
+    elif self.non_linear_emul == 2: 
+      
+      for i in range(self.len_z_interp_2D):
+        lnPL[i::self.len_z_interp_2D]  = t2[i*self.len_k_interp_2D:(i+1)*self.len_k_interp_2D]
+        lnPNL[i::self.len_z_interp_2D] = t1[i*self.len_k_interp_2D:(i+1)*self.len_k_interp_2D]  
+      lnPL  += np.log((h**3))  
+      lnPNL += np.log((h**3)) 
 
     # Compute chi(z) - convert to Mpc/h
     chi = self.provider.get_comoving_radial_distance(self.z_interp_1D) * h

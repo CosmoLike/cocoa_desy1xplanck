@@ -7,9 +7,9 @@ likelihood:
     path: ./external_modules/data/desy1xplanck
     data_file: Y1xplanck.dataset
     integration_accuracy: 0
-    print_datavector: True
+    print_datavector: False
     print_datavector_file: "./projects/desy1xplanck/chains/desy1_theory_LCDM.modelvector_2"
-
+    non_linear_emul: 2
 params:
   As_1e9:
     prior:
