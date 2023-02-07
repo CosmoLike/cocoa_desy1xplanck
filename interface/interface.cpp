@@ -1324,6 +1324,9 @@ std::vector<double> cpp_compute_data_vector_masked(const int Ntheta_ss,
   if (like.shear_shear == 1)
   {
     // Init theta binning for ss ad hoc
+    int _Ntheta = like.Ntheta;
+    double _theta_min_arcmin = like.vtmin/2.90888208665721580e-4;
+    double _theta_max_arcmin = like.vtmax/2.90888208665721580e-4;
     free(like.theta);
     cpp_init_binning(Ntheta_ss, theta_min_arcmin_ss, theta_max_arcmin_ss);
     for (int nz=0; nz<tomo.shear_Npowerspectra; nz++)
@@ -1370,7 +1373,7 @@ std::vector<double> cpp_compute_data_vector_masked(const int Ntheta_ss,
     }
     // recover the theta binning setting
     free(like.theta);
-    cpp_init_binning(like.Ntheta, like.vtmin, like.vtmax);
+    cpp_init_binning(_Ntheta, _theta_min_arcmin, _theta_max_arcmin);
   }
 
   start = start + 2*Ntheta_ss*tomo.shear_Npowerspectra;
