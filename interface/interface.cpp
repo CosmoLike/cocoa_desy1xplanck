@@ -519,7 +519,7 @@ void cpp_init_source_sample(std::string multihisto_file, const int Ntomo)
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_source_sample");
 }
 
-void cpp_init_size_data_vector(const int Ntheta_ss)
+void cpp_init_size_data_vector()
 {
   spdlog::info("\x1b[90m{}\x1b[0m: Begins", "init_size_data_vector");
 
@@ -536,11 +536,6 @@ void cpp_init_size_data_vector(const int Ntheta_ss)
   if (like.Ntheta == 0) {
     spdlog::critical("{}: {} not set prior to this function call",
       "init_size_data_vector", "like.Ntheta");
-    exit(1);
-  }
-  if (Ntheta_ss <= 0) {
-    spdlog::critical("{}: {} must > 0",
-      "init_size_data_vector", "Ntheta_ss");
     exit(1);
   }
   if (like.is_cmb_bandpower == 0)
@@ -567,7 +562,7 @@ void cpp_init_size_data_vector(const int Ntheta_ss)
         "init_size_data_vector", "is_cmb_bandpower");
   }
 
-  like.Ndata = Ntheta_ss*2*tomo.shear_Npowerspectra + like.Ntheta*(tomo.ggl_Npowerspectra + tomo.clustering_Npowerspectra + tomo.shear_Nbin + tomo.clustering_Nbin);
+  like.Ndata = like.Ntheta*(2*tomo.shear_Npowerspectra + tomo.ggl_Npowerspectra + tomo.clustering_Npowerspectra + tomo.shear_Nbin + tomo.clustering_Nbin);
 
   if (like.is_cmb_bandpower == 0)
   {
@@ -1213,8 +1208,7 @@ double cpp_compute_pm(const int zl, const int zs, const double theta)
   return instance.get_pm(zl,zs,theta);
 }
 
-std::vector<double> cpp_compute_data_vector_masked(const int Ntheta_ss, 
-  const double theta_min_arcmin_ss, const double theta_max_arcmin_ss)
+std::vector<double> cpp_compute_data_vector_masked()
 {
   spdlog::debug("\x1b[90m{}\x1b[0m: Begins", "compute_data_vector_masked");
 
@@ -1323,12 +1317,6 @@ std::vector<double> cpp_compute_data_vector_masked(const int Ntheta_ss,
   int start = 0;
   if (like.shear_shear == 1)
   {
-    // Init theta binning for ss ad hoc
-    int _Ntheta = like.Ntheta;
-    double _theta_min_arcmin = like.vtmin/2.90888208665721580e-4;
-    double _theta_max_arcmin = like.vtmax/2.90888208665721580e-4;
-    free(like.theta);
-    cpp_init_binning(Ntheta_ss, theta_min_arcmin_ss, theta_max_arcmin_ss);
     for (int nz=0; nz<tomo.shear_Npowerspectra; nz++)
     {
       const int z1 = Z1(nz);
@@ -1371,13 +1359,9 @@ std::vector<double> cpp_compute_data_vector_masked(const int Ntheta_ss,
         }
       }
     }
-    // recover the theta binning setting
-    free(like.theta);
-    cpp_init_binning(_Ntheta, _theta_min_arcmin, _theta_max_arcmin);
-    bin_avg r = set_bin_average(0,0,1);
   }
 
-  start = start + 2*Ntheta_ss*tomo.shear_Npowerspectra;
+  start = start + 2*like.Ntheta*tomo.shear_Npowerspectra;
   if (like.shear_pos == 1)
   {
     for (int nz=0; nz<tomo.ggl_Npowerspectra; nz++)
@@ -1564,12 +1548,9 @@ std::vector<double> cpp_compute_data_vector_masked(const int Ntheta_ss,
   return data_vector;
 }
 
-std::vector<double> cpp_compute_data_vector_masked_reduced_dim(
-  const int Ntheta_ss, const double theta_min_arcmin_ss, 
-  const double theta_max_arcmin_ss)
+std::vector<double> cpp_compute_data_vector_masked_reduced_dim()
 {
-  std::vector<double> data_vector_masked = cpp_compute_data_vector_masked(
-    Ntheta_ss, theta_min_arcmin_ss, theta_max_arcmin_ss);
+  std::vector<double> data_vector_masked = cpp_compute_data_vector_masked();
 
   const int ndim = data_vector_masked.size();
   const int ndim_reduced = cpp_get_nreduced_dim();
@@ -2655,8 +2636,7 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
 
   m.def("init_size_data_vector",
     &cpp_init_size_data_vector,
-    "Init Size Data Vector",
-    py::arg("Ntheta_ss")
+    "Init Size Data Vector"
   );
 
   m.def("init_linear_power_spectrum",
@@ -2800,18 +2780,12 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
 
   m.def("compute_data_vector_masked",
     &cpp_compute_data_vector_masked,
-    "Get theoretical data vector - masked dimensions are filled w/ zeros",
-    py::arg("Ntheta_ss"),
-    py::arg("theta_min_arcmin_ss"),
-    py::arg("theta_max_arcmin_ss")
+    "Get theoretical data vector - masked dimensions are filled w/ zeros"
   );
 
   m.def("compute_data_vector_masked_reduced_dim",
     &cpp_compute_data_vector_masked_reduced_dim,
-    "Get theoretical data vector - it does not to contain masked dimensions",
-    py::arg("Ntheta_ss"),
-    py::arg("theta_min_arcmin_ss"),
-    py::arg("theta_max_arcmin_ss")
+    "Get theoretical data vector - it does not to contain masked dimensions"
   );
 
   m.def("compute_chi2",

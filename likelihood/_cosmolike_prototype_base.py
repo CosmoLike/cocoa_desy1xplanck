@@ -100,10 +100,6 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
     self.ntheta = ini.int("n_theta")
     self.theta_min_arcmin = ini.float("theta_min_arcmin")
     self.theta_max_arcmin = ini.float("theta_max_arcmin")
-    # optional theta binning if xi_pm is extended to theta<2.5 arcmin
-    self.ntheta_ss = ini.int("n_theta_ss", default=self.ntheta)
-    self.theta_min_arcmin_ss = ini.float("theta_min_arcmin_ss", default=self.theta_min_arcmin)
-    self.theta_max_arcmin_ss = ini.float("theta_max_arcmin_ss", default=self.theta_max_arcmin)
 
     # CMB beam cut-off
     self.lmax_kappa_cmb = ini.float("lmax_kappa_cmb", default = -1)
@@ -207,7 +203,7 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
 
     ci.init_lens_sample(self.lens_file, self.lens_ntomo, self.ggl_olap_cut)
 
-    ci.init_size_data_vector(self.ntheta_ss)
+    ci.init_size_data_vector()
 
     ci.init_data(self.cov_file, self.mask_file, self.data_vector_file)
 
@@ -513,7 +509,7 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
       self.set_source_related(**params_values)
 
     # datavector C++ returns a list (not numpy array)
-    return np.array(ci.compute_data_vector_masked_reduced_dim(self.ntheta_ss, self.theta_min_arcmin_ss, self.theta_max_arcmin_ss))
+    return np.array(ci.compute_data_vector_masked_reduced_dim())
 
   # Hack to create baryonic PCAs
   def compute_barion_datavector_masked_reduced_dim(self, sim, **params_values):
@@ -533,7 +529,7 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
       self.set_source_related(**params_values)
 
     # datavector C++ returns a list (not numpy array)
-    return np.array(ci.compute_data_vector_masked_reduced_dim(self.ntheta_ss, self.theta_min_arcmin_ss, self.theta_max_arcmin_ss))
+    return np.array(ci.compute_data_vector_masked_reduced_dim())
 
   def generate_baryonic_PCA(self, **params_values):
 
