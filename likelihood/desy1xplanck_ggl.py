@@ -29,7 +29,7 @@ class desy1xplanck_ggl(_cosmolike_prototype_base):
       self.force_cache_false = False
 
     # datavector C++ returns a list (not numpy array)
-    datavector = np.array(ci.compute_data_vector_masked(self.ntheta_ss, self.theta_min_arcmin_ss, self.theta_max_arcmin_ss))
+    datavector = np.array(ci.compute_data_vector_masked())
 
     if self.use_baryon_pca:
       # Warning: we assume the PCs were created with the same mask
