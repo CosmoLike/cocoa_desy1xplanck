@@ -15,6 +15,11 @@ IA_model = 4
 n_theta = 20
 theta_min_arcmin = 2.5
 theta_max_arcmin = 250.
+# special theta binning for shear xi_pm
+# comment out to disable
+# n_theta_ss = 30
+# theta_min_arcmin_ss = 0.25
+# theta_max_arcmin_ss = 250.
 
 fwhm = 7
 lmin_kappa_cmb = 40

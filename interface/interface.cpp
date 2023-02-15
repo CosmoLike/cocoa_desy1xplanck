@@ -1374,6 +1374,7 @@ std::vector<double> cpp_compute_data_vector_masked(const int Ntheta_ss,
     // recover the theta binning setting
     free(like.theta);
     cpp_init_binning(_Ntheta, _theta_min_arcmin, _theta_max_arcmin);
+    bin_avg r = set_bin_average(0,0,1);
   }
 
   start = start + 2*Ntheta_ss*tomo.shear_Npowerspectra;
