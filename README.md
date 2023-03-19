@@ -15,7 +15,7 @@ Or
 > $ mpirun -n 1 --mca btl tcp,self cobaya-run ./projects/desy1xplanck/yaml/EXAMPLE_EVALUATE1.yaml -f
 
 
-
+# WARNING: WHEN GENERATING PCs OF BARYON IMPACTS, PLEASE GENERATE WITH SHEAR-ONLY LIKELIHOOD. CURRENTLY WE ARE ONLY CONFIDENT TO APPLY BARYON PCS TO SHEAR-SHEAR CORRELATION FUNCTION, NOT THE OTHER PROBES.
 
 The fiducial `cosmolike_core` data vector is `./data/xi_desy1xplanck_6x2pt_fid_cosmolike_core`
 The fiducial parameters to generate `cosmolike_core` data vector is recorded in `./data/README.md`
