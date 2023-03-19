@@ -8,7 +8,7 @@
       dist: norm
       loc: -0.001
       scale: 0.016
-    proposal: 0.016
+    proposal: 0.005
     latex: \Delta z_\mathrm{s,DES}^1
   DES_DZ_S2:
     prior:
@@ -18,8 +18,8 @@
     ref:
       dist: norm
       loc: -0.019
-      scale: 0.015
-    proposal: 0.013
+      scale: 0.013
+    proposal: 0.005
     latex: \Delta z_\mathrm{s,DES}^2
   DES_DZ_S3:
     prior:
@@ -30,7 +30,7 @@
       dist: norm
       loc: 0.009
       scale: 0.011
-    proposal: 0.011
+    proposal: 0.005
     latex: \Delta z_\mathrm{s,DES}^3
   DES_DZ_S4:
     prior:
@@ -41,7 +41,7 @@
       dist: norm
       loc: -0.018
       scale: 0.022
-    proposal: 0.022
+    proposal: 0.005
     latex: \Delta z_\mathrm{s,DES}^4
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
@@ -110,35 +110,35 @@
   DES_DZ_L1:
     prior:
       dist: norm
-      loc: 0.001
-      scale: 0.008
+      loc: 0.008
+      scale: 0.007
     ref:
       dist: norm
-      loc: 0.001
-      scale: 0.008
-    proposal: 0.008
+      loc: 0.008
+      scale: 0.007
+    proposal: 0.004
     latex: \Delta z_\mathrm{l,DES}^1
   DES_DZ_L2:
     prior:
       dist: norm
-      loc: 0.001
+      loc: -0.005
       scale: 0.007
     ref:
       dist: norm
-      loc: 0.001
+      loc: -0.005
       scale: 0.007
-    proposal: 0.007
+    proposal: 0.003
     latex: \Delta z_\mathrm{l,DES}^2
   DES_DZ_L3:
     prior:
       dist: norm
-      loc: 0.003
-      scale: 0.007
+      loc: 0.006
+      scale: 0.006
     ref:
       dist: norm
-      loc: 0.003
-      scale: 0.007
-    proposal: 0.007
+      loc: 0.006
+      scale: 0.006
+    proposal: 0.003
     latex: \Delta z_\mathrm{l,DES}^3
   DES_DZ_L4:
     prior:
@@ -149,7 +149,7 @@
       dist: norm
       loc: 0
       scale: 0.01
-    proposal: 0.01
+    proposal: 0.005
     latex: \Delta z_\mathrm{l,DES}^4
   DES_DZ_L5:
     prior:
@@ -160,7 +160,7 @@
       dist: norm
       loc: 0
       scale: 0.01
-    proposal: 0.01
+    proposal: 0.005
     latex: \Delta z_\mathrm{l,DES}^5
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
@@ -239,19 +239,24 @@
   # ------------------------------------------------------------------------
   #
   DES_BMAG_1:
-    value: -0.19375
+    #value: -0.19375
+    value: 1.0
     latex: b_\mathrm{BMAG-DES}^1
   DES_BMAG_2:
-    value: -0.6285407
+    value: 1.0
+    #value: -0.6285407
     latex: b_\mathrm{BMAG-DES}^2
   DES_BMAG_3:
-    value: -0.69319886
+    value: 1.0
+    #value: -0.69319886
     latex: b_\mathrm{BMAG-DES}^3
   DES_BMAG_4:
-    value: 1.17735723
+    value: 1.0
+    #value: 1.17735723
     latex: b_\mathrm{BMAG-DES}^4
   DES_BMAG_5:
-    value: 1.87509758
+    value: 1.0
+    #value: 1.87509758
     latex: b_\mathrm{BMAG-DES}^5
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
@@ -264,9 +269,9 @@
       scale: 0.023
     ref:
       dist: norm
-      loc: 0.0
-      scale: 0.05
-    proposal: 0.03
+      loc: 0.012
+      scale: 0.023
+    proposal: 0.005
     latex: m_\mathrm{DES}^1
   DES_M2:
     prior:
@@ -276,8 +281,8 @@
     ref:
       dist: norm
       loc: 0.012
-      scale: 0.05
-    proposal: 0.03
+      scale: 0.023
+    proposal: 0.005
     latex: m_\mathrm{DES}^2
   DES_M3:
     prior:
@@ -287,8 +292,8 @@
     ref:
       dist: norm
       loc: 0.012
-      scale: 0.05
-    proposal: 0.03
+      scale: 0.023
+    proposal: 0.005
     latex: m_\mathrm{DES}^3
   DES_M4:
     prior:
@@ -297,9 +302,9 @@
       scale: 0.023
     ref:
       dist: norm
-      loc: 0.0
-      scale: 0.05
-    proposal: 0.03
+      loc: 0.012
+      scale: 0.023
+    proposal: 0.005
     latex: m_\mathrm{DES}^4 
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------

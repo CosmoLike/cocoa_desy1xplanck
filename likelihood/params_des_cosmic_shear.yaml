@@ -80,17 +80,17 @@
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   DES_A2_1:
-    value: 0
+    value: 0.0
     latex: A_\mathrm{2-IA,DES}^1
   DES_A2_2:
-    value: 0
+    value: 0.0
     latex: A_\mathrm{2-IA,DES}^2
   DES_A2_3:
-    value: 0
-    latex: A_\mathrm{2-IA,DES}^3        
+    value: 0.0
+    latex: A_\mathrm{2-IA,DES}^3
   DES_A2_4:
-    value: 0
-    latex: A_\mathrm{2-IA,DES}^4 
+    value: 0.0
+    latex: A_\mathrm{2-IA,DES}^4
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
@@ -117,7 +117,7 @@
       scale: 0.023
     ref:
       dist: norm
-      loc: 0.0
+      loc: 0.012
       scale: 0.05
     proposal: 0.03
     latex: m_\mathrm{DES}^1
@@ -150,23 +150,23 @@
       scale: 0.023
     ref:
       dist: norm
-      loc: 0.0
+      loc: 0.012
       scale: 0.05
     proposal: 0.03
     latex: m_\mathrm{DES}^4 
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
-  # BARYON PCA
+  # Baryonic effects PCs amplitudes
   DES_BARYON_Q1:
     value: 0.0
-    latex: BQ1_\mathrm{DES}^1
+    latex: Q_\mathrm{DES}^1
   DES_BARYON_Q2:
     value: 0.0
-    latex: BQ2_\mathrm{DES}^2
+    latex: Q_\mathrm{DES}^2
   DES_BARYON_Q3:
     value: 0.0
-    latex: BQ3_\mathrm{DES}^3
+    latex: Q_\mathrm{DES}^3
   DES_BARYON_Q4:
     value: 0.0
-    latex: BQ4_\mathrm{DES}^4
+    latex: Q_\mathrm{DES}^4
