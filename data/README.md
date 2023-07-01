@@ -138,3 +138,4 @@ _Not used:_
 
 - `Y1xplanck_5x2pt+C_kk.dataset`: Dataset to test the impact of cross-cov between 5x2pt and Ckk. It uses a covmat with cross-cov terms set to zero.
 - `Y1xplanck_withoutAnnulus.dataset`: Dataset to test the impact of survey-geometry correction. It uses a covmat assuming the `w_gk` and `w_sk` measurements are using a Planck lensing map cutted to the Y1 footprint. 
+
