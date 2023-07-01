@@ -1,0 +1,34 @@
+data_file = data_vectors/xi_desy1xplanck_6x2pt_realdata_20_wA_ref_pp_agr2
+cov_file = covmats/cov_y1xplanck_mix6x2pt_pp_p18cosmo_agr2_withAnnulus_kkkkSimDR3
+#cov_file = covmats/cov_agr2_debug_diagonal
+mask_file = masks/xi_desy1xplanck_6x2pt_realdata_pp_agr2_CMBmarged.mask
+#mask_file = masks/xi_desy1xplanck_6x2pt_realdata_pp_agr2_CMBmarged_all_true.mask
+
+nz_lens_file = survey_data/mcal_1101_lens.nz
+nz_source_file = survey_data/mcal_1101_source.nz
+
+baryon_pca_file = PCs/cosmic_shear_10sim.pca
+
+lensing_overlap_cut = 0.00
+lens_ntomo = 5
+source_ntomo = 4
+IA_model = 4
+
+n_theta = 20
+theta_min_arcmin = 2.5
+theta_max_arcmin = 250.
+
+fwhm = 7
+lmin_kappa_cmb = 8
+lmax_kappa_cmb = 2048
+pathHealpixWinFunc = survey_data/HPIX1024_pixwin.txt
+
+is_cmb_bandpower = 1
+binmat_file = survey_data/pp_agr2_CMBmarged/binning_matrix_with_correction_table.txt
+offset_file = survey_data/pp_agr2_CMBmarged/Ckk_bandpower_offset.txt
+is_cmb_kkkk_cov_from_sim = 1
+Hartlap_Nvar = 240
+
+n_bp = 14
+lmin_bp = 2
+lmax_bp = 2500

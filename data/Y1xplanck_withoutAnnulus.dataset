@@ -1,11 +1,11 @@
-data_file = data_vectors/desy1_theory_LCDM_mnu0.25_illustris.modelvector
-cov_file = covmats/cov_y1xplanck_mix6x2pt_pp_p18cosmo_test_withoutAnnulus_kkkkSimDR3
+data_file = data_vectors/desy1xplanck_6x2pt_theory_LCDM_eagle_agr2.modelvector
+cov_file = covmats/cov_y1xplanck_mix6x2pt_pp_p18cosmo_agr2_withoutAnnulus_kkkkSimDR3
 mask_file = masks/xi_desy1xplanck_6x2pt_realdata_pp_agr2_CMBmarged.mask
 
 nz_lens_file = survey_data/mcal_1101_lens.nz
 nz_source_file = survey_data/mcal_1101_source.nz
 
-baryon_pca_file = PCs/6x2pt_pp_agr2_DEFAULT_10sim.pca
+baryon_pca_file = PCs/cosmic_shear_10sim.pca
 
 lensing_overlap_cut = 0.00
 lens_ntomo = 5
@@ -17,8 +17,8 @@ theta_min_arcmin = 2.5
 theta_max_arcmin = 250.
 
 fwhm = 7
-lmin_kappa_cmb = 40
-lmax_kappa_cmb = 3000
+lmin_kappa_cmb = 8
+lmax_kappa_cmb = 2048
 pathHealpixWinFunc = survey_data/HPIX1024_pixwin.txt
 
 is_cmb_bandpower = 1
