@@ -208,6 +208,13 @@ void cpp_init_probes(std::string possible_probes)
     like.kk = 1;
     spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected", "init_probes", "possible_probes", "6x2pt");
   }
+  else if (possible_probes.compare("c3x2pt") == 0)
+  {
+    like.gk = 1;
+    like.ks = 1;
+    like.kk = 1;
+    spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected", "init_probes", "possible_probes", "c3x2pt (complementary 3x2pt, gk+sk+kk)");
+  }
   else
   {
     spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} probe not supported",

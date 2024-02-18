@@ -12,7 +12,7 @@ from cobaya.likelihoods._base_classes import _DataSetLikelihood
 from cobaya.log import LoggedError
 from getdist import IniFile
 
-import euclidemu2
+import euclidemu2 as ee2
 import math
 
 import cosmolike_desy1xplanck_interface as ci
@@ -145,6 +145,10 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
       self.lmax_bp = 0
 
     self.force_cache_false = False
+
+    # EUCLID EMULATOR
+    if self.non_linear_emul == 1:
+      self.emulator = ee2.PyEuclidEmulator()
 
     # ------------------------------------------------------------------------
     self.z_interp_1D = np.linspace(0,2.0,1000)

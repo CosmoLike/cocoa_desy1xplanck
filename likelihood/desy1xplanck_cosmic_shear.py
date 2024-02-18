@@ -42,6 +42,5 @@ class desy1xplanck_cosmic_shear(_cosmolike_prototype_base):
       out[:,1] = datavector
       fmt = '%d', '%1.8e'
       np.savetxt(self.print_datavector_file, out, fmt = fmt)
-      
-    return self.compute_logp(datavector)
-    
+
+    return self.compute_logp(datavector)   
