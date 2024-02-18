@@ -261,6 +261,28 @@
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
+  # Lens galaxy photo-z stretch parameters
+  DES_STRETCH_L1:
+    value: 1.0
+    latex: \sigma z_\mathrm{l,DES}^1
+  DES_STRETCH_L2:
+    value: 1.0
+    latex: \sigma z_\mathrm{l,DES}^2
+  DES_STRETCH_L3:
+    value: 1.0
+    latex: \sigma z_\mathrm{l,DES}^3
+  DES_STRETCH_L4:
+    value: 1.0
+    latex: \sigma z_\mathrm{l,DES}^4
+  DES_STRETCH_L5:
+    value: 1.0
+    latex: \sigma z_\mathrm{l,DES}^5
+  DES_STRETCH_L6:
+    value: 1.0
+    latex: \sigma z_\mathrm{l,DES}^6
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
   # Shear calibration parameters
   DES_M1:
     prior:

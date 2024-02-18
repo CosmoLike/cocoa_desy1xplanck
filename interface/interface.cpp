@@ -100,6 +100,12 @@ void cpp_initial_setup()
     nuisance.b_ta_z[i] = 0.0;
   }
 
+  // reset clustering photo-z stretch parameters
+  for (int i = 0; i < MAX_SIZE_ARRAYS; i++)
+  {
+    nuisance.stretch_zphot_clustering[i] = 1.0;
+  }
+
   // use curved-sky geometry?
   like.use_full_sky_shear = 1;
   like.use_full_sky_ggl = 1;
@@ -961,6 +967,38 @@ void cpp_set_nuisance_clustering_photoz(std::vector<double> CP)
   }
 
   spdlog::debug("\x1b[90m{}\x1b[0m: Ends", "set_nuisance_clustering_photoz");
+}
+
+void cpp_set_nuisance_clustering_photoz_stretch(std::vector<double> CP)
+{
+  spdlog::debug("\x1b[90m{}\x1b[0m: Begins", "set_nuisance_clustering_photoz_stretch");
+
+  if (tomo.clustering_Nbin == 0)
+  {
+    spdlog::critical(
+      "\x1b[90m{}\x1b[0m: {} = 0 is invalid",
+      "set_nuisance_clustering_photoz_stretch",
+      "clustering_Nbin"
+    );
+    exit(1);
+  }
+  if (tomo.clustering_Nbin != static_cast<int>(CP.size()))
+  {
+    spdlog::critical(
+      "\x1b[90m{}\x1b[0m: incompatible input w/ size = {} (!= {})",
+      "set_nuisance_clustering_photoz_stretch",
+      CP.size(),
+      tomo.clustering_Nbin
+    );
+    exit(1);
+  }
+
+  for (int i=0; i<tomo.clustering_Nbin; i++)
+  {
+    nuisance.stretch_zphot_clustering[i] = CP[i];
+  }
+
+  spdlog::debug("\x1b[90m{}\x1b[0m: Ends", "set_nuisance_clustering_photoz_stretch");
 }
 
 void cpp_set_nuisance_linear_bias(std::vector<double> B1)
@@ -2740,8 +2778,14 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
 
   m.def("set_nuisance_clustering_photoz",
     &cpp_set_nuisance_clustering_photoz,
-    "Set Clustering Shear Photo-Z Parameters",
+    "Set Clustering Photo-Z Parameters",
     py::arg("bias")
+  );
+
+  m.def("set_nuisance_clustering_photoz_stretch",
+    &cpp_set_nuisance_clustering_photoz_stretch,
+    "Set Clustering Photo-Z Stretch Parameters",
+    py::arg("stretch"),
   );
 
   m.def("set_nuisance_shear_photoz",
