@@ -468,6 +468,13 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
         ]
       ]
     )
+    ci.set_nuisance_clustering_photoz_stretch(
+      stretch = [
+        params_values.get(p, None) for p in [
+          "DES_STRETCH_L"+str(i+1) for i in range(self.lens_ntomo)
+        ]
+      ]
+    )
     ci.set_point_mass(
       PMV = [
         params_values.get(p, None) for p in [
