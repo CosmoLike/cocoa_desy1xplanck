@@ -2765,7 +2765,7 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
   m.def("set_nuisance_clustering_photoz_stretch",
     &cpp_set_nuisance_clustering_photoz_stretch,
     "Set Clustering Photo-Z Stretch Parameters",
-    py::arg("stretch"),
+    py::arg("stretch")
   );
 
   m.def("set_nuisance_shear_photoz",
