@@ -1013,7 +1013,7 @@ void cpp_print_pf_photoz(std::string out)
   }
   FILE *out_file;
   float zz;
-  out_file = fopen(out, "w");
+  out_file = fopen(out.c_str(), "w");
   if(out_file == NULL){
     spdlog::critical("\x1b[90m{}\x1b[0m: Can not open file {}!",
       "print_pf_photoz", out);
