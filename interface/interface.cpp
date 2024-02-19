@@ -1001,6 +1001,40 @@ void cpp_set_nuisance_clustering_photoz_stretch(std::vector<double> CP)
   spdlog::debug("\x1b[90m{}\x1b[0m: Ends", "set_nuisance_clustering_photoz_stretch");
 }
 
+void cpp_print_pf_photoz(std::string out)
+{
+  spdlog::debug("\x1b[90m{}\x1b[0m: Begins", "print_pf_photoz");
+
+  if (tomo.clustering_Nbin == 0)
+  {
+    spdlog::critical(
+      "\x1b[90m{}\x1b[0m: {} = 0 is invalid", 
+      "print_pf_photoz", "clustering_Nbin"
+    );
+    exit(1);
+  }
+  FILE *out_file;
+  float zz;
+  out_file = fopen(out, "w");
+  if(out_file == NULL){
+    spdlog::critical("\x1b[90m{}\x1b[0m: Can not open file {}!",
+      "print_pf_photoz", out);
+    exit(-1);
+  }
+  for (int zi=0; zi<31; zi++) // From redshift 0 to 1.5
+  {
+    zz = 0.0001+zi*0.05;
+    fprintf(out_file, "%f ", zz);
+    for (int ni=0; ni<tomo.clustering_Nbin; ni ++)
+    {
+      fprintf(out_file, "%le ", pf_photoz(zz, ni));
+    }
+    fprintf(out_file, "\n");
+  }
+  fclose(out_file);
+  spdlog::debug("\x1b[90m{}\x1b[0m: Ends", "print_pf_photoz");
+}
+
 void cpp_set_nuisance_linear_bias(std::vector<double> B1)
 {
   spdlog::debug("\x1b[90m{}\x1b[0m: Begins", "set_nuisance_linear_bias");
@@ -2873,6 +2907,11 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
   m.def("reset_baryionic_struct",
     &cpp_reset_baryionic_struct,
     "reset baryionic struct to original values"
+  );
+
+  m.def("print_pf_photoz",
+    &cpp_print_pf_photoz,
+    py::arg("out")
   );
 }
 
