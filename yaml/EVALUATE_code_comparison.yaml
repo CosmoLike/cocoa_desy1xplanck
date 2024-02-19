@@ -29,6 +29,8 @@ likelihood:
     samplingboost: 1
     print_datavector: True
     print_datavector_file: "./projects/desy1xplanck/data/data_vectors/ccc/cocoa_desy1xplanck_6x2pt_fullsky_limber_noRSD_NLA_nomagbias"
+    print_lens_photoz: True
+    print_lens_photoz_file: "./projects/desy1xplanck/data/data_vectors/ccc/nz_tomo_lens.dat" 
     ### NOTE: By setting create_baryon_pca = True,
     # the likelihood module will bypass baryon PCs
     # So, if you want to add PCs to your data vector 

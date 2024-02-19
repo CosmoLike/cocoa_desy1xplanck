@@ -18,5 +18,7 @@ filename_baryon_pca: "./projects/desy1xplanck/data/PCs/desy1xplanck_3x2pt.pca"
 
 print_datavector: False
 print_datavector_file: "./projects/desy1xplanck/chains/example_evaluate1_desy1xplanck_3x2pt.modelvector"
+print_lens_photoz: False
+print_lens_photoz_file: "./projects/desy1xplanck/chains/example_lens_photoz_distribution.dat"
 
 params: !defaults [params_des_3x2pt]
