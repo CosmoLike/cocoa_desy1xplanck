@@ -44,5 +44,8 @@ class desy1xplanck_6x2pt(_cosmolike_prototype_base):
       out[:,1] = datavector
       fmt = '%d', '%1.8e'
       np.savetxt(self.print_datavector_file, out, fmt = fmt)
+    # debug: test the photo-z stretch parameter
+    if self.print_lens_photoz:
+      ci.print_pf_photoz(self.print_lens_photoz_file)
 
     return self.compute_logp(datavector)

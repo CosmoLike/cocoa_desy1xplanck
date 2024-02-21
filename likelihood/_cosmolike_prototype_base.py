@@ -252,10 +252,6 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
 
     self.do_cache_cosmo = np.zeros(2)
 
-    # debug: test the photo-z stretch parameter
-    if(self.print_lens_photoz):
-      ci.print_pf_photoz(self.print_lens_photoz_file)
-
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
