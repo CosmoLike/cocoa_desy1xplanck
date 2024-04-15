@@ -24,7 +24,7 @@ namespace py = pybind11;
 
 #include "cosmolike/basics.h"
 #include "cosmolike/bias.h"
-#include "cosmolike/baryons.h"
+#include "cosmolike/baryons_JX.h"
 #include "cosmolike/cosmo2D.h"
 #include "cosmolike/cosmo3D.h"
 #include "cosmolike/halo.h"
