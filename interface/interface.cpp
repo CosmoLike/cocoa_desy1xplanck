@@ -2638,17 +2638,17 @@ void ima::BaryonScenario::set_scenarios(std::string scenarios)
   for (auto it=lines.begin(); it != lines.end(); ++it){
     // Count occurrences of -
     size_t pos = 0, count = 0; 
-    while ((pos = it.find("-", pos)) != std::string::npos) {
+    while ((pos = (*it).find("-", pos)) != std::string::npos) {
         ++count;
         pos += 1;
     }
     if (count==2){
       // Found an abbreviated scenario (e.g. antilles-3-12)
-      std::string sim_name = it.substr(0, it.find("-", 0));
-      size_t pstart = it.find("-", 0)+1; 
-      size_t pend = it.find("-", pstart)+1;
-      int start = std::stoi(it.substr(pstart, pend-pstart-1));
-      int end = std::stoi(it.substr(pend));
+      std::string sim_name = (*it).substr(0, (*it).find("-", 0));
+      size_t pstart = (*it).find("-", 0)+1; 
+      size_t pend = (*it).find("-", pstart)+1;
+      int start = std::stoi((*it).substr(pstart, pend-pstart-1));
+      int end = std::stoi((*it).substr(pend));
       it = lines.erase(it);
       for (int i=start; i<=end; i++){
         lines.insert(it, sim_name + "-" + std::to_string(i));
@@ -2657,7 +2657,7 @@ void ima::BaryonScenario::set_scenarios(std::string scenarios)
     } else if (count>2){
       // Sanity check, there can't be more than two "-"
       spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} probe not supported",
-      "set_scenarios", "scenario", it);
+      "set_scenarios", "scenario", *it);
       exit(1);
     }
   }
