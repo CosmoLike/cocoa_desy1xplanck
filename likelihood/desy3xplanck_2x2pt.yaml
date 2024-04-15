@@ -1,11 +1,11 @@
 path: null
-data_file: Y1xplanck.dataset
+data_file: Y3xPlanckPR4_250_real.dataset
 accuracyboost: 1.0
 samplingboost: 1.0
 integration_accuracy: 0 # integer 0, 1 or 2
-non_linear_emul: 2
 kmax_boltzmann: 20.0
-speed: 5
+non_linear_emul: 2
+speed: 4
 
 print_intermediate_products: False
 
@@ -14,11 +14,11 @@ which_baryonic_simulations_for_dv_contamination: TNG100
 
 create_baryon_pca: False
 baryon_pca_select_simulations: TNG100/HzAGN/mb2/illustris/eagle/owls_AGN_T80/owls_AGN_T85/owls_AGN_T87/BAHAMAS_T76/BAHAMAS_T78/BAHAMAS_T80
-filename_baryon_pca: "./projects/desy1xplanck/data/PCs/desy1xplanck_ggl.pca"
+filename_baryon_pca: "./projects/desy1xplanck/data/PCs/DESY3xPLKR4_cosmic_shear_9sim.pca"
 
 print_datavector: False
-print_datavector_file: "./projects/desy1xplanck/chains/example_evaluate1_desy1xplanck_ggl.modelvector"
+print_datavector_file: "./projects/desy1xplanck/chains/example_evaluate1_desy1xplanck_2x2pt.modelvector"
 print_lens_photoz: False
 print_lens_photoz_file: "./projects/desy1xplanck/chains/example_lens_photoz_distribution.dat"
 
-params: !defaults [params_desy1_3x2pt]
+params: !defaults [params_desy3_3x2pt]

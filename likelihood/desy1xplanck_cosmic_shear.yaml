@@ -21,4 +21,4 @@ print_datavector_file: "./projects/desy1xplanck/chains/example_evaluate1_desy1xp
 print_lens_photoz: False
 print_lens_photoz_file: "./projects/desy1xplanck/chains/example_lens_photoz_distribution.dat"
 
-params: !defaults [params_des_cosmic_shear]
+params: !defaults [params_desy1_cosmic_shear]

@@ -1,0 +1,172 @@
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # WL photo-z errors
+  DES_DZ_S1:
+    prior:
+      dist: norm
+      loc: -0.001
+      scale: 0.016
+    ref:
+      dist: norm
+      loc: -0.001
+      scale: 0.016
+    proposal: 0.016
+    latex: \Delta z_\mathrm{s,DES}^1
+  DES_DZ_S2:
+    prior:
+      dist: norm
+      loc: -0.019
+      scale: 0.013
+    ref:
+      dist: norm
+      loc: -0.019
+      scale: 0.015
+    proposal: 0.013
+    latex: \Delta z_\mathrm{s,DES}^2
+  DES_DZ_S3:
+    prior:
+      dist: norm
+      loc: 0.009
+      scale: 0.011
+    ref:
+      dist: norm
+      loc: 0.009
+      scale: 0.011
+    proposal: 0.011
+    latex: \Delta z_\mathrm{s,DES}^3
+  DES_DZ_S4:
+    prior:
+      dist: norm
+      loc: -0.018
+      scale: 0.022
+    ref:
+      dist: norm
+      loc: -0.018
+      scale: 0.022
+    proposal: 0.022
+    latex: \Delta z_\mathrm{s,DES}^4
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # Intrinsic alignment
+  DES_A1_1:
+    prior:
+      min: -5
+      max:  5
+    ref:
+      dist: norm
+      loc: 0.7
+      scale: 0.5
+    proposal: 0.75
+    latex: A_\mathrm{1-IA,DES}^1
+  DES_A1_2:
+    prior:
+      min: -5
+      max:  5
+    ref:
+      dist: norm
+      loc: -1.7
+      scale: 0.5
+    proposal: 0.75
+    latex: A_\mathrm{1-IA,DES}^2
+  DES_A1_3:
+    value: 0
+    latex: A_\mathrm{1-IA,DES}^3        
+  DES_A1_4:
+    value: 0
+    latex: A_\mathrm{1-IA,DES}^4  
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  DES_A2_1:
+    value: 0.0
+    latex: A_\mathrm{2-IA,DES}^1
+  DES_A2_2:
+    value: 0.0
+    latex: A_\mathrm{2-IA,DES}^2
+  DES_A2_3:
+    value: 0.0
+    latex: A_\mathrm{2-IA,DES}^3
+  DES_A2_4:
+    value: 0.0
+    latex: A_\mathrm{2-IA,DES}^4
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  DES_BTA_1:
+    value: 0
+    latex: A_\mathrm{BTA-IA,DES}^1
+  DES_BTA_2:
+    value: 0
+    latex: A_\mathrm{BTA-IA,DES}^2
+  DES_BTA_3:
+    value: 0
+    latex: A_\mathrm{BTA-IA,DES}^3        
+  DES_BTA_4:
+    value: 0
+    latex: A_\mathrm{BTA-IA,DES}^4
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # Shear calibration parameters
+  DES_M1:
+    prior:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.012
+      scale: 0.05
+    proposal: 0.03
+    latex: m_\mathrm{DES}^1
+  DES_M2:
+    prior:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.012
+      scale: 0.05
+    proposal: 0.03
+    latex: m_\mathrm{DES}^2
+  DES_M3:
+    prior:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.012
+      scale: 0.05
+    proposal: 0.03
+    latex: m_\mathrm{DES}^3
+  DES_M4:
+    prior:
+      dist: norm
+      loc: 0.012
+      scale: 0.023
+    ref:
+      dist: norm
+      loc: 0.012
+      scale: 0.05
+    proposal: 0.03
+    latex: m_\mathrm{DES}^4 
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # Baryonic effects PCs amplitudes
+  DES_BARYON_Q1:
+    value: 0.0
+    latex: Q_\mathrm{DES}^1
+  DES_BARYON_Q2:
+    value: 0.0
+    latex: Q_\mathrm{DES}^2
+  DES_BARYON_Q3:
+    value: 0.0
+    latex: Q_\mathrm{DES}^3
+  DES_BARYON_Q4:
+    value: 0.0
+    latex: Q_\mathrm{DES}^4
