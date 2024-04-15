@@ -6,9 +6,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "basics.h"
-#include "baryons_JX.h"
-#include "structs.h"
+#include "cosmolike/basics.h"
+#include "cosmolike/baryons_JX.h"
+#include "cosmolike/structs.h"
 
 #include "log.c/src/log.h"
 #include <hdf5.h>
