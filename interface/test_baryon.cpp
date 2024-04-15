@@ -1,5 +1,16 @@
 #include <iostream>
+
+#include "cosmolike/basics.h"
+#include "cosmolike/bias.h"
 #include "cosmolike/baryons_JX.h"
+#include "cosmolike/cosmo2D.h"
+#include "cosmolike/cosmo3D.h"
+#include "cosmolike/halo.h"
+#include "cosmolike/radial_weights.h"
+#include "cosmolike/recompute.h"
+#include "cosmolike/pt_cfastpt.h"
+#include "cosmolike/redshift_spline.h"
+#include "cosmolike/structs.h"
 
 
 // Test HDF5 reading routine
