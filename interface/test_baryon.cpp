@@ -1,0 +1,20 @@
+#include <iostream>
+#include "cosmolike/baryons_JX.h"
+
+
+// Test HDF5 reading routine
+int main(){
+  init_baryons("TNG100", 1);
+  init_baryons("HzAGN", 1);
+  init_baryons("mb2", 1);
+  init_baryons("illustris", 1);
+  init_baryons("eagle", 1);
+  init_baryons("cowls_AGN", 1);
+  init_baryons("cowls_AGN", 2);
+  init_baryons("cowls_AGN", 3);
+  init_baryons("BAHAMAS", 1);
+  init_baryons("BAHAMAS", 2);
+  init_baryons("BAHAMAS", 3);
+  for (int i = 1; i< 401; i++) init_baryons("antilles", i);
+  std::cout << "test_baryon: Done!" << std::endl;
+}
