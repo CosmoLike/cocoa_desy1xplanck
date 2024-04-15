@@ -216,10 +216,13 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
 
     # ------------------------------------------------------------------------
 
-    # FOR ALLOWED OPTIONS FOR `which_baryonic_simulations`, SEE BARYONS.C
-    # FUNCTION `void init_baryons(char* scenario)`. SIMS INCLUDE
-    # TNG100, HzAGN, mb2, illustris, eagle, owls_AGN_T80, owls_AGN_T85,
-    # owls_AGN_T87, BAHAMAS_T76, BAHAMAS_T78, BAHAMAS_T80
+    # FOR ALLOWED OPTIONS FOR `which_baryonic_simulations`, SEE BARYONS_JX.C
+    # FUNCTION `main()`. SIMS INCLUDE
+    # TNG100, HzAGN, mb2, illustris, eagle, owls_AGN_T80 (owls_AGN-1),
+    # owls_AGN_T85 (owls_AGN-2), owls_AGN_T87 (owls_AGN-3), 
+    # BAHAMAS_T78 (BAHAMAS-1), BAHAMAS_T76 (BAHAMAS-2), 
+    # BAHAMAS_T80 (BAHAMAS-3), antilles-1 (to 400)
+    # Also see interface.cpp:cpp_init_baryons_contamination()
     ci.init_baryons_contamination(
       self.use_baryonic_simulations_for_dv_contamination,
       self.which_baryonic_simulations_for_dv_contamination)

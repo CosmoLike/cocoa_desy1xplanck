@@ -304,11 +304,70 @@ const std::string which_baryonic_simulations_contamination)
 
   if (use_baryonic_simulations_contamination)
   {
-    init_baryons(which_baryonic_simulations_contamination.c_str());
+    /* Determine simulation name and ID
+    simulation names only have _ as deliminator, e.g. owls_AGN, antilles
+    simulation IDs are indicated by -, e.g. antilles-1, antilles-386, BAHAMAS-3
+    To accommodate default behavior, 
+        owls_AGN_T80 = owls_AGN-1
+        owls_AGN_T85 = owls_AGN-2
+        owls_AGN_T87 = owls_AGN-3
+        BAHAMAS_T78 = BAHAMAS-1
+        BAHAMAS_T76 = BAHAMAS-2
+        BAHAMAS_T80 = BAHAMAS-3
+    */
+    std::size_t found1, found2;
+    std::string sim_name, sim_tag;
+    int sim_id;
+    // First, check whether input is owls_AGN or BAHAMAS
+    found1 = which_baryonic_simulations_contamination.rfind("owls_AGN");
+    found2 = which_baryonic_simulations_contamination.rfind("BAHAMAS");
+    if (found1!=std::string::npos){
+      sim_name = "owls_AGN";
+      sim_tag = which_baryonic_simulations_contamination.substr(9);
+      if (sim_tag=="T80") sim_id = 1;
+      else if (sim_tag=="T85") sim_id = 2;
+      else if (sim_tag=="T87") sim_id = 3;
+      else{
+        spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} not supported", 
+          "cpp_init_baryons_contamination", 
+          "which_baryonic_simulations_contamination",
+          which_baryonic_simulations_contamination);
+        exit(1);
+      }
+    } else if (found2!=std::string::npos){
+      sim_name = "BAHAMAS";
+      sim_tag = which_baryonic_simulations_contamination.substr(8);
+      if (sim_tag=="T78") sim_id = 1;
+      else if (sim_tag=="T76") sim_id = 2;
+      else if (sim_tag=="T80") sim_id = 3;
+      else{
+        spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} not supported", 
+          "cpp_init_baryons_contamination", 
+          "which_baryonic_simulations_contamination",
+          which_baryonic_simulations_contamination);
+        exit(1);
+      }
+    } 
+    // Second, check whether there's deliminator - for simulation ID
+    else{
+      found1 = which_baryonic_simulations_contamination.rfind('-');
+      if (found1!=std::string::npos){
+        // Found - deliminator, parse simulation name and sim ID
+        sim_name = which_baryonic_simulations_contamination.substr(0, found1);
+        sim_tag = which_baryonic_simulations_contamination.substr(found1+1);
+        sim_id = std::stoi(sim_tag);
+      } else{
+        // Not found - deliminator, only parse simulation name, sim ID = 1
+        sim_name = which_baryonic_simulations_contamination;
+        sim_id = 1;
+      }
+    }
+    // Initialize baryon feedback scenario
+    init_baryons(sim_name.c_str(), sim_id);
 
-    spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected",
+    spdlog::info("\x1b[90m{}\x1b[0m: {} = {} selected (Sim {} ID.{})",
       "init_baryons_contamination", "which_baryonic_simulations_contamination",
-      which_baryonic_simulations_contamination);
+      which_baryonic_simulations_contamination, sim_name, sim_id);
   }
   else
   {
@@ -2561,7 +2620,7 @@ void ima::BaryonScenario::set_scenarios(std::string scenarios)
   std::vector<std::string> lines;
   lines.reserve(50);
 
-  // Second: Split file into lines
+  // First: trim tab or newline
   boost::trim_if(scenarios, boost::is_any_of("\t "));
   boost::trim_if(scenarios, boost::is_any_of("\n"));
 
@@ -2572,8 +2631,36 @@ void ima::BaryonScenario::set_scenarios(std::string scenarios)
     exit(1);
   }
 
+  // Second: Split scenarios into lines
   boost::split(lines, scenarios, boost::is_any_of("/"),
     boost::token_compress_on);
+  // Third: Expand abbreviated scenarios
+  for (auto it=lines.begin(); it != lines.end(); ++it){
+    // Count occurrences of -
+    size_t pos = 0, count = 0; 
+    while ((pos = it.find("-", pos)) != std::string::npos) {
+        ++count;
+        pos += 1;
+    }
+    if (count==2){
+      // Found an abbreviated scenario (e.g. antilles-3-12)
+      std::string sim_name = it.substr(0, it.find("-", 0));
+      size_t pstart = it.find("-", 0)+1; 
+      size_t pend = it.find("-", pstart)+1;
+      int start = std::stoi(it.substr(pstart, pend-pstart-1));
+      int end = std::stoi(it.substr(pend));
+      it = lines.erase(it);
+      for (int i=start; i<=end; i++){
+        lines.insert(it, sim_name + "-" + std::to_string(i));
+        ++it;
+      }
+    } else if (count>2){
+      // Sanity check, there can't be more than two "-"
+      spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} probe not supported",
+      "set_scenarios", "scenario", it);
+      exit(1);
+    }
+  }
 
   this->nscenarios_ = lines.size();
 
