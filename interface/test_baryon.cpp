@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>
+#include <fstream>
 
 #include "cosmolike/basics.h"
 #include "cosmolike/bias.h"
