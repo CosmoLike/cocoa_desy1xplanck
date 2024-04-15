@@ -114,10 +114,12 @@ void cpp_initial_setup()
   like.use_full_sky_sk = 1;
 
   // nonlimber ?
-  like.adopt_limber_gg = 0;
+  // nonLimber: 0; Limber: 1;
+  // Doesn't support IA=6 AND nonLimber together
+  like.adopt_limber_gg = 1;
   like.adopt_limber_gammat = 1;
 
-  like.high_def_integration = 0;
+  like.high_def_integration = 1;
 
   spdlog::debug("\x1b[90m{}\x1b[0m: Ends", "initial_setup");
 }
@@ -1652,6 +1654,24 @@ std::vector<double> cpp_compute_data_vector_masked()
       }
     }
   }
+
+/*  FILE *F;
+  F=fopen("Pdelta_table_cocoa.txt", "w");
+  if(F==NULL){
+    printf("ERORR: Can not open file Pdelta_table.txt\nAborting...\n");
+    exit(1);
+  }
+  for (int aa=0; aa<19; aa++){
+    for (int kk=0; kk<41; kk++){
+      double a = 0.1 + aa*0.05;
+      double k = pow(10.0, -4+0.15*kk);
+      fprintf(F, "%f %f %le\n", k, a, Pdelta(k*cosmology.coverH0, a));
+    }
+  }
+  fclose(F);
+  double Pk = Pdelta(0.1,0.99);
+  spdlog::info("\n\n\x1b[90m{}\x1b[0m: Try Pdelta(0.1,0.99) = {}\n\n", "compute_data_vector_masked", Pk);
+*/
 /*
   double test_ary[2] = {1000, 0};
   double test_int = 0;

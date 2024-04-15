@@ -28,6 +28,9 @@ CLOG :=1
 # LINK PYBIND LIBRARY
 PYBIND := 1
 
+# LINK HDF5 LIBRARY
+HDF5 := 1
+
 # DEFINE TEST CODE
 TEST := 1
 
@@ -111,6 +114,10 @@ ifdef SPDLOG
 	endif
 endif
 
+ifdef HDF5
+	LDFLAGS += -lhdf5_cpp -lhdf5
+endif
+
 ifdef TEST
 	COMMON_FLAGS += -DTEST
 endif
@@ -179,6 +186,9 @@ cosmolike_desy1xplanck_interface.so: $(OBJECTC) $(CSOURCES) interface.cpp
 
 test: $(OBJECTC) $(CSOURCES) interface.cpp
 	$(CXX) $(CXXFLAGS) -DCOBAYA_SAMPLER -fPIC -o $@ $(OBJECTC) interface.cpp $(LDFLAGS)
+
+test_baryon: $(OBJECTC) $(CSOURCES) ${ROOTDIR}/external_modules/code/cosmolike/baryons_JX.c
+	$(CXX) $(CXXFLAGS) -DCOBAYA_SAMPLER -fPIC -o $@ ${ROOTDIR}/external_modules/code/cosmolike/baryons_JX.c $(OBJECTC) $(LDFLAGS)
 
 clean:
 	@rm -rf cosmolike_desy1xplanck_interface.so cosmolike_desy1xplanck_interface.so.dSYM  *.o
