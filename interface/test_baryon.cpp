@@ -15,9 +15,10 @@
 
 void print_SPk(const char* sim_name, int sim_id){
   // Test dataset reading
-  std::ostringstream output_fn;
-  output_fn << "test_Baryon_read_" << sim_name << "_" << sim_id << "_HDF5C.txt";
-  std::ofstream output(output_fn.str());
+  std::ostringstream oss;
+  oss << "test_Baryon_read_" << sim_name << "_" << sim_id << "_HDF5C.txt";
+  std::string output_fn = oss.str();
+  std::ofstream output(output_fn);
   if (!output){
     std::cerr << "Error opening file." << std::endl;
     exit(1);
