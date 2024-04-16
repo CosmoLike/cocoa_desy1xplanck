@@ -324,9 +324,9 @@ const std::string which_baryonic_simulations_contamination)
     if (found1!=std::string::npos){
       sim_name = "owls_AGN";
       sim_tag = which_baryonic_simulations_contamination.substr(9);
-      if (sim_tag=="T80") sim_id = 1;
-      else if (sim_tag=="T85") sim_id = 2;
-      else if (sim_tag=="T87") sim_id = 3;
+      if ((sim_tag=="T80") || (sim_tag=="1")) sim_id = 1;
+      else if ((sim_tag=="T85") || (sim_tag=="2")) sim_id = 2;
+      else if ((sim_tag=="T87") || (sim_tag=="3")) sim_id = 3;
       else{
         spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} not supported", 
           "cpp_init_baryons_contamination", 
@@ -337,9 +337,9 @@ const std::string which_baryonic_simulations_contamination)
     } else if (found2!=std::string::npos){
       sim_name = "BAHAMAS";
       sim_tag = which_baryonic_simulations_contamination.substr(8);
-      if (sim_tag=="T78") sim_id = 1;
-      else if (sim_tag=="T76") sim_id = 2;
-      else if (sim_tag=="T80") sim_id = 3;
+      if ((sim_tag=="T78") || (sim_tag=="1")) sim_id = 1;
+      else if ((sim_tag=="T76") || (sim_tag=="2")) sim_id = 2;
+      else if ((sim_tag=="T80") || (sim_tag=="3")) sim_id = 3;
       else{
         spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} not supported", 
           "cpp_init_baryons_contamination", 
