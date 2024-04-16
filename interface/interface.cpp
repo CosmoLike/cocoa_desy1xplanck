@@ -2630,7 +2630,8 @@ void ima::BaryonScenario::set_scenarios(std::string scenarios)
       "init_baryon_pca_scenarios");
     exit(1);
   }
-
+  spdlog::info("\x1b[90m{}\x1b[0m: Registering baryon scenarios", 
+    "set_scenarios");
   // Second: Split scenarios into lines
   boost::split(lines, scenarios, boost::is_any_of("/"),
     boost::token_compress_on);
@@ -2652,23 +2653,32 @@ void ima::BaryonScenario::set_scenarios(std::string scenarios)
       it = lines.erase(it);
       for (int i=start; i<=end; i++){
         lines.insert(it, sim_name + "-" + std::to_string(i));
+        spdlog::info("\x1b[90m{}\x1b[0m: Scenario {}", "set_scenarios", 
+          sim_name + "-" + std::to_string(i));
         ++it;
       }
+      --it;
     } else if (count>2){
       // Sanity check, there can't be more than two "-"
       spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} probe not supported",
       "set_scenarios", "scenario", *it);
       exit(1);
+    } else{
+      spdlog::info("\x1b[90m{}\x1b[0m: Scenario {}", "set_scenarios", *it);
     }
   }
 
   this->nscenarios_ = lines.size();
 
+  spdlog::info("\x1b[90m{}\x1b[0m: {} scenarios are registered", 
+    "set_scenarios", this->nscenarios_);
+
   for(int i=0; i<this->nscenarios_; i++)
   {
     this->scenarios_[i] = lines[i];
   }
-
+  spdlog::info("\x1b[90m{}\x1b[0m: Registering baryon scenarios done!", 
+    "set_scenarios");
   return;
 }
 
