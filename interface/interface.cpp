@@ -2630,7 +2630,7 @@ void ima::BaryonScenario::set_scenarios(std::string scenarios)
       "init_baryon_pca_scenarios");
     exit(1);
   }
-  spdlog::info("\x1b[90m{}\x1b[0m: Registering baryon scenarios", 
+  spdlog::info("\x1b[90m{}\x1b[0m: Registering baryon scenarios for PCA", 
     "set_scenarios");
 
   // Second: Split scenarios into lines
@@ -2654,11 +2654,9 @@ void ima::BaryonScenario::set_scenarios(std::string scenarios)
       int start = std::stoi((*it).substr(pstart, pend-pstart-1));
       int end = std::stoi((*it).substr(pend));
       for (int i=start; i<=end; i++){
-        //lines.insert(it, sim_name + "-" + std::to_string(i));
-        this->scenarios_[nscenarios] = sim_name + "-" + std::to_string(i);
-        spdlog::info("\x1b[90m{}\x1b[0m: Scenario {}", "set_scenarios", 
-          sim_name + "-" + std::to_string(i));
-        nscenarios++;
+        this->scenarios_[nscenarios++] = sim_name + "-" + std::to_string(i);
+        spdlog::info("\x1b[90m{}\x1b[0m: Scenario {} = {}", "set_scenarios", 
+          nscenarios, sim_name + "-" + std::to_string(i));
       }
     } else if (count>2){
       // Sanity check, there can't be more than two "-"
@@ -2666,23 +2664,17 @@ void ima::BaryonScenario::set_scenarios(std::string scenarios)
       "set_scenarios", "scenario", *it);
       exit(1);
     } else{
-      this->scenarios_[nscenarios] = *it;
-      spdlog::info("\x1b[90m{}\x1b[0m: Scenario {}", "set_scenarios", *it);
-      nscenarios++;
+      this->scenarios_[nscenarios++] = *it;
+      spdlog::info("\x1b[90m{}\x1b[0m: Scenario {} = {}", "set_scenarios", 
+        nscenarios, *it);
     }
   }
 
-  //this->nscenarios_ = lines.size();
   this->nscenarios_ = nscenarios;
 
   spdlog::info("\x1b[90m{}\x1b[0m: {} scenarios are registered", 
     "set_scenarios", this->nscenarios_);
-
-  // for(int i=0; i<this->nscenarios_; i++)
-  // {
-  //   this->scenarios_[i] = lines[i];
-  // }
-  spdlog::info("\x1b[90m{}\x1b[0m: Registering baryon scenarios done!", 
+  spdlog::info("\x1b[90m{}\x1b[0m: Registering baryon scenarios for PCA done!", 
     "set_scenarios");
   return;
 }
