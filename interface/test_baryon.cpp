@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <iomanip>
 
 #include "cosmolike/basics.h"
 #include "cosmolike/bias.h"
@@ -25,6 +26,7 @@ void print_SPk(const char* sim_name, int sim_id){
     exit(1);
   }
   output << "# z lgk lgPkR" << std::endl;
+  output << std::scientific << std::setprecision(7);
   for (int i=0; i<bary.Na_bins; i++){
     for (int j=0; j<bary.Nk_bins; j++){
       output << 1.0/bary.a_bins[i]-1.0 << " " << bary.logk_bins[j] << " " << bary.log_PkR[j*bary.Na_bins+i] << std::endl;
