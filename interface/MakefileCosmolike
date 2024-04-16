@@ -115,7 +115,7 @@ ifdef SPDLOG
 endif
 
 ifdef HDF5
-	LDFLAGS += -lhdf5_cpp -lhdf5
+	LDFLAGS += -lhdf5 -lhdf5_cpp
 endif
 
 ifdef TEST
@@ -132,7 +132,7 @@ endif
 
 LDFLAGS += -lm
 
-all:  shared
+all:  shared test_baryon
 shared: cosmolike_desy1xplanck_interface.so
 
 CSOURCES += \
@@ -144,7 +144,6 @@ CSOURCES += \
 		${ROOTDIR}/external_modules/code/cfastpt/utils_cfastpt.c \
 		${ROOTDIR}/external_modules/code/cosmolike/basics.c \
 		${ROOTDIR}/external_modules/code/cosmolike/bias.c \
-		${ROOTDIR}/external_modules/code/cosmolike/baryons.c \
 		${ROOTDIR}/external_modules/code/cosmolike/baryons_JX.c \
 		${ROOTDIR}/external_modules/code/cosmolike/cosmo3D.c \
 		${ROOTDIR}/external_modules/code/cosmolike/cosmo2D.c \
@@ -164,7 +163,6 @@ OBJECTC += \
 		./utils_complex_cfastpt.o \
 		./utils_cfastpt.o \
 		./basics.o \
-		./baryons.o \
 		./baryons_JX.o \
 		./bias.o \
 		./cosmo3D.o \
@@ -187,8 +185,8 @@ cosmolike_desy1xplanck_interface.so: $(OBJECTC) $(CSOURCES) interface.cpp
 test: $(OBJECTC) $(CSOURCES) interface.cpp
 	$(CXX) $(CXXFLAGS) -DCOBAYA_SAMPLER -fPIC -o $@ $(OBJECTC) interface.cpp $(LDFLAGS)
 
-test_baryon: $(OBJECTC) $(CSOURCES) ${ROOTDIR}/external_modules/code/cosmolike/baryons_JX.c
-	$(CXX) $(CXXFLAGS) -DCOBAYA_SAMPLER -fPIC -o $@ ${ROOTDIR}/external_modules/code/cosmolike/baryons_JX.c $(OBJECTC) $(LDFLAGS)
+test_baryon: $(OBJECTC) $(CSOURCES) test_baryon.cpp
+	$(CXX) $(CXXFLAGS) -fPIC -o $@ $(OBJECTC) test_baryon.cpp $(LDFLAGS)
 
 clean:
 	@rm -rf cosmolike_desy1xplanck_interface.so cosmolike_desy1xplanck_interface.so.dSYM  *.o
