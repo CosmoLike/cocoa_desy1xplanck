@@ -2632,51 +2632,56 @@ void ima::BaryonScenario::set_scenarios(std::string scenarios)
   }
   spdlog::info("\x1b[90m{}\x1b[0m: Registering baryon scenarios", 
     "set_scenarios");
+
   // Second: Split scenarios into lines
   boost::split(lines, scenarios, boost::is_any_of("/"),
     boost::token_compress_on);
+  
   // Third: Expand abbreviated scenarios
+  int nscenarios = 0;
   for (auto it=lines.begin(); it != lines.end(); ++it){
     // Count occurrences of -
     size_t pos = 0, count = 0; 
     while ((pos = (*it).find("-", pos)) != std::string::npos) {
         ++count;
-        pos += 1;
+        ++pos;
     }
+    // Found an abbreviated scenario (e.g. antilles-3-12)
     if (count==2){
-      // Found an abbreviated scenario (e.g. antilles-3-12)
       std::string sim_name = (*it).substr(0, (*it).find("-", 0));
       size_t pstart = (*it).find("-", 0)+1; 
       size_t pend = (*it).find("-", pstart)+1;
       int start = std::stoi((*it).substr(pstart, pend-pstart-1));
       int end = std::stoi((*it).substr(pend));
-      it = lines.erase(it);
       for (int i=start; i<=end; i++){
-        lines.insert(it, sim_name + "-" + std::to_string(i));
+        //lines.insert(it, sim_name + "-" + std::to_string(i));
+        this->scenarios_[nscenarios] = sim_name + "-" + std::to_string(i);
         spdlog::info("\x1b[90m{}\x1b[0m: Scenario {}", "set_scenarios", 
           sim_name + "-" + std::to_string(i));
-        ++it;
+        nscenarios++;
       }
-      --it;
     } else if (count>2){
       // Sanity check, there can't be more than two "-"
       spdlog::critical("\x1b[90m{}\x1b[0m: {} = {} probe not supported",
       "set_scenarios", "scenario", *it);
       exit(1);
     } else{
+      this->scenarios_[nscenarios] = *it;
       spdlog::info("\x1b[90m{}\x1b[0m: Scenario {}", "set_scenarios", *it);
+      nscenarios++;
     }
   }
 
-  this->nscenarios_ = lines.size();
+  //this->nscenarios_ = lines.size();
+  this->nscenarios_ = nscenarios;
 
   spdlog::info("\x1b[90m{}\x1b[0m: {} scenarios are registered", 
     "set_scenarios", this->nscenarios_);
 
-  for(int i=0; i<this->nscenarios_; i++)
-  {
-    this->scenarios_[i] = lines[i];
-  }
+  // for(int i=0; i<this->nscenarios_; i++)
+  // {
+  //   this->scenarios_[i] = lines[i];
+  // }
   spdlog::info("\x1b[90m{}\x1b[0m: Registering baryon scenarios done!", 
     "set_scenarios");
   return;
