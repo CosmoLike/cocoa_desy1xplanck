@@ -24,7 +24,7 @@ stop_at_error: False
 likelihood:
   desy1xplanck.desy3xplanck_6x2pt:
     path: ./external_modules/data/desy1xplanck
-    data_file: Y3xPlanckPR4_emu_DMO.dataset
+    data_file: datasets/Y3xPlanckPR4_emu_DMO.dataset
     integration_accuracy: 0
     
     
