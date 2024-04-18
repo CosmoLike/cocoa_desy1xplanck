@@ -2597,7 +2597,7 @@ std::vector<double> ima::PointMass::get_pm_vector() const
 double ima::PointMass::get_pm(const int zl, const int zs,
 const double theta) const
 {
-  constexpr double G_over_c2 = 1.6e-23;
+  constexpr double G_over_c2 = 1.6e-23; // in units of c_over_H0 / Msun
   const double a_lens = 1.0/(1.0 + zmean(zl));
   const double chi_lens = chi(a_lens);
 
