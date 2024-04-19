@@ -165,7 +165,7 @@ class Config:
         self.config_args_lkl = config_args_lkl[self.likelihood]
         self.likelihood_path = self.config_args_lkl['path']
         self.datasetfile     = pjoin(self.likelihood_path, self.config_args_lkl['data_file'])
-        self.dstst           = pjoin(self.likelihood_path, "datasets")
+        self.dst             = pjoin(self.likelihood_path, "datasets")
         # Read the cocoa project dataset file
         self.Nell = 0
         self.Ntheta = 0
