@@ -150,6 +150,7 @@ if(rank==0):
     select_chi_sq = get_chi_sq_cut(train_data_vectors)
     selected_obj = np.sum(select_chi_sq)
     total_obj    = len(select_chi_sq)
+    print(f'[calculate_dv.py] Select {selected_obj} out of {total_obj}!')
     # ===============================================
         
     train_data_vectors = train_data_vectors[select_chi_sq]
@@ -160,5 +161,5 @@ if(rank==0):
     np.save(pjoin(config.traindir, f'samples_{n}.npy'), train_samples)
     np.save(pjoin(config.traindir, f'sigma8_{n}.npy'), train_sigma8)
     # ======================================================== 
-    
+    print(f'Done data vector calculation iteration {n}!')
 MPI.Finalize
