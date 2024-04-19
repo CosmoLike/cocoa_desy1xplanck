@@ -99,5 +99,5 @@ if __name__ == '__main__':
 		np.save(pjoin(config.chaindir, config.chainname+'.npy'), 
 				np.vstack([samples, derived_sigma8]))
 	else:
-		np.save(pjoin(config.chaindir, config.chainname+ '.npy', samples)
+		np.save(pjoin(config.chaindir, config.chainname+'.npy'), samples)
 

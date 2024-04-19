@@ -157,8 +157,8 @@ if(rank==0):
     train_sigma8       = train_sigma8[select_chi_sq]
     # ========================================================
     np.save(pjoin(config.traindir, f'data_vectors_{n}.npy'), train_data_vectors)
-    np.save(pjoin(config.traindir, f'samples_{n}.npy', train_samples)
-    np.save(pjoin(config.traindir, f'sigma8_{n}.npy', train_sigma8)
+    np.save(pjoin(config.traindir, f'samples_{n}.npy'), train_samples)
+    np.save(pjoin(config.traindir, f'sigma8_{n}.npy'), train_sigma8)
     # ======================================================== 
     
 MPI.Finalize
