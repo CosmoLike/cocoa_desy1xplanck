@@ -2,7 +2,7 @@
 ### Motivation:
 ###     Train NN emulator to evaluate 6x2pt
 ###     - fiducial data vector: dmo
-###     - scale cut: 2.5' for 3x2pt and as much as possible for c2x2pt
+###     - scale cut: 0.25' for 3x2pt and as much as possible for c2x2pt
 ### -----------------------------------------------------------------
 ### cosmology: baseline (omegam, As, ns, omegab, H0)
 ### survey footprint: include the extended annulus around DES Y3
@@ -87,7 +87,15 @@ params:
     latex: \Omega_\mathrm{m}
     drop: true
   mnu:
-    value: 0.06
+    #value: 0.06
+    prior:
+      min: 0.046
+      max: 0.931
+    ref:
+      dist: norm
+      loc: 0.06
+      scale: 0.02
+    proposal: 0.02  
     latex: \m_\\nu
   w:
     value: -1
@@ -141,10 +149,6 @@ params:
   # DES-Y1 3x2 nuissance parameter begins
   # ------------------------------------------------------------------
 
-  # galaxy bias: linear bias
-  # ========================
-  # same as default, flat prior [0.8, 3.0] 
-
   # intrinsic alignment: NLA
   # ========================
   # same as default, DES_A1_1 [-5, 5]; DES_A1_2 [-5, 5]
@@ -169,208 +173,290 @@ params:
       scale: 0.5
     proposal: 0.75
     latex: A_\mathrm{1-IA,DES}^2
-
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
   # photo-z uncertainty: gaussian
   # =============================
-  # Lens galaxies photo-z errors
+  # Lens galaxies photo-z shift
   DES_DZ_L1:
     prior:
       dist: norm
-      loc: 0.005
+      loc: -0.009
       scale: 0.007
     ref:
       dist: norm
-      loc: 0.005
+      loc: -0.009
       scale: 0.007
     proposal: 0.0035
     latex: \Delta z_\mathrm{l,DES}^1
   DES_DZ_L2:
     prior:
       dist: norm
-      loc: 0.005 
+      loc: -0.035
       scale: 0.011
     ref:
       dist: norm
-      loc: 0.005
+      loc: -0.035
       scale: 0.011
     proposal: 0.0055
     latex: \Delta z_\mathrm{l,DES}^2
   DES_DZ_L3:
     prior:
       dist: norm
-      loc: 0.005
+      loc: -0.005
       scale: 0.006
     ref:
       dist: norm
-      loc: 0.005
+      loc: -0.005
       scale: 0.006
     proposal: 0.003
     latex: \Delta z_\mathrm{l,DES}^3
   DES_DZ_L4:
     prior:
       dist: norm
-      loc: 0.05
+      loc: -0.007
       scale: 0.006
     ref:
       dist: norm
-      loc: 0.005
+      loc: -0.007
       scale: 0.006
     proposal: 0.003
     latex: \Delta z_\mathrm{l,DES}^4
   DES_DZ_L5:
     prior:
       dist: norm
-      loc: 0.005
-      scale: 0.007
+      loc: 0.002
+      scale: 0.007 
     ref:
       dist: norm
-      loc: 0.005
+      loc: 0.002
       scale: 0.007
     proposal: 0.0035
     latex: \Delta z_\mathrm{l,DES}^5
   DES_DZ_L6:
     prior:
       dist: norm
-      loc: 0.005
-      scale: 0.008
+      loc: 0.002
+      scale: 0.008 
     ref:
       dist: norm
-      loc: 0.005
+      loc: 0.002
       scale: 0.008
     proposal: 0.004
     latex: \Delta z_\mathrm{l,DES}^6
+  # =============================
+  # Lens galaxies photo-z stretch
   DES_STRETCH_L1:
     prior:
       dist: norm
-      loc: 1.0
-      scale: 0.062
+      loc: 0.98
+      scale: 0.06
     ref:
       dist: norm
-      loc: 1.0
-      scale: 0.062
-    proposal: 0.031
+      loc: 0.98
+      scale: 0.06
+    proposal: 0.03
     latex: \sigma z_\mathrm{l,DES}^1
   DES_STRETCH_L2:
     prior:
       dist: norm
-      loc: 1.0
-      scale: 0.093
+      loc: 1.31
+      scale: 0.09
     ref:
       dist: norm
-      loc: 1.0
-      scale: 0.093
-    proposal: 0.046
+      loc: 1.31
+      scale: 0.09
+    proposal: 0.045
     latex: \sigma z_\mathrm{l,DES}^2
   DES_STRETCH_L3:
     prior:
       dist: norm
-      loc: 1.0
-      scale: 0.054
+      loc: 0.87
+      scale: 0.05
     ref:
       dist: norm
-      loc: 1.0
-      scale: 0.054
-    proposal: 0.027
+      loc: 0.87
+      scale: 0.05
+    proposal: 0.025
     latex: \sigma z_\mathrm{l,DES}^3
   DES_STRETCH_L4:
     prior:
       dist: norm
-      loc: 1.0
-      scale: 0.051
+      loc: 0.92
+      scale: 0.05
     ref:
       dist: norm
-      loc: 1.0
-      scale: 0.051
+      loc: 0.92
+      scale: 0.05
     proposal: 0.025
     latex: \sigma z_\mathrm{l,DES}^4
   DES_STRETCH_L5:
     prior:
       dist: norm
-      loc: 1.0
+      loc: 1.08
       scale: 0.067
     ref:
       dist: norm
-      loc: 1.0
+      loc: 1.08
       scale: 0.067
-    proposal: 0.033
+    proposal: 0.0335
     latex: \sigma z_\mathrm{l,DES}^5
   DES_STRETCH_L6:
     prior:
       dist: norm
-      loc: 1.0
+      loc: 0.845
       scale: 0.073
     ref:
       dist: norm
-      loc: 1.0
+      loc: 0.845
       scale: 0.073
-    proposal: 0.036
+    proposal: 0.0365
     latex: \sigma z_\mathrm{l,DES}^6
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
   # Source galaxies photo-z errors
   DES_DZ_S1:
     prior:
       dist: norm
-      loc: 0.005
+      loc: 0.0
       scale: 0.018
     ref:
       dist: norm
-      loc: 0.005
+      loc: 0.0
       scale: 0.018
-    proposal: 0.005
+    proposal: 0.009
     latex: \Delta z_\mathrm{s,DES}^1
   DES_DZ_S2:
     prior:
       dist: norm
-      loc: 0.005 
-      scale: 0.013
+      loc: 0.0
+      scale: 0.015
     ref:
       dist: norm
-      loc: 0.005
-      scale: 0.013
-    proposal: 0.005
+      loc: 0.0
+      scale: 0.015
+    proposal: 0.0075
     latex: \Delta z_\mathrm{s,DES}^2
   DES_DZ_S3:
     prior:
       dist: norm
-      loc: 0.005
-      scale: 0.006
+      loc: 0.0
+      scale: 0.011
     ref:
       dist: norm
-      loc: 0.005
-      scale: 0.006
-    proposal: 0.003
+      loc: 0.0
+      scale: 0.011
+    proposal: 0.0055
     latex: \Delta z_\mathrm{s,DES}^3
   DES_DZ_S4:
     prior:
       dist: norm
-      loc: 0.005 
-      scale: 0.013
+      loc: 0.0
+      scale: 0.017
     ref:
       dist: norm
-      loc: 0.005
-      scale: 0.013
-    proposal: 0.005
+      loc: 0.0
+      scale: 0.017
+    proposal: 0.0085
     latex: \Delta z_\mathrm{s,DES}^4
-
-  # fixed params
-  # ============
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # Point Mass parameters
+  DES_PM1:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 10000
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 10000
+    proposal: 5000
+    latex: PM_\mathrm{DES}^1
+  DES_PM2:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 10000
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 10000
+    proposal: 5000
+    latex: PM_\mathrm{DES}^2
+  DES_PM3:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 10000
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 10000
+    proposal: 5000
+    latex: PM_\mathrm{DES}^3
+  DES_PM4:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 10000
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 10000
+    proposal: 5000
+    latex: PM_\mathrm{DES}^4
+  DES_PM5:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 10000
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 10000
+    proposal: 5000
+    latex: PM_\mathrm{DES}^5
+  DES_PM6:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 10000
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 10000
+    proposal: 5000
+    latex: PM_\mathrm{DES}^6
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # Magnification bias
   DES_BMAG_1:
-    value: 1.0
+    value: 0.43
     latex: b_\mathrm{BMAG-DES}^1
   DES_BMAG_2:
-    value: 1.0
+    value: 0.30
     latex: b_\mathrm{BMAG-DES}^2
   DES_BMAG_3:
-    value: 1.0
+    value: 1.75
     latex: b_\mathrm{BMAG-DES}^3
   DES_BMAG_4:
-    value: 1.0
+    value: 1.94
     latex: b_\mathrm{BMAG-DES}^4
   DES_BMAG_5:
-    value: 1.0
+    value: 1.56
     latex: b_\mathrm{BMAG-DES}^5
   DES_BMAG_6:
-    value: 1.0
+    value: 2.96
     latex: b_\mathrm{BMAG-DES}^6
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # Higher-order IA
   DES_A2_1: #TATT, not used for Y1
     value: 0.0
     latex: A_\mathrm{2-IA,DES}^1 
@@ -378,31 +464,34 @@ params:
     value: 0.0
     latex: A_\mathrm{2-IA,DES}^2
   DES_BTA_1: #TATT, not used for Y1
-    value: 1.0
+    value: 0.0
     latex: A_\mathrm{BTA-IA,DES}^1
-
-  # linear galaxy bias
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # Linear galaxy bias
   DES_B1_1:
-    value: 1.1
+    value: 1.5
     latex: b_\mathrm{1-DES}^1
   DES_B1_2:
-    value: 1.3
+    value: 1.8
     latex: b_\mathrm{1-DES}^2
   DES_B1_3:
-    value: 1.5
+    value: 1.8
     latex: b_\mathrm{1-DES}^3
   DES_B1_4:
-    value: 1.7
+    value: 1.9
     latex: b_\mathrm{1-DES}^4
   DES_B1_5:
-    value: 1.9
+    value: 2.3
     latex: b_\mathrm{1-DES}^5
   DES_B1_6:
-    value: 2.1
+    value: 2.3
     latex: b_\mathrm{1-DES}^6
-
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
   # shear calibration bias: multiplicative
-  # ======================================
   DES_M1:
     value: 0.0
     latex: m_\mathrm{DES}^1
@@ -415,6 +504,9 @@ params:
   DES_M4:
     value: 0.0
     latex: m_\mathrm{DES}^4
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
   # baryon effects: the first two PCs
   # Q1 informative: [0, 7]
   # Q1 wide: [-6, 20]
@@ -448,35 +540,35 @@ theory:
 emulator:
   probe: 6x2pt
   io:
-      savedir: ./projects/desy1xplanck/yaml/Y3xPLKR4/emu_output
+      savedir: ./projects/desy1xplanck/emulator
       save_train_data: true
       save_intermediate_model: true
   shear_calib:
       mask: ./projects/desy1xplanck/data/emu_data/DESY3xPLKR4_Maglim_baseline_Ntheta20_shear_calib_mask.npy
-      prior_std: 0.018,0.013,0.006,0.013
+      prior_std: 0.009,0.008,0.008,0.008
   baryons:
       n_pcas_baryon: 2
       prior_Q1: -6.,20.
       prior_Q2: -4.,4.
   galaxy_bias:
       mask: ./projects/desy1xplanck/data/emu_data/DESY3xPLKR4_Maglim_baseline_Ntheta20_linear_gbias_mask.npy
-      bias_fid: 1.1,1.3,1.5,1.7,1.9,2.1
+      bias_fid: 1.5,1.8,1.8,1.9,2.3,2.3
       bias_prior: 0.8, 3.0
   training:
       emu_type: nn
-      nn_model: 1
-      dv_fid: ./projects/desy1xplanck/data/data_vectors/xi_DESY3xPLKR4_6x2pt_Maglim_baseline_Ntheta20_dmo.emufid
+      nn_model: 4
+      dv_fid: ./projects/desy1xplanck/data/data_vectors/xi_DESY3xPLKR4_6x2pt_Maglim_baseline_Ntheta30_dmo.emufid
       chi_sq_cut: 1e+5
       n_train_iter: 4
-      n_lhs: 16000
-      n_resample: 16000
-      batch_size: 80
+      n_lhs: 32000
+      n_resample: 32000
+      batch_size: 160
       n_epochs: 50
   derived:
       sigma8_fid: 0.827706
       sigma8_std: 0.100
   sampling:
-      scalecut_mask: ./projects/desy1xplanck/data/masks/xi_DESY3xPLKR4_6x2pt_Maglim_baseline_Ntheta20_emu.mask
+      scalecut_mask: ./projects/desy1xplanck/data/masks/xi_DESY3xPLKR4_6x2pt_Maglim_baseline_Ntheta30_emu.mask
       n_mcmc: 30000
       n_emcee_walkers: 100
       n_burn_in: 20000
