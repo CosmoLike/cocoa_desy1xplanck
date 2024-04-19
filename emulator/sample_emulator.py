@@ -27,7 +27,7 @@ if __name__ == '__main__':
 	if (config.emu_type.lower()=='nn'):
 		for i,p in enumerate(probe_fmts):
 			_l, _r = N_count, N_count + probe_N[i]
-			fn = pjoin(config.modeldir, f'{p}_{Niter-1}')
+			fn = pjoin(config.modeldir, f'{p}_{Niter-1}_nn{config.nn_model}')
 			if os.path.exists(fn+".h5"):
 				print(f'Reading {p} NN emulator from {fn}.h5 ...')
 				emu = NNEmulator(config.n_dim, probe_N[i], config.dv_fid[_l:_r],
@@ -41,7 +41,7 @@ if __name__ == '__main__':
 	elif (config.emu_type.lower()=='gp'):
 		for i,p in enumerate(probe_fmts):
 			_l, _r = N_count, N_count + probe_N[i]
-			fn = pjoin(config.modeldir, f'{p}_{Niter-1}')
+			fn = pjoin(config.modeldir, f'{p}_{Niter-1}_gp')
 			if os.path.exists(fn+".h5"):
 				print(f'Reading {p} GP emulator from {fn}.h5 ...')
 				emu = GPEmulator(config.n_dim, probe_N[i], config.dv_fid[_l:_r],
@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
 	# read sigma8 emulator
 	if (config.emu_type.lower()=='nn'):
-		fn = pjoin(config.modeldir, f'sigma8_{Niter-1}')
+		fn = pjoin(config.modeldir, f'sigma8_{Niter-1}_nn{config.nn_model}')
 		if os.path.exists(fn+".h5"):
 			print(f'Reading sigma8 NN emulator from {fn}.h5 ...')
 			emu_s8 = NNEmulator(config.n_pars_cosmo, 1, config.sigma8_fid,
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 			print(f'Can not find sigma8 emulator {fn}!')
 			emu_s8 = None
 	elif (config.emu_type.lower()=='gp'):
-		fn = pjoin(config.modeldir, f'sigma8_{Niter-1}')
+		fn = pjoin(config.modeldir, f'sigma8_{Niter-1}_gp')
 		if os.path.exists(fn+".h5"):
 			print(f'Reading sigma8 GP emulator from {fn}.h5 ...')
 			emu_s8 = GPEmulator(config.n_pars_cosmo, 1, config.sigma8_fid,

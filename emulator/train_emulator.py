@@ -80,7 +80,7 @@ if (config.shear_shear==1):
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
     if(save_emu):
-        emu_xi_plus.save(pjoin(config.modeldir, f'xi_p_{n}'))
+        emu_xi_plus.save(pjoin(config.modeldir, f'xi_p_{n}_nn{config.nn_model}'))
     print("=======================================")
     print("=======================================")
     print("Training xi_minus emulator....")
@@ -92,7 +92,7 @@ if (config.shear_shear==1):
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
     if(save_emu):
-        emu_xi_minus.save(pjoin(config.modeldir, f'xi_m_{n}'))
+        emu_xi_minus.save(pjoin(config.modeldir, f'xi_m_{n}_nn{config.nn_model}'))
     print("=======================================")
 if (config.shear_pos==1):
     print("=======================================")
@@ -105,7 +105,7 @@ if (config.shear_pos==1):
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
     if(save_emu):
-        emu_gammat.save(pjoin(config.modeldir, f'gammat_{n}'))
+        emu_gammat.save(pjoin(config.modeldir, f'gammat_{n}_nn{config.nn_model}'))
     print("=======================================")
 if (config.pos_pos==1):
     print("=======================================")
@@ -118,7 +118,7 @@ if (config.pos_pos==1):
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
     if(save_emu):
-        emu_wtheta.save(pjoin(config.modeldir, f'wtheta_{n}'))
+        emu_wtheta.save(pjoin(config.modeldir, f'wtheta_{n}_nn{config.nn_model}'))
     print("=======================================")
 if (config.gk==1):
     print("=======================================")
@@ -131,7 +131,7 @@ if (config.gk==1):
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
     if(save_emu):
-        emu_gk.save(pjoin(config.modeldir, f'gk_{n}'))
+        emu_gk.save(pjoin(config.modeldir, f'gk_{n}_nn{config.nn_model}'))
     print("=======================================")
 if (config.ks==1):
     print("=======================================")
@@ -144,7 +144,7 @@ if (config.ks==1):
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
     if(save_emu):
-        emu_ks.save(pjoin(config.modeldir, f'ks_{n}'))
+        emu_ks.save(pjoin(config.modeldir, f'ks_{n}_nn{config.nn_model}'))
     print("=======================================")
 if (config.kk==1):
     print("=======================================")
@@ -157,7 +157,7 @@ if (config.kk==1):
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
     if(save_emu):
-        emu_kk.save(pjoin(config.modeldir, f'kk_{n}'))
+        emu_kk.save(pjoin(config.modeldir, f'kk_{n}_nn{config.nn_model}'))
     print("=======================================")
 if (config.derived==1):
     print("=======================================")
@@ -169,7 +169,7 @@ if (config.derived==1):
         torch.Tensor(train_sigma8),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
     if(save_emu):
-        emu_s8.save(pjoin(config.modeldir, f'sigma8_{n}'))
+        emu_s8.save(pjoin(config.modeldir, f'sigma8_{n}_nn{config.nn_model}'))
     print("=======================================")
 #==============================================
 os.environ["OMP_NUM_THREADS"] = "1"
