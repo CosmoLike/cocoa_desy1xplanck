@@ -50,5 +50,5 @@ class desy3xplanck_6x2pt(_cosmolike_prototype_base):
     return datavector
 
   def logp(self, **params_values):
-    datavectpr = self.get_datavector(params_values)
+    datavector = self.get_datavector(**params_values)
     return self.compute_logp(datavector)
