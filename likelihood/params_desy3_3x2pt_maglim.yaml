@@ -410,71 +410,90 @@
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # Point Mass parameters
+  # Now we use analytical marg. fold into covariance matrix
+  # DES_PM1:
+  #   prior:
+  #     dist: norm
+  #     loc: 0.0
+  #     scale: 10000
+  #   ref:
+  #     dist: norm
+  #     loc: 0.0
+  #     scale: 10000
+  #   proposal: 5000
+  #   latex: PM_\mathrm{DES}^1
+  # DES_PM2:
+  #   prior:
+  #     dist: norm
+  #     loc: 0.0
+  #     scale: 10000
+  #   ref:
+  #     dist: norm
+  #     loc: 0.0
+  #     scale: 10000
+  #   proposal: 5000
+  #   latex: PM_\mathrm{DES}^2
+  # DES_PM3:
+  #   prior:
+  #     dist: norm
+  #     loc: 0.0
+  #     scale: 10000
+  #   ref:
+  #     dist: norm
+  #     loc: 0.0
+  #     scale: 10000
+  #   proposal: 5000
+  #   latex: PM_\mathrm{DES}^3
+  # DES_PM4:
+  #   prior:
+  #     dist: norm
+  #     loc: 0.0
+  #     scale: 10000
+  #   ref:
+  #     dist: norm
+  #     loc: 0.0
+  #     scale: 10000
+  #   proposal: 5000
+  #   latex: PM_\mathrm{DES}^4
+  # DES_PM5:
+  #   prior:
+  #     dist: norm
+  #     loc: 0.0
+  #     scale: 10000
+  #   ref:
+  #     dist: norm
+  #     loc: 0.0
+  #     scale: 10000
+  #   proposal: 5000
+  #   latex: PM_\mathrm{DES}^5
+  # DES_PM6:
+  #   prior:
+  #     dist: norm
+  #     loc: 0.0
+  #     scale: 10000
+  #   ref:
+  #     dist: norm
+  #     loc: 0.0
+  #     scale: 10000
+  #   proposal: 5000
+  #   latex: PM_\mathrm{DES}^6
   DES_PM1:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 10000
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 10000
-    proposal: 5000
+    value: 0.0
     latex: PM_\mathrm{DES}^1
   DES_PM2:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 10000
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 10000
-    proposal: 5000
+    value: 0.0
     latex: PM_\mathrm{DES}^2
   DES_PM3:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 10000
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 10000
-    proposal: 5000
+    value: 0.0
     latex: PM_\mathrm{DES}^3
   DES_PM4:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 10000
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 10000
-    proposal: 5000
+    value: 0.0
     latex: PM_\mathrm{DES}^4
   DES_PM5:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 10000
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 10000
-    proposal: 5000
+    value: 0.0
     latex: PM_\mathrm{DES}^5
   DES_PM6:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 10000
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 10000
-    proposal: 5000
+    value: 0.0
     latex: PM_\mathrm{DES}^6
 
   # ------------------------------------------------------------------------
