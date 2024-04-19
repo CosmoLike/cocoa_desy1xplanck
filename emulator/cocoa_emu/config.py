@@ -1,6 +1,7 @@
 import yaml
 import numpy as np
 import os
+from os.path import join as pjoin
 # from .sampling import get_starting_pos
 
 class Config:
@@ -163,26 +164,26 @@ class Config:
         self.likelihood      = list(config_args_lkl.keys())[0]
         self.config_args_lkl = config_args_lkl[self.likelihood]
         self.likelihood_path = self.config_args_lkl['path']
-        self.dataset_path    = self.likelihood_path + '/' + self.config_args_lkl['data_file']
-
+        self.datasetfile     = pjoin(self.likelihood_path, self.config_args_lkl['data_file'])
+        self.dstst           = pjoin(self.likelihood_path, "datasets")
         # Read the cocoa project dataset file
         self.Nell = 0
         self.Ntheta = 0
         self.Nbp = 0
         self.lensing_overlap_cut = 0
         self.Hartlap = 1
-        with open(self.dataset_path, 'r') as f:
+        with open(self.datasetfile, 'r') as f:
             for line in f.readlines():
                 split_line = line.split()
                 if(len(split_line)>0):
                     if(split_line[0]=='mask_file'):
-                        self.mask_ones_path = self.likelihood_path + '/' + split_line[-1]
+                        self.mask_ones_path = pjoin(self.dst, split_line[-1])
                     if(split_line[0]=='data_file'):
-                        self.dv_obs_path = self.likelihood_path + '/' + split_line[-1]
+                        self.dv_obs_path = pjoin(self.dst, split_line[-1])
                     if(split_line[0]=='cov_file'):
-                        cov_file        = self.likelihood_path + '/' + split_line[-1]
+                        cov_file        = pjoin(self.dst, split_line[-1])
                     if(split_line[0]=='baryon_pca_file'):
-                        baryon_pca_file = self.likelihood_path + '/' + split_line[-1]
+                        baryon_pca_file = pjoin(self.dst, split_line[-1])
                     if(split_line[0]=='source_ntomo'):
                         self.source_ntomo = int(split_line[-1])
                     if self.probe != 'cosmic_shear':
