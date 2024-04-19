@@ -144,6 +144,7 @@ if(rank==0):
             chi_sq = delta_dv @ config.masked_inv_cov @ delta_dv
             chi_sq_list.append(chi_sq)
         chi_sq_arr = np.array(chi_sq_list)
+        print(f'chi2 difference [{np.min(chi_sq_arr)}, {np.max(chi_sq_arr)}]')
         select_chi_sq = (chi_sq_arr < config.chi_sq_cut)
         return select_chi_sq
     # ===============================================
