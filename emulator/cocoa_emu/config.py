@@ -1,5 +1,6 @@
 import yaml
 import numpy as np
+import os
 # from .sampling import get_starting_pos
 
 class Config:
@@ -57,10 +58,16 @@ class Config:
             print(f'Probe {self.probe} is not supported!')
             exit(-1)
         self.savedir   = self.config_args_emu['io']['savedir']
+        os.makedirs(self.savedir, exist_ok=True)
         try:
             self.chaindir = self.config_args_emu['io']['chaindir']
         except:
-            self.chaindir = self.config_args_emu['io']['savedir']
+            self.chaindir = os.path.join(self.savedir, "validating_chains")
+        os.makedirs(self.chaindir, exist_ok=True)
+        self.traindir = os.path.join(self.savedir, "training_sample")
+        self.modeldir = os.path.join(self.savedir, "model_dataset")
+        os.makedirs(self.traindir, exist_ok=True)
+        os.makedirs(self.modeldir, exist_ok=True)
         try:
             self.chainname = self.config_args_emu['io']['chainname']
         except:

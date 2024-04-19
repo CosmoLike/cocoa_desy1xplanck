@@ -1,5 +1,6 @@
 import sys
 import os
+from os.path import join as pjoin
 import numpy as np
 import torch
 from cocoa_emu import Config, get_lhs_params_list, get_params_list, CocoaModel
@@ -26,7 +27,7 @@ if __name__ == '__main__':
 	if (config.emu_type.lower()=='nn'):
 		for i,p in enumerate(probe_fmts):
 			_l, _r = N_count, N_count + probe_N[i]
-			fn = os.path.join(config.savedir, "%s_%d"%(p, Niter-1))
+			fn = pjoin(config.modeldir, f'{p}_{Niter-1}')
 			if os.path.exists(fn+".h5"):
 				print(f'Reading {p} NN emulator from {fn}.h5 ...')
 				emu = NNEmulator(config.n_dim, probe_N[i], config.dv_fid[_l:_r],
@@ -40,7 +41,7 @@ if __name__ == '__main__':
 	elif (config.emu_type.lower()=='gp'):
 		for i,p in enumerate(probe_fmts):
 			_l, _r = N_count, N_count + probe_N[i]
-			fn = os.path.join(config.savedir, "%s_%d"%(p, Niter-1))
+			fn = pjoin(config.modeldir, f'{p}_{Niter-1}')
 			if os.path.exists(fn+".h5"):
 				print(f'Reading {p} GP emulator from {fn}.h5 ...')
 				emu = GPEmulator(config.n_dim, probe_N[i], config.dv_fid[_l:_r],
@@ -57,7 +58,7 @@ if __name__ == '__main__':
 
 	# read sigma8 emulator
 	if (config.emu_type.lower()=='nn'):
-		fn = os.path.join(config.savedir, "sigma8_%d"%(Niter-1))
+		fn = pjoin(config.modeldir, f'sigma8_{Niter-1}')
 		if os.path.exists(fn+".h5"):
 			print(f'Reading sigma8 NN emulator from {fn}.h5 ...')
 			emu_s8 = NNEmulator(config.n_pars_cosmo, 1, config.sigma8_fid,
@@ -67,7 +68,7 @@ if __name__ == '__main__':
 			print(f'Can not find sigma8 emulator {fn}!')
 			emu_s8 = None
 	elif (config.emu_type.lower()=='gp'):
-		fn = os.path.join(config.savedir, "sigma8_%d"%(Niter-1))
+		fn = pjoin(config.modeldir, f'sigma8_{Niter-1}')
 		if os.path.exists(fn+".h5"):
 			print(f'Reading sigma8 GP emulator from {fn}.h5 ...')
 			emu_s8 = GPEmulator(config.n_pars_cosmo, 1, config.sigma8_fid,
@@ -95,8 +96,8 @@ if __name__ == '__main__':
 	samples = sampler.chain[:,config.n_burn_in::config.n_thin].reshape((-1, emu_sampler.n_sample_dims))
 	if emu_s8 is not None:
 		derived_sigma8 = emu_s8.predict(samples[:,:config.n_pars_cosmo])[0]
-		np.save(config.chaindir + '/' + config.chainname + '.npy', 
+		np.save(pjoin(config.chaindir, config.chainname+'.npy'), 
 				np.vstack([samples, derived_sigma8]))
 	else:
-		np.save(config.chaindir + '/' + config.chainname + '.npy', samples)
+		np.save(pjoin(config.chaindir, config.chainname+ '.npy', samples)
 

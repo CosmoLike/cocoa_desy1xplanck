@@ -1,5 +1,6 @@
 import sys
 import os
+from os.path import join as pjoin
 import numpy as np
 import torch
 from cocoa_emu import Config, get_lhs_params_list, get_params_list, CocoaModel
@@ -38,9 +39,9 @@ config = Config(configfile)
 
 #==============================================
 
-train_samples      = np.load(config.savedir + '/train_samples_%d.npy'%(n))
-train_data_vectors = np.load(config.savedir + '/train_data_vectors_%d.npy'%(n))
-train_sigma8       = np.load(config.savedir + '/train_sigma8_%d.npy'%(n))
+train_samples      = np.load(pjoin(config.traindir, f'samples_{n}.npy'))
+train_data_vectors = np.load(pjoin(config.traindir, f'data_vectors_{n}.npy'))
+train_sigma8       = np.load(pjoin(config.traindir, f'sigma8_{n}.npy'))
 
 #================= Clean data by chi2 cut ================================
 
@@ -79,7 +80,7 @@ if (config.shear_shear==1):
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
     if(save_emu):
-        emu_xi_plus.save(config.savedir + '/xi_p_%d'%(n))
+        emu_xi_plus.save(pjoin(config.modeldir, f'xi_p_{n}'))
     print("=======================================")
     print("=======================================")
     print("Training xi_minus emulator....")
@@ -91,7 +92,7 @@ if (config.shear_shear==1):
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
     if(save_emu):
-        emu_xi_minus.save(config.savedir + '/xi_m_%d'%(n))
+        emu_xi_minus.save(pjoin(config.modeldir, f'xi_m_{n}'))
     print("=======================================")
 if (config.shear_pos==1):
     print("=======================================")
@@ -104,7 +105,7 @@ if (config.shear_pos==1):
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
     if(save_emu):
-        emu_gammat.save(config.savedir + '/gammat_%d'%(n))
+        emu_gammat.save(pjoin(config.modeldir, f'gammat_{n}'))
     print("=======================================")
 if (config.pos_pos==1):
     print("=======================================")
@@ -117,7 +118,7 @@ if (config.pos_pos==1):
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
     if(save_emu):
-        emu_wtheta.save(config.savedir + '/wtheta_%d'%(n))
+        emu_wtheta.save(pjoin(config.modeldir, f'wtheta_{n}'))
     print("=======================================")
 if (config.gk==1):
     print("=======================================")
@@ -130,7 +131,7 @@ if (config.gk==1):
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
     if(save_emu):
-        emu_gk.save(config.savedir + '/gk_%d'%(n))
+        emu_gk.save(pjoin(config.modeldir, f'gk_{n}'))
     print("=======================================")
 if (config.ks==1):
     print("=======================================")
@@ -143,7 +144,7 @@ if (config.ks==1):
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
     if(save_emu):
-        emu_ks.save(config.savedir + '/ks_%d'%(n))
+        emu_ks.save(pjoin(config.modeldir, f'ks_{n}'))
     print("=======================================")
 if (config.kk==1):
     print("=======================================")
@@ -156,7 +157,7 @@ if (config.kk==1):
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
     if(save_emu):
-        emu_kk.save(config.savedir + '/kk_%d'%(n))
+        emu_kk.save(pjoin(config.modeldir, f'kk_{n}'))
     print("=======================================")
 if (config.derived==1):
     print("=======================================")
@@ -168,7 +169,7 @@ if (config.derived==1):
         torch.Tensor(train_sigma8),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
     if(save_emu):
-        emu_s8.save(config.savedir + '/sigma8_%d'%(n))
+        emu_s8.save(pjoin(config.modeldir, f'sigma8_{n}'))
     print("=======================================")
 #==============================================
 os.environ["OMP_NUM_THREADS"] = "1"
@@ -255,9 +256,9 @@ if(temper):
     # only save samples to explore posterior regions
     select_indices = np.random.choice(np.arange(len(samples)), replace=False, size=config.n_resample)
     next_training_samples = samples[select_indices,:-(config.n_fast_pars)]
-    np.save(config.savedir + '/train_samples_%d.npy'%(n+1), next_training_samples)
+    np.save(pjoin(config.traindir, f'samples_{n+1}.npy'), next_training_samples)
 else:
     # we want the chain
-    np.save(config.savedir + '/' + config.chainname + '_%d.npy'%(n), samples)
+    np.save(pjoin(config.chaindir, config.chainname+f'_{n}.npy'), samples)
 
 
