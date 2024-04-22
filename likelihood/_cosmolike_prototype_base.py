@@ -87,6 +87,11 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
     self.data_vector_file = ini.relativeFileName('data_file')
 
     self.cov_file = ini.relativeFileName('cov_file')
+    try:
+      self.U_PMmarg_file = ini.relativeFileName('U_PMmarg')
+    except:
+      print(f'Can not find Point-Mass analytical marginalization matrix, go without it.')
+      self.U_PMmarg_file = ""
 
     self.mask_file = ini.relativeFileName('mask_file')
 
@@ -209,7 +214,7 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
 
     ci.init_size_data_vector()
 
-    ci.init_data(self.cov_file, self.mask_file, self.data_vector_file)
+    ci.init_data(self.cov_file, self.mask_file, self.data_vector_file, self.U_PMmarg_file)
 
     if (self.is_cmb_bandpower == 1):
       ci.init_cmb_bandpower_data(self.binmat_file, self.offset_file)
@@ -568,6 +573,14 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
 
     baryon_weighted_diff = np.dot(inv_cov_L_cholesky, baryon_diff)
 
+    if self.use_weights_for_scenarios:
+      weights_file = np.loadtxt(self.scenario_weights, names=True)
+      weights = np.ones(nbaryons_scenario)
+      for i in range(nbaryons_scenario):
+        idx = np.where(weights_file['sim']==ci.get_baryon_pca_scenario_name(i))
+        weights[i] = weights_file['weight'][idx[0]]
+      baryon_weighted_diff = np.dot(baryon_weighted_diff, np.diag(weights))
+
     U, Sdig, VT = np.linalg.svd(baryon_weighted_diff, full_matrices=True)
 
     # MAKE SURE WHATEVER VERSION OF NP HAVE U IN THE RIGHT ORDER
@@ -580,6 +593,14 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
       PCs[:,i] = U[:,i]
 
     PCs = np.dot(cov_L_cholesky, PCs)
+    if self.use_weights_for_scenarios:
+      PCs = np.dot(PCs, np.diag(1/weights))
+
+    if self.save_Qs:
+      # Calculate the PCs' amplitude of each scenario, NPCs x Nsims
+      Qs = np.dot(U.T, baryon_weighted_diff)
+      scenarios = [ci.get_baryon_pca_scenario_name(i) for i in range(nbaryons_scenario)]
+      np.savetxt(self.filename_baryon_pca+"_Qs", Qs, header=scenarios)
 
     # Now we need to expand the number of dimensions
     ndata = ci.get_ndim()
