@@ -2241,7 +2241,7 @@ void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
   };
   // Calculate precision matrix correction
   // invC * U * (I+UT*invC*U)^-1 * UT * invC
-  arma::Mat<double> iden = eye<arma::Mat<double>>(tomo.clustering_Nbin, tomo.clustering_Nbin);
+  arma::Mat<double> iden = arma::eye<arma::Mat<double>>(tomo.clustering_Nbin, tomo.clustering_Nbin);
   arma::Mat<double> central_block = iden + U.t() * this->inv_cov_masked_ * U;
   // test positive-definite
   arma::Col<double> eigvals = arma::eig_sym(central_block);
