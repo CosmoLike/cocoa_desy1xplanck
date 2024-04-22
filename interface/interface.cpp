@@ -2254,6 +2254,16 @@ void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
   }
   arma::Mat<double> invcov_PMmarg = this->inv_cov_masked_ * U * arma::inv(central_block) * U.t() * this->inv_cov_masked_; 
   // add the PM correction to inverse covariance
+  std::ofstream output_file("PMmarg_invcov_corr.txt");
+  if (!output_file.is_open())
+  {
+    spdlog::critical(
+      "\x1b[90m{}\x1b[0m: file {} cannot be opened",
+      "set_PMmarg","PMmarg_invcov_corr.txt"
+    );
+    exit(1);
+  }
+  output_file << std::fixed << std::setprecision(8);
   for (int i=0; i<this->ndata_; i++)
   {
     invcov_PMmarg(i,i) *= this->get_mask(i)*this->get_mask(i);
@@ -2262,8 +2272,10 @@ void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
       double corr = this->get_mask(i)*this->get_mask(j)*(invcov_PMmarg(i,j)+invcov_PMmarg(j,i))/2.;
       this->inv_cov_masked_(i,j) -= corr;
       this->inv_cov_masked_(j,i) -= corr;
+      output_file << i << j << corr;
     }
   }
+  output_file.close();
 
   // Update the reduced covariance and precision matrix
   for(int i=0; i<this->ndata_; i++)
