@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <iostream>
 #include <fstream>
-#include <<iomanip>>
+#include <iomanip>
 #include <stdio.h>
 #include <cmath>
 #include <stdexcept>
