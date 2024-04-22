@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <iostream>
 #include <fstream>
+#include <<iomanip>>
 #include <stdio.h>
 #include <cmath>
 #include <stdexcept>
@@ -2263,7 +2264,6 @@ void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
     );
     exit(1);
   }
-  output_file << std::fixed << std::setprecision(8);
   for (int i=0; i<this->ndata_; i++)
   {
     invcov_PMmarg(i,i) *= this->get_mask(i)*this->get_mask(i);
@@ -2272,7 +2272,7 @@ void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
       double corr = this->get_mask(i)*this->get_mask(j)*(invcov_PMmarg(i,j)+invcov_PMmarg(j,i))/2.;
       this->inv_cov_masked_(i,j) -= corr;
       this->inv_cov_masked_(j,i) -= corr;
-      output_file << i << j << corr;
+      output_file << i << j << std::setprecision(8) << corr;
     }
   }
   output_file.close();
