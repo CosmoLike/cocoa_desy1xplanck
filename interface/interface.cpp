@@ -853,7 +853,7 @@ void cpp_init_cmb_bandpower(const int is_cmb_bandpower, const int is_cmb_kkkk_co
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_cmb_bandpower");
 }
 
-void cpp_init_data(std::string COV, std::string MASK, std::string DATA)
+void cpp_init_data(std::string COV, std::string MASK, std::string DATA, std::string U_PMmarg)
 {
   spdlog::info("\x1b[90m{}\x1b[0m: Begins", "init_data");
 
@@ -862,6 +862,7 @@ void cpp_init_data(std::string COV, std::string MASK, std::string DATA)
   instance.set_mask(MASK); // set_mask must be called first
   instance.set_data(DATA);
   instance.set_inv_cov(COV);
+  if (U_PMmarg!="") instance.set_U_PMmag(U_PMmarg);
 
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_data");
 
@@ -2066,17 +2067,8 @@ void ima::RealData::set_inv_cov(std::string COV)
         const int j = static_cast<int>(table(i,0));
         const int k = static_cast<int>(table(i,1));
 
-        double hartlap_factor = 1.0;// <= 1
-        if((like.is_cmb_bandpower == 1) && (like.is_cmb_kkkk_cov_from_sim == 1))
-        {
-          if((j >= this->ndata_ - like.Nbp) && (k >= this->ndata_ - like.Nbp))
-          {
-            hartlap_factor = like.alpha_Hartlap_kkkk;
-          }
-        }
-
         this->cov_masked_(j,k) = table(i,2);
-        this->inv_cov_masked_(j,k) = table(i,2) / hartlap_factor / hartlap_factor;
+        this->inv_cov_masked_(j,k) = table(i,2);
 
         if (j!=k)
         {
@@ -2101,17 +2093,8 @@ void ima::RealData::set_inv_cov(std::string COV)
         const int j = static_cast<int>(table(i,0));
         const int k = static_cast<int>(table(i,1));
 
-        double hartlap_factor = 1.0;
-        if((like.is_cmb_bandpower == 1) && (like.is_cmb_kkkk_cov_from_sim == 1))
-        {
-          if((j >= this->ndata_ - like.Nbp) && (k >= this->ndata_ - like.Nbp))
-          {
-            hartlap_factor = like.alpha_Hartlap_kkkk;
-          }
-        }
-
         this->cov_masked_(j,k) = table(i,2) + table(i,3);
-        this->inv_cov_masked_(j,k) = (table(i,2) + table(i,3))/hartlap_factor/hartlap_factor;
+        this->inv_cov_masked_(j,k) = (table(i,2) + table(i,3));
 
         if (j!=k)
         {
@@ -2136,17 +2119,8 @@ void ima::RealData::set_inv_cov(std::string COV)
         const int j = static_cast<int>(table(i,0));
         const int k = static_cast<int>(table(i,1));
 
-        double hartlap_factor = 1.0;
-        if((like.is_cmb_bandpower == 1) && (like.is_cmb_kkkk_cov_from_sim == 1))
-        {
-          if((j >= this->ndata_ - like.Nbp) && (k >= this->ndata_ - like.Nbp))
-          {
-            hartlap_factor = like.alpha_Hartlap_kkkk;
-          }
-        }
-
         this->cov_masked_(j,k) = table(i,8) + table(i,9);
-        this->inv_cov_masked_(j,k) = (table(i,8) + table(i,9))/hartlap_factor/hartlap_factor;
+        this->inv_cov_masked_(j,k) = (table(i,8) + table(i,9));
 
         if (j!=k)
         {
@@ -2190,7 +2164,15 @@ void ima::RealData::set_inv_cov(std::string COV)
     this->inv_cov_masked_(i,i) *= this->get_mask(i)*this->get_mask(i);
     for (int j=0; j<i; j++)
     {
-      this->inv_cov_masked_(i,j) *= this->get_mask(i)*this->get_mask(j);
+      double hartlap_factor = 1.0;
+      if((like.is_cmb_bandpower == 1) && (like.is_cmb_kkkk_cov_from_sim == 1))
+      {
+        if((i >= this->ndata_ - like.Nbp) && (j >= this->ndata_ - like.Nbp))
+        {
+          hartlap_factor = like.alpha_Hartlap_kkkk;
+        }
+      }
+      this->inv_cov_masked_(i,j) *= this->get_mask(i)*this->get_mask(j)*hartlap_factor;
       this->inv_cov_masked_(j,i) = this->inv_cov_masked_(i,j);
     }
   };
@@ -2217,6 +2199,89 @@ void ima::RealData::set_inv_cov(std::string COV)
         {
           spdlog::critical("\x1b[90m{}\x1b[0m: logical error, internal"
             " inconsistent mask operation", "set_inv_cov");
+          exit(1);
+        }
+
+        this->cov_masked_reduced_dim_(this->get_index_reduced_dim(i),
+          this->get_index_reduced_dim(j)) = this->cov_masked_(i,j);
+
+        this->inv_cov_masked_reduced_dim_(this->get_index_reduced_dim(i),
+          this->get_index_reduced_dim(j)) = this->inv_cov_masked_(i,j);
+      }
+    }
+  }
+}
+void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
+{
+  if (!(this->is_mask_set_))
+  {
+    spdlog::critical(
+      "\x1b[90m{}\x1b[0m: {} not set prior to this function call",
+      "set_PMmarg", "mask"
+    );
+    exit(1);
+  }
+
+  arma::Mat<double> table = ima::read_table(U_PMmarg_file);
+  if (table.n_cols!=3){
+    spdlog::critical(
+      "\x1b[90m{}\x1b[0m: U_PMmarg_file should has three columns, but has {}!"
+      "set_PMmarg", table.n_cols);
+    exit(1);
+  }
+  // U has shape of Ndata x Nlens
+  arma::Mat<double> U;
+  U.set_size(this->ndata_, tomo.clustering_Nbin);
+  U.zeros();
+  for (int i=0; i<static_cast<int>(table.n_rows); i++)
+  {
+    const int j = static_cast<int>(table(i,0));
+    const int k = static_cast<int>(table(i,1));
+    U(j,k) = table(i,2) * this->mask_(j);
+  };
+  // Calculate precision matrix correction
+  // invC * U * (I+UT*invC*U)^-1 * UT * invC
+  arma::Mat<double> iden = eye<arma::Mat<double>>(tomo.clustering_Nbin, tomo.clustering_Nbin);
+  arma::Mat<double> central_block = iden + U.t() * this->inv_cov_masked_ * U;
+  // test positive-definite
+  arma::Col<double> eigvals = arma::eig_sym(central_block);
+  for(int i=0; i<tomo.clustering_Nbin; i++)
+  {
+    if(eigvals(i)<0){
+      spdlog::critical("{}: central block not positive definite!", "set_PMmarg");
+      exit(-1);
+    }
+  }
+  arma::Mat<double> invcov_PMmarg = this->inv_cov_masked_ * U * arma::inv(central_block) * U.t() * this->inv_cov_masked_; 
+  // add the PM correction to inverse covariance
+  for (int i=0; i<this->ndata_; i++)
+  {
+    invcov_PMmarg(i,i) *= this->get_mask(i)*this->get_mask(i);
+    for (int j=0; j<i; j++)
+    {
+      double corr = this->get_mask(i)*this->get_mask(j)*(invcov_PMmarg(i,j)+invcov_PMmarg(j,i))/2.;
+      this->inv_cov_masked_(i,j) -= corr;
+      this->inv_cov_masked_(j,i) -= corr;
+    }
+  }
+
+  // Update the reduced covariance and precision matrix
+  for(int i=0; i<this->ndata_; i++)
+  {
+    for(int j=0; j<this->ndata_; j++)
+    {
+      if((this->mask_(i)>0.99) && (this->mask_(j)>0.99))
+      {
+        if(this->get_index_reduced_dim(i) < 0)
+        {
+          spdlog::critical("\x1b[90m{}\x1b[0m: logical error, internal"
+            " inconsistent mask operation", "set_PMmarg");
+          exit(1);
+        }
+        if(this->get_index_reduced_dim(j) < 0)
+        {
+          spdlog::critical("\x1b[90m{}\x1b[0m: logical error, internal"
+            " inconsistent mask operation", "set_PMmarg");
           exit(1);
         }
 
@@ -2794,7 +2859,8 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
     "Init covariance, mask and data vector by providing the file names that hold their values",
     py::arg("COV"),
     py::arg("MASK"),
-    py::arg("DATA")
+    py::arg("DATA"),
+    py::arg("U_PMmarg")
   );
 
   m.def("init_cmb_bandpower",

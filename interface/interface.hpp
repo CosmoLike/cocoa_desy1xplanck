@@ -63,6 +63,8 @@ public:
 
   void set_inv_cov(std::string COV);
 
+  void set_PMmarg(std::string U_PMmarg_file);
+
   void set_cmb_binning_mat(std::string BINMAT);
 
   void set_cmb_theory_offset(std::string OFFSET);
