@@ -2272,7 +2272,7 @@ void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
       double corr = this->get_mask(i)*this->get_mask(j)*(invcov_PMmarg(i,j)+invcov_PMmarg(j,i))/2.;
       this->inv_cov_masked_(i,j) -= corr;
       this->inv_cov_masked_(j,i) -= corr;
-      output_file << i << j << std::setprecision(8) << corr;
+      output_file << i << " " << j << " " << corr << std::endl;
     }
   }
   output_file.close();
