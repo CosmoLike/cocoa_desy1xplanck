@@ -862,7 +862,7 @@ void cpp_init_data(std::string COV, std::string MASK, std::string DATA, std::str
   instance.set_mask(MASK); // set_mask must be called first
   instance.set_data(DATA);
   instance.set_inv_cov(COV);
-  if (U_PMmarg!="") instance.set_U_PMmag(U_PMmarg);
+  if (U_PMmarg!="") instance.set_PMmarg(U_PMmarg);
 
   spdlog::info("\x1b[90m{}\x1b[0m: Ends", "init_data");
 
