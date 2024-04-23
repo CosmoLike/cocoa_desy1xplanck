@@ -233,7 +233,6 @@ def get_data_vector_emu(theta):
 def ln_lkl(theta):
     model_datavector = get_data_vector_emu(theta)
     delta_dv = (model_datavector - emu_sampler.dv_obs)[emu_sampler.mask]
-    # TODO: enable hartlap factor
     return -0.5 * delta_dv @ emu_sampler.masked_inv_cov @ delta_dv        
 
 def ln_prob(theta, temper_val=1.):
@@ -248,9 +247,6 @@ with Pool() as pool:
     sampler.run_mcmc(pos0, config.n_mcmc, progress=True)
 
 samples = sampler.chain[:,config.n_burn_in::config.n_thin].reshape((-1, emu_sampler.n_sample_dims))
-# also get emulated derived parameters like sigma8
-
-# also get a blobs of logpost and loglike
 
 if(temper):
     # only save samples to explore posterior regions

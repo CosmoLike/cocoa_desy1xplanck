@@ -182,6 +182,8 @@ class Config:
                         self.dv_obs_path = pjoin(self.dst, split_line[-1])
                     if(split_line[0]=='cov_file'):
                         cov_file        = pjoin(self.dst, split_line[-1])
+                    if(split_line[0]=='U_PMmarg'):
+                        U_PMmarg_fn = pjoin(self.dst, split_line[-1])
                     if(split_line[0]=='baryon_pca_file'):
                         baryon_pca_file = pjoin(self.dst, split_line[-1])
                     if(split_line[0]=='source_ntomo'):
@@ -241,8 +243,16 @@ class Config:
         # Add Hartlap factor to CMB lensing covariance
         self.masked_inv_cov = np.linalg.inv(self.cov[self.mask][:,self.mask])
         Nbp_remain = int(np.sum(self.mask[-self.Nbp:]))
-        self.masked_inv_cov[-Nbp_remain:,-Nbp_remain:] /= self.Hartlap**2
-        
+        self.masked_inv_cov[-Nbp_remain:,-Nbp_remain:] *= self.Hartlap
+        # Add PM marginalization
+        U_PMmarg = np.loadtxt(U_PMmarg_fn)
+        U = np.zeros([self.cov.shape[0], self.lens_ntomo])
+        for line in U_PMmarg:
+            i, j = int(line[0]), int(line[1])
+            U[i,j] = float(line[2])
+        U_masked = U[self.mask,:]
+        corr = self.masked_inv_cov@(U_masked@(np.diag(np.ones(self.lens_ntomo))+U_masked.T@self.masked_inv_cov@U_masked)@U_masked.T)@self.masked_inv_cov
+        self.masked_inv_cov -= corr
     def get_lhs_minmax(self):
         lh_minmax = {}
         for x in self.params:
