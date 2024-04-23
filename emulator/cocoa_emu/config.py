@@ -93,8 +93,8 @@ class Config:
         # also train an emulator for sigma_8 at z=0
         try:
             self.derived = 1
-            self.sigma8_fid = float(self.config_args_emu['derived']['sigma8_fid'])
-            self.sigma8_std = float(self.config_args_emu['derived']['sigma8_std'])
+            self.sigma8_fid = np.array([float(self.config_args_emu['derived']['sigma8_fid'])])
+            self.sigma8_std = np.float([float(self.config_args_emu['derived']['sigma8_std'])])
         except:
             self.derived = 0
         
