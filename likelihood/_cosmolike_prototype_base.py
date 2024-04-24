@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function
 import os
 import numpy as np
+import pandas as pd
 import scipy
 from scipy.interpolate import UnivariateSpline, interp1d
 import sys
@@ -574,11 +575,12 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
     baryon_weighted_diff = np.dot(inv_cov_L_cholesky, baryon_diff)
 
     if self.use_weights_for_scenarios:
-      weights_file = np.loadtxt(self.scenario_weights, names=True)
+      weights_file = pd.read_csv(self.scenario_weights, 
+        names=['sim', 'weight'], delimiter=' ')
       weights = np.ones(nbaryons_scenario)
       for i in range(nbaryons_scenario):
         idx = np.where(weights_file['sim']==ci.get_baryon_pca_scenario_name(i))
-        weights[i] = weights_file['weight'][idx[0]]
+        weights[i] = weights_file['weight'][idx[0]].to_numpy()[0]
       baryon_weighted_diff = np.dot(baryon_weighted_diff, np.diag(weights))
 
     U, Sdig, VT = np.linalg.svd(baryon_weighted_diff, full_matrices=True)
