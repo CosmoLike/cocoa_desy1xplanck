@@ -582,7 +582,7 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
       baryon_weighted_diff = np.dot(baryon_weighted_diff, np.diag(weights))
 
     U, Sdig, VT = np.linalg.svd(baryon_weighted_diff, full_matrices=True)
-
+    print(f'U-shape = {U.shape} / ndata_reduced = {ndata_reduced}')
     # MAKE SURE WHATEVER VERSION OF NP HAVE U IN THE RIGHT ORDER
     if(np.all(np.diff(Sdig) <= 0) != True):
       raise LoggedError(self.log, "LOGICAL ERROR WITH NUMPY FUNCTION GEN PCA")
@@ -599,6 +599,7 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
     if self.save_Qs:
       # Calculate the PCs' amplitude of each scenario, NPCs x Nsims
       Qs = np.dot(U.T, baryon_weighted_diff)
+      print(f'Qs shape = {Qs.shape}/barydiff shape = {baryon_weighted_diff.shape}')
       scenarios = [ci.get_baryon_pca_scenario_name(i) for i in range(nbaryons_scenario)]
       np.savetxt(self.filename_baryon_pca+"_Qs", Qs, 
         header=' '.join(scenarios))
