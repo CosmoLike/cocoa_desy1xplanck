@@ -598,7 +598,7 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
 
     if self.save_Qs:
       # Calculate the PCs' amplitude of each scenario, NPCs x Nsims
-      Qs = np.dot(U.T, baryon_weighted_diff)
+      Qs = np.dot(U[:,:nbaryons_scenario].T, baryon_weighted_diff)
       print(f'Qs shape = {Qs.shape}/barydiff shape = {baryon_weighted_diff.shape}')
       scenarios = [ci.get_baryon_pca_scenario_name(i) for i in range(nbaryons_scenario)]
       np.savetxt(self.filename_baryon_pca+"_Qs", Qs, 
