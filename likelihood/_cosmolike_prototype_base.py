@@ -600,7 +600,8 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
       # Calculate the PCs' amplitude of each scenario, NPCs x Nsims
       Qs = np.dot(U.T, baryon_weighted_diff)
       scenarios = [ci.get_baryon_pca_scenario_name(i) for i in range(nbaryons_scenario)]
-      np.savetxt(self.filename_baryon_pca+"_Qs", Qs, header=scenarios)
+      np.savetxt(self.filename_baryon_pca+"_Qs", Qs, 
+        header=' '.join(scenarios))
 
     # Now we need to expand the number of dimensions
     ndata = ci.get_ndim()
