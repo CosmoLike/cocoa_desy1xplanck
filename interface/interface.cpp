@@ -2211,6 +2211,17 @@ void ima::RealData::set_inv_cov(std::string COV)
       }
     }
   }
+  std::ofstream outFile("cocoa_invcov_masked.txt");
+  if (!outFile.is_open()) {
+      std::cerr << "Error: Unable to open file for writing." << std::endl;
+      exit(1); // Return error code
+  }
+  for (int i=0; i<this->ndata_; i++){
+    for (int j=i; j<this->ndata_; j++){
+      outFile << i << j << this->inv_cov_masked_(i,j) << std::endl;
+    }
+  }
+  outFile.close();
 }
 void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
 {
@@ -2238,7 +2249,7 @@ void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
   {
     const int j = static_cast<int>(table(i,0));
     const int k = static_cast<int>(table(i,1));
-    U(j,k) = table(i,2) * this->mask_(j);
+    U(j,k) = static_cast<double>(table(i,2)) * this->get_mask(j);
   };
   // Calculate precision matrix correction
   // invC * U * (I+UT*invC*U)^-1 * UT * invC
@@ -2248,7 +2259,7 @@ void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
   arma::Col<double> eigvals = arma::eig_sym(central_block);
   for(int i=0; i<tomo.clustering_Nbin; i++)
   {
-    if(eigvals(i)<0){
+    if(eigvals(i)<=0.0){
       spdlog::critical("{}: central block not positive definite!", "set_PMmarg");
       exit(-1);
     }
@@ -2257,13 +2268,22 @@ void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
   // add the PM correction to inverse covariance
   for (int i=0; i<this->ndata_; i++)
   {
-    invcov_PMmarg(i,i) *= this->get_mask(i)*this->get_mask(i);
+    invcov_PMmarg(i,i) *= this->get_mask(i);
     this->inv_cov_masked_(i,i) -= invcov_PMmarg(i,i);
     for (int j=0; j<i; j++)
     {
-      double corr = this->get_mask(i)*this->get_mask(j)*(invcov_PMmarg(i,j)+invcov_PMmarg(j,i))/2.;
+      double corr = this->get_mask(i)*this->get_mask(j)*(invcov_PMmarg(i,j)+invcov_PMmarg(j,i))/2.0;
       this->inv_cov_masked_(i,j) -= corr;
       this->inv_cov_masked_(j,i) -= corr;
+    }
+  }
+  // examine again the positive-definite-ness
+  arma::Col<double> eigvals_corr = arma::eig_sym(this->inv_cov_masked_);
+  for(int i=0; i<tomo.clustering_Nbin; i++)
+  {
+    if(eigvals(i)<0){
+      spdlog::critical("{}: PM-marged invcov not positive definite!", "set_PMmarg");
+      exit(-1);
     }
   }
 
@@ -2295,6 +2315,17 @@ void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
       }
     }
   }
+  std::ofstream outFile("cocoa_invcov_PMmarg_masked.txt");
+  if (!outFile.is_open()) {
+      std::cerr << "Error: Unable to open file for writing." << std::endl;
+      exit(1); // Return error code
+  }
+  for (int i=0; i<this->ndata_; i++){
+    for (int j=i; j<this->ndata_; j++){
+      outFile << i << j << this->inv_cov_masked_(i,j) << std::endl;
+    }
+  }
+  outFile.close();
 }
 
 void ima::RealData::set_cmb_theory_offset(std::string OFFSET)
