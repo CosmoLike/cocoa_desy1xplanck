@@ -2154,7 +2154,7 @@ void ima::RealData::set_inv_cov(std::string COV)
     }
   }
 
-  this->inv_cov_masked_ = arma::inv(this->inv_cov_masked_);
+  this->inv_cov_masked_ = arma::inv_sympd(this->inv_cov_masked_);
 
   // apply mask again, to make sure numerical errors in matrix
   // inversion don't cause problems...
@@ -2211,17 +2211,17 @@ void ima::RealData::set_inv_cov(std::string COV)
       }
     }
   }
-  std::ofstream outFile("cocoa_invcov_masked.txt");
-  if (!outFile.is_open()) {
-      std::cerr << "Error: Unable to open file for writing." << std::endl;
+  FILE* outputFile = fopen("cocoa_invcov_masked.bin", "wb");
+  if (!outputFile) {
+      fprintf(stderr, "Error: Unable to open file for writing.\n");
       exit(1); // Return error code
   }
   for (int i=0; i<this->ndata_; i++){
-    for (int j=i; j<this->ndata_; j++){
-      outFile << i << " " << j << " " << this->inv_cov_masked_(i,j) << std::endl;
+    for (int j=0; j<this->ndata_; j++){
+      fwrite(this->inv_cov_masked_(i,j), sizeof(double), 1, outputFile);
     }
   }
-  outFile.close();
+  fclose(outputFile);
 }
 
 void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
@@ -2265,7 +2265,7 @@ void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
       exit(-1);
     }
   }
-  arma::Mat<double> invcov_PMmarg = this->inv_cov_masked_ * U * arma::inv(central_block) * U.t() * this->inv_cov_masked_; 
+  arma::Mat<double> invcov_PMmarg = this->inv_cov_masked_ * U * arma::inv_sympd(central_block) * U.t() * this->inv_cov_masked_; 
   // add the PM correction to inverse covariance
   for (int i=0; i<this->ndata_; i++)
   {
@@ -2316,17 +2316,17 @@ void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
       }
     }
   }
-  std::ofstream outFile("cocoa_invcov_PMmarg_masked.txt");
-  if (!outFile.is_open()) {
-      std::cerr << "Error: Unable to open file for writing." << std::endl;
+  FILE* outputFile = fopen("cocoa_invcov_PMmarg_masked.bin", "wb");
+  if (!outputFile) {
+      fprintf(stderr, "Error: Unable to open file for writing.\n");
       exit(1); // Return error code
   }
   for (int i=0; i<this->ndata_; i++){
-    for (int j=i; j<this->ndata_; j++){
-      outFile << i << " " << j << " " << this->inv_cov_masked_(i,j) << std::endl;
+    for (int j=0; j<this->ndata_; j++){
+      fwrite(this->inv_cov_masked_(i,j), sizeof(double), 1, outputFile);
     }
   }
-  outFile.close();
+  fclose(outputFile);
 }
 
 void ima::RealData::set_cmb_theory_offset(std::string OFFSET)
