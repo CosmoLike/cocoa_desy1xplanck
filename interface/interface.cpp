@@ -2211,17 +2211,7 @@ void ima::RealData::set_inv_cov(std::string COV)
       }
     }
   }
-  FILE* outputFile = fopen("cocoa_invcov_masked.bin", "wb");
-  if (!outputFile) {
-      fprintf(stderr, "Error: Unable to open file for writing.\n");
-      exit(1); // Return error code
-  }
-  for (int i=0; i<this->ndata_; i++){
-    for (int j=0; j<this->ndata_; j++){
-      fwrite(this->inv_cov_masked_(i,j), sizeof(double), 1, outputFile);
-    }
-  }
-  fclose(outputFile);
+  this->inv_cov_masked_.save("cocoa_invcov_masked.h5", hdf5_binary);
 }
 
 void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
@@ -2316,17 +2306,7 @@ void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
       }
     }
   }
-  FILE* outputFile = fopen("cocoa_invcov_PMmarg_masked.bin", "wb");
-  if (!outputFile) {
-      fprintf(stderr, "Error: Unable to open file for writing.\n");
-      exit(1); // Return error code
-  }
-  for (int i=0; i<this->ndata_; i++){
-    for (int j=0; j<this->ndata_; j++){
-      fwrite(this->inv_cov_masked_(i,j), sizeof(double), 1, outputFile);
-    }
-  }
-  fclose(outputFile);
+  this->inv_cov_masked_.save("cocoa_invcov_PMmarg_masked.h5", hdf5_binary);
 }
 
 void ima::RealData::set_cmb_theory_offset(std::string OFFSET)
