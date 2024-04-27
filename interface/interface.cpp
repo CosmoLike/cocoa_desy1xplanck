@@ -2218,11 +2218,12 @@ void ima::RealData::set_inv_cov(std::string COV)
   }
   for (int i=0; i<this->ndata_; i++){
     for (int j=i; j<this->ndata_; j++){
-      outFile << i << j << this->inv_cov_masked_(i,j) << std::endl;
+      outFile << i << " " << j << " " << this->inv_cov_masked_(i,j) << std::endl;
     }
   }
   outFile.close();
 }
+
 void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
 {
   if (!(this->is_mask_set_))
@@ -2322,7 +2323,7 @@ void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
   }
   for (int i=0; i<this->ndata_; i++){
     for (int j=i; j<this->ndata_; j++){
-      outFile << i << j << this->inv_cov_masked_(i,j) << std::endl;
+      outFile << i << " " << j << " " << this->inv_cov_masked_(i,j) << std::endl;
     }
   }
   outFile.close();
