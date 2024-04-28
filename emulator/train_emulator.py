@@ -257,4 +257,3 @@ else:
     # we want the chain
     np.save(pjoin(config.chaindir, config.chainname+f'_{n}.npy'), samples)
 print("train_emulator.py: iteration %d Done!"%n)
-return 0
