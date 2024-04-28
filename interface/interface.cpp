@@ -2144,6 +2144,18 @@ void ima::RealData::set_inv_cov(std::string COV)
         "set_inv_cov", COV);
       exit(1);
   }
+  // Apply the Hartlap factor before inversion is equivalent to apply it after
+  // inversion and use block-wise inversion to the whole matrix
+  if((like.is_cmb_bandpower == 1) && (like.is_cmb_kkkk_cov_from_sim == 1))
+  {
+    int N5x2pt = this->ndata_ - like.Nbp;
+    for (int i=N5x2pt; i<this->ndata_; i++){
+      for (int j=N5x2pt; j<this->ndata_; j++){
+        this->inv_cov_masked_(i,j) /= like.alpha_Hartlap_kkkk;
+      }
+    }
+  }
+
   // test positive-definite
   arma::Col<double> eigvals = arma::eig_sym(this->inv_cov_masked_);
   for(int i=0; i<this->ndata_; i++)
@@ -2165,15 +2177,7 @@ void ima::RealData::set_inv_cov(std::string COV)
     this->inv_cov_masked_(i,i) *= this->get_mask(i)*this->get_mask(i);
     for (int j=0; j<i; j++)
     {
-      double hartlap_factor = 1.0;
-      if((like.is_cmb_bandpower == 1) && (like.is_cmb_kkkk_cov_from_sim == 1))
-      {
-        if((i >= this->ndata_ - like.Nbp) && (j >= this->ndata_ - like.Nbp))
-        {
-          hartlap_factor = like.alpha_Hartlap_kkkk;
-        }
-      }
-      this->inv_cov_masked_(i,j) *= this->get_mask(i)*this->get_mask(j)*hartlap_factor;
+      this->inv_cov_masked_(i,j) *= this->get_mask(i)*this->get_mask(j);
       this->inv_cov_masked_(j,i) = this->inv_cov_masked_(i,j);
     }
   };
@@ -2211,7 +2215,7 @@ void ima::RealData::set_inv_cov(std::string COV)
       }
     }
   }
-  //this->inv_cov_masked_.save("cocoa_invcov_masked.h5", arma::hdf5_binary);
+  this->inv_cov_masked_.save("cocoa_invcov_masked.h5", arma::hdf5_binary);
 }
 
 void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
@@ -2256,6 +2260,7 @@ void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
     }
   }
   arma::Mat<double> invcov_PMmarg = this->inv_cov_masked_ * U * arma::inv_sympd(central_block) * U.t() * this->inv_cov_masked_; 
+  invcov_PMmarg.save("PMmarg_invcov_corr.bin", arma::hdf5_binary);
   // add the PM correction to inverse covariance
   for (int i=0; i<this->ndata_; i++)
   {
@@ -2306,7 +2311,7 @@ void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
       }
     }
   }
-  //this->inv_cov_masked_.save("cocoa_invcov_PMmarg_masked.h5",arma::hdf5_binary);
+  this->inv_cov_masked_.save("cocoa_invcov_PMmarg_masked.h5",arma::hdf5_binary);
 }
 
 void ima::RealData::set_cmb_theory_offset(std::string OFFSET)

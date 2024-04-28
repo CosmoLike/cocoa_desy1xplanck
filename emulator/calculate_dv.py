@@ -150,7 +150,7 @@ if(rank==0):
     # ===============================================
     select_chi_sq = get_chi_sq_cut(train_data_vectors)
     selected_obj = np.sum(select_chi_sq)
-    total_obj    = len(select_chi_sq)
+    total_obj    = len(train_data_vectors)
     print(f'[calculate_dv.py] Select {selected_obj} out of {total_obj}!')
     # ===============================================
         
