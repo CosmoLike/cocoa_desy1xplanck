@@ -57,7 +57,7 @@ def get_chi_sq_cut(train_data_vectors):
 
 select_chi_sq = get_chi_sq_cut(train_data_vectors)
 selected_obj = np.sum(select_chi_sq)
-total_obj    = len(select_chi_sq)
+total_obj    = len(train_data_vectors)
 print("Total number of objects: %d"%(selected_obj))
 
 train_data_vectors = train_data_vectors[select_chi_sq]
@@ -242,8 +242,8 @@ def ln_prob(theta, temper_val=1.):
 print("temper_val: %2.3f"%(temper_val))
 
 with Pool() as pool:
-    sampler = emcee.EnsembleSampler(config.n_emcee_walkers, emu_sampler.n_sample_dims, 
-                                        ln_prob, args=(temper_val,), pool=pool)
+    sampler = emcee.EnsembleSampler(config.n_emcee_walkers, 
+        emu_sampler.n_sample_dims, ln_prob, args=(temper_val,), pool=pool)
     sampler.run_mcmc(pos0, config.n_mcmc, progress=True)
 
 samples = sampler.chain[:,config.n_burn_in::config.n_thin].reshape((-1, emu_sampler.n_sample_dims))
