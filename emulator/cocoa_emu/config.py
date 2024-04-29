@@ -3,6 +3,7 @@ import numpy as np
 import os
 from os.path import join as pjoin
 # from .sampling import get_starting_pos
+import copy
 
 class Config:
     def __init__(self, configfile):
