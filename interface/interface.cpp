@@ -37,6 +37,8 @@ namespace py = pybind11;
 
 #include "interface.hpp"
 
+#define __UPGRADE_LMAX__ 1
+
 namespace ima = interface_mpp_aux;
 
 // ----------------------------------------------------------------------------
@@ -128,8 +130,8 @@ void cpp_initial_setup()
 void cpp_init_accuracy_boost(const double accuracy_boost, const double sampling_boost,
 const int integration_accuracy)
 {
-  Ntable.N_a = static_cast<int>(ceil(Ntable.N_a*accuracy_boost));
-  Ntable.N_ell_TATT = static_cast<int>(ceil(Ntable.N_ell_TATT*accuracy_boost));
+  Ntable.N_a = static_cast<int>(ceil(Ntable.N_a*sampling_boost));
+  Ntable.N_ell_TATT = static_cast<int>(ceil(Ntable.N_ell_TATT*sampling_boost));
   
   Ntable.N_k_lin = static_cast<int>(ceil(Ntable.N_k_lin*sampling_boost));
   Ntable.N_k_nlin = static_cast<int>(ceil(Ntable.N_k_nlin*sampling_boost));
@@ -143,6 +145,13 @@ const int integration_accuracy)
   precision.medium /= accuracy_boost;
   precision.high /= accuracy_boost;
   precision.insane /= accuracy_boost; 
+
+  #if __UPGRADE_LMAX__
+  spdlog::warn("\x1b[90m{}\x1b[0m: UPGRADING ELL INTEGRATION LMAX BY {}!!!!!", 
+    "init_accuracy_boost", accuracy_boost);
+  limits.LMAX *= accuracy_boost;
+  limits.LMAX_hankel *= accuracy_boost;
+  #endif
 
   like.high_def_integration = integration_accuracy;
 }
