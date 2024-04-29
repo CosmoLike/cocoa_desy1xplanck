@@ -251,8 +251,11 @@ class Config:
         for line in U_PMmarg:
             i, j = int(line[0]), int(line[1])
             U[i,j] = float(line[2])
-        U_masked = U[self.mask,:]
-        corr = self.masked_inv_cov@(U_masked@(np.diag(np.ones(self.lens_ntomo))+U_masked.T@self.masked_inv_cov@U_masked)@U_masked.T)@self.masked_inv_cov
+        U = U[self.mask,:]
+        central_block = np.diag(np.ones(self.lens_ntomo))+U.T@self.masked_inv_cov@U
+        w, v = np.linalg.eig(central_block)
+        assert np.min(w)>=0, f'Central block not positive-definite!'
+        corr = self.masked_inv_cov@(U@np.linang.inv(central_block)@U.T)@self.masked_inv_cov
         self.masked_inv_cov -= corr
         # test positive-definite; compare accu between Python v.s. C++ PMmarg
         w, v = np.linalg.eig(self.masked_inv_cov)
