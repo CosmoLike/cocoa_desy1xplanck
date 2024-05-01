@@ -1,0 +1,387 @@
+### Emulator training
+### Motivation:
+###     Train NN emulator to evaluate 6x2pt
+###     - fiducial data vector: dmo
+###     - scale cut: 0.25' for 3x2pt and as much as possible for c2x2pt
+### -----------------------------------------------------------------
+### cosmology: baseline (omegam, As, ns, omegab, H0)
+### survey footprint: include the extended annulus around DES Y3
+### systematics: 
+###     - photo-z uncertainty: gaussian
+###     - intrinsic alignment: NLA
+### analysis choice: 
+###     - shear-shear: drop points below 2.5 arcmin
+###     - Extended footprint
+###     - with cross-cov between Ckk bandpower and 5x2pt
+###     - using Planck DR4 map
+### external probes: None
+### data vector: simulated DMO
+
+timing: True
+debug: False
+stop_at_error: False
+
+likelihood:
+  desy1xplanck.desy3xplanck_6x2pt:
+    path: ./external_modules/data/desy1xplanck
+    data_file: datasets/Y3xPlanckPR4_emu_DMO.dataset
+    integration_accuracy: 0
+    
+    
+params:
+  As_1e9:
+    prior:
+      min: 0.5
+      max: 5
+    ref:
+      dist: norm
+      loc: 2.1
+      scale: 0.00065
+    proposal: 0.4
+    latex: 10^9 A_\mathrm{s}
+    drop: true
+    renames: A
+  As:
+    value: 'lambda As_1e9: 1e-9 * As_1e9'
+    latex: A_\mathrm{s}
+  ns:
+    prior:
+      min: 0.87
+      max: 1.07
+    ref:
+      dist: norm
+      loc: 0.96605
+      scale: 0.00001
+    proposal: 0.01
+    latex: n_\mathrm{s}
+  H0:
+    prior:
+      min: 55
+      max: 91
+    ref:
+      dist: norm
+      loc: 67.32
+      scale: 0.00005
+    proposal: 3
+    latex: H_0
+  omegab:
+    prior:
+      min: 0.03
+      max: 0.07
+    ref:
+      dist: norm
+      loc: 0.04
+      scale: 0.000004
+    proposal: 0.004
+    latex: \Omega_\mathrm{b}
+    drop: true
+  omegam:
+    prior:
+      min: 0.1
+      max: 0.9
+    ref:
+      dist: norm
+      loc: 0.3
+      scale: 0.00002
+    proposal: 0.02
+    latex: \Omega_\mathrm{m}
+    drop: true
+  mnu:
+    #value: 0.06
+    prior:
+      min: 0.046
+      max: 0.931
+    ref:
+      dist: norm
+      loc: 0.06
+      scale: 0.00002
+    proposal: 0.02  
+    latex: \m_\\nu
+  w:
+    value: -1
+    latex: w_{0,\mathrm{DE}}
+  wa:
+    value: 0.0
+    latex: w_{a,\mathrm{DE}}
+  tau:
+    value: 0.0697186
+    latex: \tau_\mathrm{reio}
+  # ------------------------------------------------------------------
+  # ------------- Derived Parameters ---------------------------------
+  # ------------------------------------------------------------------
+  omegabh2:
+    value: 'lambda omegab, H0: omegab*(H0/100)**2'
+    latex: \Omega_\mathrm{b} h^2
+  omegach2:
+    value: 'lambda omegam, omegab, mnu, H0: (omegam-omegab)*(H0/100)**2-(mnu*(3.046/3)**0.75)/94.0708'
+    latex: \Omega_\mathrm{c} h^2
+  omegal:
+    latex: \Omega_\Lambda
+  omegamh2:
+    derived: 'lambda omegam, H0: omegam*(H0/100)**2'
+    latex: \Omega_\mathrm{m} h^2
+  sigma8:
+    latex: \sigma_8
+  s8h5:
+    derived: 'lambda sigma8, H0: sigma8*(H0*1e-2)**(-0.5)'
+    latex: \sigma_8/h^{0.5}
+  s8omegamp5:
+    derived: 'lambda sigma8, omegam: sigma8*omegam**0.5'
+    latex: \sigma_8 \Omega_\mathrm{m}^{0.5}
+  s8omegamp25:
+    derived: 'lambda sigma8, omegam: sigma8*omegam**0.25'
+    latex: \sigma_8 \Omega_\mathrm{m}^{0.25}
+  s8:
+    derived: 'lambda sigma8, omegam: sigma8*(omegam/0.3)**0.5'
+    latex: S_8
+  age:
+    latex: '{\rm{Age}}/\mathrm{Gyr}'
+  rdrag:
+    latex: r_\mathrm{drag}
+  yheused:
+    latex: Y_P^\mathrm{BBN}
+  omegan2:
+    latex: \Omega_\mathrm{\\nu} h^2
+  omegan:
+    derived: 'lambda omegan2, H0: omegan2/((H0/100)**2)'
+    latex: \Omega_\mathrm{\\nu}
+  # ------------------------------------------------------------------
+  # DES-Y1 3x2 nuissance parameter begins
+  # ------------------------------------------------------------------
+
+  # intrinsic alignment: NLA
+  # ========================
+  # same as default, DES_A1_1 [-5, 5]; DES_A1_2 [-5, 5]
+  # fiducial value: 0.6, -1.5
+  DES_A1_1:
+    value: 0.7
+    latex: A_\mathrm{1-IA,DES}^1
+  DES_A1_2:
+    value: -1.7
+    latex: A_\mathrm{1-IA,DES}^2
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # photo-z uncertainty: gaussian
+  # =============================
+  # Lens galaxies photo-z shift
+  DES_DZ_L1:
+    value: -0.009
+    latex: \Delta z_\mathrm{l,DES}^1
+  DES_DZ_L2:
+    value: -0.035
+    latex: \Delta z_\mathrm{l,DES}^2
+  DES_DZ_L3:
+    value: -0.005
+    latex: \Delta z_\mathrm{l,DES}^3
+  DES_DZ_L4:
+    value: -0.007
+    latex: \Delta z_\mathrm{l,DES}^4
+  DES_DZ_L5:
+    value: 0.002
+    latex: \Delta z_\mathrm{l,DES}^5
+  DES_DZ_L6:
+    value: 0.002
+    latex: \Delta z_\mathrm{l,DES}^6
+  # =============================
+  # Lens galaxies photo-z stretch
+  DES_STRETCH_L1:
+    value: 0.98
+    latex: \sigma z_\mathrm{l,DES}^1
+  DES_STRETCH_L2:
+    value: 1.31
+    latex: \sigma z_\mathrm{l,DES}^2
+  DES_STRETCH_L3:
+    value: 0.87
+    latex: \sigma z_\mathrm{l,DES}^3
+  DES_STRETCH_L4:
+    value: 0.92
+    latex: \sigma z_\mathrm{l,DES}^4
+  DES_STRETCH_L5:
+    value: 1.08
+    latex: \sigma z_\mathrm{l,DES}^5
+  DES_STRETCH_L6:
+    value: 0.845
+    latex: \sigma z_\mathrm{l,DES}^6
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # Source galaxies photo-z errors
+  DES_DZ_S1:
+    value: 0.0
+    latex: \Delta z_\mathrm{s,DES}^1
+  DES_DZ_S2:
+    value: 0.0
+    latex: \Delta z_\mathrm{s,DES}^2
+  DES_DZ_S3:
+    value: 0.0
+    latex: \Delta z_\mathrm{s,DES}^3
+  DES_DZ_S4:
+    value: 0.0
+    latex: \Delta z_\mathrm{s,DES}^4
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # Point Mass parameters
+  DES_PM1:
+    value: 0.0
+    latex: PM_\mathrm{DES}^1
+  DES_PM2:
+    value: 0.0
+    latex: PM_\mathrm{DES}^2
+  DES_PM3:
+    value: 0.0
+    latex: PM_\mathrm{DES}^3
+  DES_PM4:
+    value: 0.0
+    latex: PM_\mathrm{DES}^4
+  DES_PM5:
+    value: 0.0
+    latex: PM_\mathrm{DES}^5
+  DES_PM6:
+    value: 0.0
+    latex: PM_\mathrm{DES}^6
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # Magnification bias
+  DES_BMAG_1:
+    value: 0.43
+    latex: b_\mathrm{BMAG-DES}^1
+  DES_BMAG_2:
+    value: 0.30
+    latex: b_\mathrm{BMAG-DES}^2
+  DES_BMAG_3:
+    value: 1.75
+    latex: b_\mathrm{BMAG-DES}^3
+  DES_BMAG_4:
+    value: 1.94
+    latex: b_\mathrm{BMAG-DES}^4
+  DES_BMAG_5:
+    value: 1.56
+    latex: b_\mathrm{BMAG-DES}^5
+  DES_BMAG_6:
+    value: 2.96
+    latex: b_\mathrm{BMAG-DES}^6
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # Higher-order IA
+  DES_A2_1: #TATT, not used for Y1
+    value: 0.0
+    latex: A_\mathrm{2-IA,DES}^1 
+  DES_A2_2: #TATT, not used for Y1
+    value: 0.0
+    latex: A_\mathrm{2-IA,DES}^2
+  DES_BTA_1: #TATT, not used for Y1
+    value: 0.0
+    latex: A_\mathrm{BTA-IA,DES}^1
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # Linear galaxy bias
+  DES_B1_1:
+    value: 1.5
+    latex: b_\mathrm{1-DES}^1
+  DES_B1_2:
+    value: 1.8
+    latex: b_\mathrm{1-DES}^2
+  DES_B1_3:
+    value: 1.8
+    latex: b_\mathrm{1-DES}^3
+  DES_B1_4:
+    value: 1.9
+    latex: b_\mathrm{1-DES}^4
+  DES_B1_5:
+    value: 2.3
+    latex: b_\mathrm{1-DES}^5
+  DES_B1_6:
+    value: 2.3
+    latex: b_\mathrm{1-DES}^6
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # shear calibration bias: multiplicative
+  DES_M1:
+    value: 0.0
+    latex: m_\mathrm{DES}^1
+  DES_M2:
+    value: 0.0
+    latex: m_\mathrm{DES}^2
+  DES_M3:
+    value: 0.0
+    latex: m_\mathrm{DES}^3
+  DES_M4:
+    value: 0.0
+    latex: m_\mathrm{DES}^4
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # baryon effects: the first two PCs
+  # Q1 informative: [0, 7]
+  # Q1 wide: [-6, 20]
+  # Q2: [-4, 4] 
+  # =================================
+  DES_BARYON_Q1:
+    value: 0.0
+    latex: Q_\mathrm{DES}^1
+  DES_BARYON_Q2:
+    value: 0.0
+    latex: Q_\mathrm{DES}^2
+
+  # ------------------------------------------------------------------
+  # DES-Y1 3x2 nuissance parameter ends
+  # ------------------------------------------------------------------
+
+theory:
+  camb:
+    path: ./external_modules/code/CAMB
+    use_renames: True
+    extra_args:
+      halofit_version: takahashi
+      AccuracyBoost: 1.1
+      lens_potential_accuracy: 1.1
+      num_massive_neutrinos: 1
+      nnu: 3.046
+      dark_energy_model: ppf
+      accurate_massive_neutrino_transfers: false
+      k_per_logint: 20
+
+emulator:
+  probe: 6x2pt
+  io:
+      savedir: ./projects/desy1xplanck/emulator
+      save_train_data: true
+      save_intermediate_model: true
+  shear_calib:
+      mask: ./projects/desy1xplanck/data/emu_data/DESY3xPLKR4_Maglim_baseline_Ntheta30_shear_calib_mask.npy
+      prior_std: 0.009,0.008,0.008,0.008
+  baryons:
+      n_pcas_baryon: 2
+      prior_Q1: -6.,20.
+      prior_Q2: -4.,4.
+  galaxy_bias:
+      mask: ./projects/desy1xplanck/data/emu_data/DESY3xPLKR4_Maglim_baseline_Ntheta30_linear_gbias_mask.npy
+      bias_fid: 1.5,1.8,1.8,1.9,2.3,2.3
+      bias_prior: 0.8, 3.0
+  training:
+      emu_type: nn
+      nn_model: 4
+      dv_fid: ./projects/desy1xplanck/data/data_vectors/xi_DESY3xPLKR4_6x2pt_Maglim_baseline_Ntheta30_dmo.emufid
+      chi_sq_cut: 1e+5
+      n_train_iter: 4
+      n_lhs: 32000
+      n_resample: 32000
+      batch_size: 80
+      n_epochs: 50
+  derived:
+      sigma8_fid: 0.827706
+      sigma8_std: 0.500
+  sampling:
+      scalecut_mask: ./projects/desy1xplanck/data/masks/xi_DESY3xPLKR4_6x2pt_Maglim_baseline_Ntheta30_emu.mask
+      n_mcmc: 60000
+      n_emcee_walkers: 100
+      n_burn_in: 40000
+      n_thin: 10
+      temper0: 0.02
+      temper_increment: 0.05
