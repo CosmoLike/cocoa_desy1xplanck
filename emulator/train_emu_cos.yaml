@@ -370,8 +370,8 @@ emulator:
       dv_fid: ./projects/desy1xplanck/data/data_vectors/xi_DESY3xPLKR4_6x2pt_Maglim_baseline_Ntheta30_dmo.emufid
       chi_sq_cut: 1e+5
       n_train_iter: 4
-      n_lhs: 32000
-      n_resample: 32000
+      n_lhs: 16000
+      n_resample: 16000
       batch_size: 80
       n_epochs: 50
   derived:
@@ -379,9 +379,9 @@ emulator:
       sigma8_std: 0.500
   sampling:
       scalecut_mask: ./projects/desy1xplanck/data/masks/xi_DESY3xPLKR4_6x2pt_Maglim_baseline_Ntheta30_emu.mask
-      n_mcmc: 60000
+      n_mcmc: 30000
       n_emcee_walkers: 100
-      n_burn_in: 40000
+      n_burn_in: 20000
       n_thin: 10
       temper0: 0.02
       temper_increment: 0.05
