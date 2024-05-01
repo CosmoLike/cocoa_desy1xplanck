@@ -248,9 +248,14 @@ class EmuSampler:
             prior_galaxy_bias = 0.
         m_shear_theta        = theta[self.n_sample_dims-(self.n_pcas_baryon + self.source_ntomo):
                                      self.n_sample_dims-self.n_pcas_baryon]
-        
-        prior_flat    = hard_prior(flat_prior_theta, self.flat_prior_parameters)
-        prior_gauss   = gaussian_prior(gaussian_prior_theta, self.gaussian_prior_parameters)
+        if len(flat_prior_theta)>0:
+            prior_flat    = hard_prior(flat_prior_theta, self.flat_prior_parameters)
+        else:
+            prior_flat = 0.
+        if len(gaussian_prior_theta)>0:
+            prior_gauss   = gaussian_prior(gaussian_prior_theta, self.gaussian_prior_parameters)
+        else:
+            prior_gauss = 0.
         if not self.block_shear_calib:
             prior_m_shear = gaussian_prior(m_shear_theta, self.m_shear_prior_parameters)
         else:
