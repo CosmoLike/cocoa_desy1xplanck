@@ -2224,7 +2224,7 @@ void ima::RealData::set_inv_cov(std::string COV)
       }
     }
   }
-  this->inv_cov_masked_.save("cocoa_invcov_masked.h5", arma::hdf5_binary);
+  //this->inv_cov_masked_.save("cocoa_invcov_masked.h5", arma::hdf5_binary);
 }
 
 void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
@@ -2269,7 +2269,7 @@ void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
     }
   }
   arma::Mat<double> invcov_PMmarg = this->inv_cov_masked_ * U * arma::inv_sympd(central_block) * U.t() * this->inv_cov_masked_; 
-  invcov_PMmarg.save("PMmarg_invcov_corr.h5", arma::hdf5_binary);
+  //invcov_PMmarg.save("PMmarg_invcov_corr.h5", arma::hdf5_binary);
   // add the PM correction to inverse covariance
   for (int i=0; i<this->ndata_; i++)
   {
@@ -2320,7 +2320,7 @@ void ima::RealData::set_PMmarg(std::string U_PMmarg_file)
       }
     }
   }
-  this->inv_cov_masked_.save("cocoa_invcov_PMmarg_masked.h5",arma::hdf5_binary);
+  //this->inv_cov_masked_.save("cocoa_invcov_PMmarg_masked.h5",arma::hdf5_binary);
 }
 
 void ima::RealData::set_cmb_theory_offset(std::string OFFSET)

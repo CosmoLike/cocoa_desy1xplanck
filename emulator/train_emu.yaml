@@ -36,7 +36,7 @@ params:
     ref:
       dist: norm
       loc: 2.1
-      scale: 0.65
+      scale: 0.00065
     proposal: 0.4
     latex: 10^9 A_\mathrm{s}
     drop: true
@@ -51,7 +51,7 @@ params:
     ref:
       dist: norm
       loc: 0.96605
-      scale: 0.01
+      scale: 0.00001
     proposal: 0.01
     latex: n_\mathrm{s}
   H0:
@@ -61,7 +61,7 @@ params:
     ref:
       dist: norm
       loc: 67.32
-      scale: 5
+      scale: 0.00005
     proposal: 3
     latex: H_0
   omegab:
@@ -71,7 +71,7 @@ params:
     ref:
       dist: norm
       loc: 0.04
-      scale: 0.004
+      scale: 0.000004
     proposal: 0.004
     latex: \Omega_\mathrm{b}
     drop: true
@@ -82,7 +82,7 @@ params:
     ref:
       dist: norm
       loc: 0.3
-      scale: 0.02
+      scale: 0.00002
     proposal: 0.02
     latex: \Omega_\mathrm{m}
     drop: true
@@ -94,7 +94,7 @@ params:
     ref:
       dist: norm
       loc: 0.06
-      scale: 0.02
+      scale: 0.00002
     proposal: 0.02  
     latex: \m_\\nu
   w:
@@ -154,24 +154,26 @@ params:
   # same as default, DES_A1_1 [-5, 5]; DES_A1_2 [-5, 5]
   # fiducial value: 0.6, -1.5
   DES_A1_1:
-    prior:
-      min: -5
-      max:  5
-    ref:
-      dist: norm
-      loc: 0.7
-      scale: 0.5
-    proposal: 0.75
+    value: 0.7
+    #prior:
+    #  min: -5
+    #  max:  5
+    #ref:
+    #  dist: norm
+    #  loc: 0.7
+    #  scale: 0.00005
+    #proposal: 0.75
     latex: A_\mathrm{1-IA,DES}^1
   DES_A1_2:
-    prior:
-      min: -5
-      max:  5
-    ref:
-      dist: norm
-      loc: -1.7
-      scale: 0.5
-    proposal: 0.75
+    value: -1.7
+    #prior:
+    #  min: -5
+    #  max:  5
+    #ref:
+    #  dist: norm
+    #  loc: -1.7
+    #  scale: 0.00005
+    #proposal: 0.75
     latex: A_\mathrm{1-IA,DES}^2
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
@@ -180,15 +182,16 @@ params:
   # =============================
   # Lens galaxies photo-z shift
   DES_DZ_L1:
-    prior:
-      dist: norm
-      loc: -0.009
-      scale: 0.007
-    ref:
-      dist: norm
-      loc: -0.009
-      scale: 0.007
-    proposal: 0.0035
+    value: -0.009
+    #prior:
+    #  dist: norm
+    #  loc: -0.009
+    #  scale: 0.007
+    #ref:
+    #  dist: norm
+    #  loc: -0.009
+    #  scale: 0.000007
+    #proposal: 0.0035
     latex: \Delta z_\mathrm{l,DES}^1
   DES_DZ_L2:
     prior:
@@ -198,7 +201,7 @@ params:
     ref:
       dist: norm
       loc: -0.035
-      scale: 0.011
+      scale: 0.000011
     proposal: 0.0055
     latex: \Delta z_\mathrm{l,DES}^2
   DES_DZ_L3:
@@ -209,7 +212,7 @@ params:
     ref:
       dist: norm
       loc: -0.005
-      scale: 0.006
+      scale: 0.000006
     proposal: 0.003
     latex: \Delta z_\mathrm{l,DES}^3
   DES_DZ_L4:
@@ -220,7 +223,7 @@ params:
     ref:
       dist: norm
       loc: -0.007
-      scale: 0.006
+      scale: 0.000006
     proposal: 0.003
     latex: \Delta z_\mathrm{l,DES}^4
   DES_DZ_L5:
@@ -231,7 +234,7 @@ params:
     ref:
       dist: norm
       loc: 0.002
-      scale: 0.007
+      scale: 0.000007
     proposal: 0.0035
     latex: \Delta z_\mathrm{l,DES}^5
   DES_DZ_L6:
@@ -242,7 +245,7 @@ params:
     ref:
       dist: norm
       loc: 0.002
-      scale: 0.008
+      scale: 0.000008
     proposal: 0.004
     latex: \Delta z_\mathrm{l,DES}^6
   # =============================
@@ -255,7 +258,7 @@ params:
     ref:
       dist: norm
       loc: 0.98
-      scale: 0.06
+      scale: 0.00006
     proposal: 0.03
     latex: \sigma z_\mathrm{l,DES}^1
   DES_STRETCH_L2:
@@ -266,7 +269,7 @@ params:
     ref:
       dist: norm
       loc: 1.31
-      scale: 0.09
+      scale: 0.00009
     proposal: 0.045
     latex: \sigma z_\mathrm{l,DES}^2
   DES_STRETCH_L3:
@@ -277,7 +280,7 @@ params:
     ref:
       dist: norm
       loc: 0.87
-      scale: 0.05
+      scale: 0.00005
     proposal: 0.025
     latex: \sigma z_\mathrm{l,DES}^3
   DES_STRETCH_L4:
@@ -288,7 +291,7 @@ params:
     ref:
       dist: norm
       loc: 0.92
-      scale: 0.05
+      scale: 0.00005
     proposal: 0.025
     latex: \sigma z_\mathrm{l,DES}^4
   DES_STRETCH_L5:
@@ -299,7 +302,7 @@ params:
     ref:
       dist: norm
       loc: 1.08
-      scale: 0.067
+      scale: 0.000067
     proposal: 0.0335
     latex: \sigma z_\mathrm{l,DES}^5
   DES_STRETCH_L6:
@@ -310,7 +313,7 @@ params:
     ref:
       dist: norm
       loc: 0.845
-      scale: 0.073
+      scale: 0.000073
     proposal: 0.0365
     latex: \sigma z_\mathrm{l,DES}^6
   # ------------------------------------------------------------------------
@@ -325,7 +328,7 @@ params:
     ref:
       dist: norm
       loc: 0.0
-      scale: 0.018
+      scale: 0.000018
     proposal: 0.009
     latex: \Delta z_\mathrm{s,DES}^1
   DES_DZ_S2:
@@ -336,7 +339,7 @@ params:
     ref:
       dist: norm
       loc: 0.0
-      scale: 0.015
+      scale: 0.000015
     proposal: 0.0075
     latex: \Delta z_\mathrm{s,DES}^2
   DES_DZ_S3:
@@ -347,7 +350,7 @@ params:
     ref:
       dist: norm
       loc: 0.0
-      scale: 0.011
+      scale: 0.000011
     proposal: 0.0055
     latex: \Delta z_\mathrm{s,DES}^3
   DES_DZ_S4:
@@ -358,7 +361,7 @@ params:
     ref:
       dist: norm
       loc: 0.0
-      scale: 0.017
+      scale: 0.000017
     proposal: 0.0085
     latex: \Delta z_\mathrm{s,DES}^4
   # ------------------------------------------------------------------------
@@ -584,12 +587,12 @@ emulator:
       n_epochs: 50
   derived:
       sigma8_fid: 0.827706
-      sigma8_std: 0.100
+      sigma8_std: 0.500
   sampling:
       scalecut_mask: ./projects/desy1xplanck/data/masks/xi_DESY3xPLKR4_6x2pt_Maglim_baseline_Ntheta30_emu.mask
-      n_mcmc: 30000
+      n_mcmc: 60000
       n_emcee_walkers: 100
-      n_burn_in: 20000
+      n_burn_in: 40000
       n_thin: 10
       temper0: 0.02
       temper_increment: 0.05
