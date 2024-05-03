@@ -108,7 +108,7 @@ if (config.shear_pos==1):
         config.mask[_l:_r], config.nn_model)
     emu_gammat_fn = pjoin(config.modeldir, f'gammat_{n}_nn{config.nn_model}')
     if (args.load_train_if_exist and os.path.exists(emu_gammat_fn)):
-        print(f'Loading existing xi_minus emulator from {emu_gammat_fn}....')
+        print(f'Loading existing gammat emulator from {emu_gammat_fn}....')
         emu_gammat.load(emu_gammat_fn)
     else:
         print("Training gammat emulator....")
@@ -126,7 +126,7 @@ if (config.pos_pos==1):
         config.mask[_l:_r], config.nn_model)
     emu_wtheta_fn = pjoin(config.modeldir, f'wtheta_{n}_nn{config.nn_model}')
     if (args.load_train_if_exist and os.path.exists(emu_wtheta_fn)):
-        print(f'Loading existing xi_minus emulator from {emu_wtheta_fn}....')
+        print(f'Loading existing wtheta emulator from {emu_wtheta_fn}....')
         emu_wtheta.load(emu_wtheta_fn)
     else:
         print("Training wtheta emulator....")
@@ -144,7 +144,7 @@ if (config.gk==1):
         config.mask[_l:_r], config.nn_model)
     emu_gk_fn = pjoin(config.modeldir, f'gk_{n}_nn{config.nn_model}')
     if (args.load_train_if_exist and os.path.exists(emu_gk_fn)):
-        print(f'Loading existing xi_minus emulator from {emu_gk_fn}....')
+        print(f'Loading existing w_gk emulator from {emu_gk_fn}....')
         emu_gk.load(emu_gk_fn)
     else:
         print("Training w_gk emulator....")
@@ -162,7 +162,7 @@ if (config.ks==1):
         config.mask[_l:_r], config.nn_model)
     emu_ks_fn = pjoin(config.modeldir, f'ks_{n}_nn{config.nn_model}')
     if (args.load_train_if_exist and os.path.exists(emu_ks_fn)):
-        print(f'Loading existing xi_minus emulator from {emu_ks_fn}....')
+        print(f'Loading existing w_sk emulator from {emu_ks_fn}....')
         emu_ks.load(emu_ks_fn)
     else:
         print("Training w_sk emulator....")
@@ -180,7 +180,7 @@ if (config.kk==1):
         config.mask[_l:_r], config.nn_model)
     emu_kk_fn = pjoin(config.modeldir, f'kk_{n}_nn{config.nn_model}')
     if (args.load_train_if_exist and os.path.exists(emu_kk_fn)):
-        print(f'Loading existing xi_minus emulator from {emu_kk_fn}....')
+        print(f'Loading existing CMBL band power emulator from {emu_kk_fn}....')
         emu_kk.load(emu_kk_fn)
     else:
         print("Training CMBL band power emulator....")
@@ -197,7 +197,7 @@ if (config.derived==1):
         np.array([True,]), config.nn_model)
     emu_s8_fn = pjoin(config.modeldir, f'sigma8_{n}_nn{config.nn_model}')
     if (args.load_train_if_exist and os.path.exists(emu_s8_fn)):
-        print(f'Loading existing xi_minus emulator from {emu_s8_fn}....')
+        print(f'Loading existing derived parameters emulator (sigma8) from {emu_s8_fn}....')
         emu_s8.load(emu_s8_fn)
     else:
         print("Training derived parameters emulator (sigma8) ....")
