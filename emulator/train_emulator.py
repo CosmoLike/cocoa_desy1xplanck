@@ -7,35 +7,32 @@ from cocoa_emu import Config, get_lhs_params_list, get_params_list, CocoaModel
 from cocoa_emu.emulator import NNEmulator, GPEmulator
 from cocoa_emu.sampling import EmuSampler
 import emcee
-
+from argparse import ArgumentParser
 from multiprocessing import Pool
 
-configfile = sys.argv[1]
-n          = int(sys.argv[2])
+parser = ArgumentParser()
+parser.add_argument('config', type=str, help='Configuration file')
+parser.add_argument('iter', type=int, help='Training iteration')
+parser.add_argument('--temper', action='store_true', default=False,
+                    help='Turn on likelihood temperature')
+parser.add_argument('--save_emu', action='store_true', default=False,
+                    help='Save emulator model data set trained in this iteration')
+parser.add_argument('--debug', action='store_true', default=False,
+                    help='Turn on debugging mode')
+args = parser.parse_args()
 
 #==============================================
 temper_schedule = [0.02, 0.1, 0.2, 0.4, 0.6, 0.7, 0.9, 0.9]
-
-try:
-    temper = (int(sys.argv[3])==1)
-except:
-    temper = False
-
-if(temper):
+print(f'\nStart Emulator Training [Iteration {args.iter}]')
+config = Config(args.config)
+n      = args.iter
+if(args.temper):
     temper_val = temper_schedule[n]
 else:
     temper_val = 1.
-
 print("temper_val: %2.3f"%(temper_val))
-
-try:
-    save_emu = (int(sys.argv[4])==1)
-except:
-    save_emu = False
-    
 #==============================================
 
-config = Config(configfile)
 
 #==============================================
 
@@ -79,7 +76,7 @@ if (config.shear_shear==1):
     emu_xi_plus.train(torch.Tensor(train_samples), 
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
-    if(save_emu):
+    if(args.save_emu):
         emu_xi_plus.save(pjoin(config.modeldir, f'xi_p_{n}_nn{config.nn_model}'))
     print("=======================================")
     print("=======================================")
@@ -91,7 +88,7 @@ if (config.shear_shear==1):
     emu_xi_minus.train(torch.Tensor(train_samples), 
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
-    if(save_emu):
+    if(args.save_emu):
         emu_xi_minus.save(pjoin(config.modeldir, f'xi_m_{n}_nn{config.nn_model}'))
     print("=======================================")
 if (config.shear_pos==1):
@@ -104,7 +101,7 @@ if (config.shear_pos==1):
     emu_gammat.train(torch.Tensor(train_samples), 
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
-    if(save_emu):
+    if(args.save_emu):
         emu_gammat.save(pjoin(config.modeldir, f'gammat_{n}_nn{config.nn_model}'))
     print("=======================================")
 if (config.pos_pos==1):
@@ -117,7 +114,7 @@ if (config.pos_pos==1):
     emu_wtheta.train(torch.Tensor(train_samples), 
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
-    if(save_emu):
+    if(args.save_emu):
         emu_wtheta.save(pjoin(config.modeldir, f'wtheta_{n}_nn{config.nn_model}'))
     print("=======================================")
 if (config.gk==1):
@@ -130,7 +127,7 @@ if (config.gk==1):
     emu_gk.train(torch.Tensor(train_samples), 
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
-    if(save_emu):
+    if(args.save_emu):
         emu_gk.save(pjoin(config.modeldir, f'gk_{n}_nn{config.nn_model}'))
     print("=======================================")
 if (config.ks==1):
@@ -143,7 +140,7 @@ if (config.ks==1):
     emu_ks.train(torch.Tensor(train_samples), 
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
-    if(save_emu):
+    if(args.save_emu):
         emu_ks.save(pjoin(config.modeldir, f'ks_{n}_nn{config.nn_model}'))
     print("=======================================")
 if (config.kk==1):
@@ -156,7 +153,7 @@ if (config.kk==1):
     emu_kk.train(torch.Tensor(train_samples), 
         torch.Tensor(train_data_vectors[:,_l:_r]),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
-    if(save_emu):
+    if(args.save_emu):
         emu_kk.save(pjoin(config.modeldir, f'kk_{n}_nn{config.nn_model}'))
     print("=======================================")
 if (config.derived==1):
@@ -168,7 +165,7 @@ if (config.derived==1):
     emu_s8.train(torch.Tensor(train_samples[:,:n_pars_cosmo]), 
         torch.Tensor(train_sigma8),
         batch_size=config.batch_size, n_epochs=config.n_epochs)
-    if(save_emu):
+    if(args.save_emu):
         emu_s8.save(pjoin(config.modeldir, f'sigma8_{n}_nn{config.nn_model}'))
     print("=======================================")
 #==============================================
@@ -246,17 +243,19 @@ with Pool() as pool:
         emu_sampler.n_sample_dims, ln_prob, args=(temper_val,), pool=pool)
     sampler.run_mcmc(pos0, config.n_mcmc, progress=True)
     # save the sampler for debug purpose
-    np.save(pjoin(config.traindir, f'DBG_chain_{n}.npy'), 
-        np.concatenate([sampler.get_chain(), 
-            sampler.get_log_prob()[:,:,np.newaxis]], axis=2))
+    if (args.debug):
+        np.save(pjoin(config.traindir, f'DBG_chain_{n}.npy'), 
+            np.concatenate([sampler.get_chain(), 
+                sampler.get_log_prob()[:,:,np.newaxis]], axis=2))
 
 samples = sampler.chain[:,config.n_burn_in::config.n_thin].reshape((-1, emu_sampler.n_sample_dims))
 
-if(temper):
+if(args.temper):
     # only save samples to explore posterior regions
     select_indices = np.random.choice(np.arange(len(samples)), replace=False, size=config.n_resample)
     next_training_samples = samples[select_indices,:-(config.n_fast_pars)]
-    np.save(pjoin(config.traindir, f'DBG_samples_{n+1}.npy'), next_training_samples)
+    if (args.debug):
+        np.save(pjoin(config.traindir, f'DBG_samples_{n+1}.npy'), next_training_samples)
 else:
     # we want the chain
     np.save(pjoin(config.chaindir, config.chainname+f'_{n}.npy'), samples)
