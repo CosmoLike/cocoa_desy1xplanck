@@ -25,14 +25,14 @@ args = parser.parse_args()
 
 #==============================================
 temper_schedule = [0.02, 0.1, 0.2, 0.4, 0.6, 0.7, 0.9, 0.9]
-print(f'\nStart Emulator Training [Iteration {args.iter}]')
+
 config = Config(args.config)
 n      = args.iter
 if(args.temper):
     temper_val = temper_schedule[n]
 else:
     temper_val = 1.
-print("temper_val: %2.3f"%(temper_val))
+print(f'\n>>> Start Emulator Training [Iteration {args.iter}] [1/Temperature {temper_val:2.3f}]\n')
 #==============================================
 
 train_samples      = np.load(pjoin(config.traindir, f'samples_{n}.npy'))
@@ -201,7 +201,7 @@ if (config.derived==1):
         emu_s8.load(emu_s8_fn)
     else:
         print("Training derived parameters emulator (sigma8) ....")
-        emu_s8.train(torch.Tensor(train_samples[:,:n_pars_cosmo]), 
+        emu_s8.train(torch.Tensor(train_samples[:,:config.n_pars_cosmo]), 
             torch.Tensor(train_sigma8),
             batch_size=config.batch_size, n_epochs=config.n_epochs)
         if(args.save_emu):
