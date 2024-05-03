@@ -605,6 +605,8 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
       scenarios = [ci.get_baryon_pca_scenario_name(i) for i in range(nbaryons_scenario)]
       np.savetxt(self.filename_baryon_pca+"_Qs", Qs, 
         header=' '.join(scenarios))
+      np.savetxt(self.filename_baryon_pca+"_Sdig", 
+        np.diag(Sdig))
 
     # Now we need to expand the number of dimensions
     ndata = ci.get_ndim()
