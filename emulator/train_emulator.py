@@ -164,7 +164,7 @@ if (config.derived==1):
     print("Training derived parameters emulator (sigma8) ....")
     emu_s8 = NNEmulator(config.n_pars_cosmo, 1, 
         config.sigma8_fid, config.sigma8_std, 
-        [1], config.nn_model)
+        np.array([True,]), config.nn_model)
     emu_s8.train(torch.Tensor(train_samples[:,:n_pars_cosmo]), 
         torch.Tensor(train_sigma8),
         batch_size=config.batch_size, n_epochs=config.n_epochs)

@@ -206,20 +206,12 @@ class Config:
         if self.Hartlap>1:
             self.Hartlap = (self.Hartlap - self.Nbp -2.0)/(self.Hartlap - 1.0)
         # Init data vector dimension of each components
-        print("Initializing configuration space data vector dimension!")
         self.N_xi = int(self.source_ntomo*(self.source_ntomo+1)/2*self.Ntheta)
         self.N_ggl= int(self.source_ntomo*self.lens_ntomo*self.Ntheta)
         self.N_w  = int(self.lens_ntomo*self.Ntheta)
         self.N_gk = int(self.lens_ntomo*self.Ntheta)
         self.N_sk = int(self.source_ntomo*self.Ntheta)
         self.N_kk = int(self.Nbp)
-        print("N_xip: %d"%(self.N_xi))
-        print("N_xim: %d"%(self.N_xi))
-        print("N_ggl: %d"%(self.N_ggl))
-        print("N_w: %d"%(self.N_w))
-        print("N_gk: %d"%(self.N_gk))
-        print("N_sk: %d"%(self.N_sk))
-        print("N_kk: %d"%(self.N_kk))
         try:
             self.baryon_pcas = np.loadtxt(baryon_pca_file)
         except:
@@ -277,7 +269,6 @@ class Config:
         return lh_minmax
     
     def get_full_cov(self, cov_file):
-        print("Getting covariance...")
         full_cov = np.loadtxt(cov_file)
         cov = np.zeros((self.output_dims, self.output_dims))
         cov_scenario = full_cov.shape[1]

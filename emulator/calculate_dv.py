@@ -14,6 +14,15 @@ rank = comm.Get_rank()
 
 configfile = sys.argv[1]
 config = Config(configfile)
+if(rank==0):
+    print("Initializing configuration space data vector dimension!")
+    print("N_xip: %d"%(config.N_xi))
+    print("N_xim: %d"%(config.N_xi))
+    print("N_ggl: %d"%(config.N_ggl))
+    print("N_w: %d"%(config.N_w))
+    print("N_gk: %d"%(config.N_gk))
+    print("N_sk: %d"%(config.N_sk))
+    print("N_kk: %d"%(config.N_kk))
     
 n = int(sys.argv[2])    
 # ============= LHS samples =================
