@@ -92,12 +92,12 @@ class Config:
         except:
             self.chi_sq_cut = 1e+5
         # also train an emulator for sigma_8 at z=0
-        try:
-            self.derived = 1
-            self.sigma8_fid = np.array([float(self.config_args_emu['derived']['sigma8_fid'])])
-            self.sigma8_std = np.float([float(self.config_args_emu['derived']['sigma8_std'])])
-        except:
-            self.derived = 0
+        #try:
+        self.derived = 1
+        self.sigma8_fid = np.array([float(self.config_args_emu['derived']['sigma8_fid'])])
+        self.sigma8_std = np.float([float(self.config_args_emu['derived']['sigma8_std'])])
+        #except:
+        #    self.derived = 0
         
         self.dv_fid_path   = self.config_args_emu['training']['dv_fid']
         self.n_lhs         = int(self.config_args_emu['training']['n_lhs'])
