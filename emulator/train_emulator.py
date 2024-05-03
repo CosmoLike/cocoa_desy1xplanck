@@ -19,6 +19,8 @@ parser.add_argument('--save_emu', action='store_true', default=False,
                     help='Save emulator model data set trained in this iteration')
 parser.add_argument('--debug', action='store_true', default=False,
                     help='Turn on debugging mode')
+parser.add_argument('--load_train_if_exist', action='store_true', default=False,
+                    help='Load existing model data set and skip training if exist')
 args = parser.parse_args()
 
 #==============================================
@@ -31,9 +33,6 @@ if(args.temper):
 else:
     temper_val = 1.
 print("temper_val: %2.3f"%(temper_val))
-#==============================================
-
-
 #==============================================
 
 train_samples      = np.load(pjoin(config.traindir, f'samples_{n}.npy'))
@@ -68,105 +67,145 @@ full_emu = NNEmulator(config.n_dim, config.output_dims, config.dv_fid, config.dv
 # switch according to probes
 if (config.shear_shear==1):
     print("=======================================")
-    print("Training xi_plus emulator....")
     _l, _r = 0, config.N_xi
     emu_xi_plus = NNEmulator(config.n_dim, config.N_xi, 
-        config.dv_fid[_l:_r], config.dv_std[_l:_r], 
-        config.mask[_l:_r], config.nn_model)
-    emu_xi_plus.train(torch.Tensor(train_samples), 
-        torch.Tensor(train_data_vectors[:,_l:_r]),
-        batch_size=config.batch_size, n_epochs=config.n_epochs)
-    if(args.save_emu):
-        emu_xi_plus.save(pjoin(config.modeldir, f'xi_p_{n}_nn{config.nn_model}'))
+            config.dv_fid[_l:_r], config.dv_std[_l:_r], 
+            config.mask[_l:_r], config.nn_model)
+    emu_xi_plus_fn = pjoin(config.modeldir, f'xi_p_{n}_nn{config.nn_model}')
+    if (args.load_train_if_exist and os.path.exists(emu_xi_plus_fn)):
+        print(f'Loading existing xi_plus emulator from {emu_xi_plus_fn}....')
+        emu_xi_plus.load(emu_xi_plus_fn)
+    else:
+        print("Training xi_plus emulator....")
+        emu_xi_plus.train(torch.Tensor(train_samples), 
+            torch.Tensor(train_data_vectors[:,_l:_r]),
+            batch_size=config.batch_size, n_epochs=config.n_epochs)
+        if(args.save_emu):
+            emu_xi_plus.save(emu_xi_plus_fn)
     print("=======================================")
     print("=======================================")
-    print("Training xi_minus emulator....")
     _l, _r = config.N_xi, config.N_xi*2
     emu_xi_minus = NNEmulator(config.n_dim, config.N_xi, 
         config.dv_fid[_l:_r], config.dv_std[_l:_r], 
         config.mask[_l:_r], config.nn_model)
-    emu_xi_minus.train(torch.Tensor(train_samples), 
-        torch.Tensor(train_data_vectors[:,_l:_r]),
-        batch_size=config.batch_size, n_epochs=config.n_epochs)
-    if(args.save_emu):
-        emu_xi_minus.save(pjoin(config.modeldir, f'xi_m_{n}_nn{config.nn_model}'))
+    emu_xi_minus_fn = pjoin(config.modeldir, f'xi_m_{n}_nn{config.nn_model}')
+    if (args.load_train_if_exist and os.path.exists(emu_xi_minus_fn)):
+        print(f'Loading existing xi_minus emulator from {emu_xi_minus_fn}....')
+        emu_xi_minus.load(emu_xi_minus_fn)
+    else:
+        print("Training xi_minus emulator....")
+        emu_xi_minus.train(torch.Tensor(train_samples), 
+            torch.Tensor(train_data_vectors[:,_l:_r]),
+            batch_size=config.batch_size, n_epochs=config.n_epochs)
+        if(args.save_emu):
+            emu_xi_minus.save(emu_xi_minus_fn)
     print("=======================================")
 if (config.shear_pos==1):
     print("=======================================")
-    print("Training gammat emulator....")
     _l, _r = config.N_xi*2, config.N_xi*2 + config.N_ggl
     emu_gammat = NNEmulator(config.n_dim, config.N_ggl, 
         config.dv_fid[_l:_r], config.dv_std[_l:_r], 
         config.mask[_l:_r], config.nn_model)
-    emu_gammat.train(torch.Tensor(train_samples), 
-        torch.Tensor(train_data_vectors[:,_l:_r]),
-        batch_size=config.batch_size, n_epochs=config.n_epochs)
-    if(args.save_emu):
-        emu_gammat.save(pjoin(config.modeldir, f'gammat_{n}_nn{config.nn_model}'))
+    emu_gammat_fn = pjoin(config.modeldir, f'gammat_{n}_nn{config.nn_model}')
+    if (args.load_train_if_exist and os.path.exists(emu_gammat_fn)):
+        print(f'Loading existing xi_minus emulator from {emu_gammat_fn}....')
+        emu_gammat.load(emu_gammat_fn)
+    else:
+        print("Training gammat emulator....")
+        emu_gammat.train(torch.Tensor(train_samples), 
+            torch.Tensor(train_data_vectors[:,_l:_r]),
+            batch_size=config.batch_size, n_epochs=config.n_epochs)
+        if(args.save_emu):
+            emu_gammat.save(emu_gammat_fn)
     print("=======================================")
 if (config.pos_pos==1):
     print("=======================================")
-    print("Training wtheta emulator....")
     _l, _r = config.N_xi*2+config.N_ggl, config.N_xi*2+config.N_ggl+config.N_w
     emu_wtheta = NNEmulator(config.n_dim, config.N_w, 
         config.dv_fid[_l:_r], config.dv_std[_l:_r], 
         config.mask[_l:_r], config.nn_model)
-    emu_wtheta.train(torch.Tensor(train_samples), 
-        torch.Tensor(train_data_vectors[:,_l:_r]),
-        batch_size=config.batch_size, n_epochs=config.n_epochs)
-    if(args.save_emu):
-        emu_wtheta.save(pjoin(config.modeldir, f'wtheta_{n}_nn{config.nn_model}'))
+    emu_wtheta_fn = pjoin(config.modeldir, f'wtheta_{n}_nn{config.nn_model}')
+    if (args.load_train_if_exist and os.path.exists(emu_wtheta_fn)):
+        print(f'Loading existing xi_minus emulator from {emu_wtheta_fn}....')
+        emu_wtheta.load(emu_wtheta_fn)
+    else:
+        print("Training wtheta emulator....")
+        emu_wtheta.train(torch.Tensor(train_samples), 
+            torch.Tensor(train_data_vectors[:,_l:_r]),
+            batch_size=config.batch_size, n_epochs=config.n_epochs)
+        if(args.save_emu):
+            emu_wtheta.save(emu_wtheta_fn)
     print("=======================================")
 if (config.gk==1):
     print("=======================================")
-    print("Training w_gk emulator....")
     _l, _r = config.N_xi*2+config.N_ggl+config.N_w, config.N_xi*2+config.N_ggl+config.N_w+config.N_gk
     emu_gk = NNEmulator(config.n_dim, config.N_gk, 
         config.dv_fid[_l:_r], config.dv_std[_l:_r], 
         config.mask[_l:_r], config.nn_model)
-    emu_gk.train(torch.Tensor(train_samples), 
-        torch.Tensor(train_data_vectors[:,_l:_r]),
-        batch_size=config.batch_size, n_epochs=config.n_epochs)
-    if(args.save_emu):
-        emu_gk.save(pjoin(config.modeldir, f'gk_{n}_nn{config.nn_model}'))
+    emu_gk_fn = pjoin(config.modeldir, f'gk_{n}_nn{config.nn_model}')
+    if (args.load_train_if_exist and os.path.exists(emu_gk_fn)):
+        print(f'Loading existing xi_minus emulator from {emu_gk_fn}....')
+        emu_gk.load(emu_gk_fn)
+    else:
+        print("Training w_gk emulator....")
+        emu_gk.train(torch.Tensor(train_samples), 
+            torch.Tensor(train_data_vectors[:,_l:_r]),
+            batch_size=config.batch_size, n_epochs=config.n_epochs)
+        if(args.save_emu):
+            emu_gk.save(emu_gk_fn)
     print("=======================================")
 if (config.ks==1):
     print("=======================================")
-    print("Training w_sk emulator....")
     _l, _r = config.N_xi*2+config.N_ggl+config.N_w+config.N_gk, config.N_xi*2+config.N_ggl+config.N_w+config.N_gk+config.N_sk
     emu_ks = NNEmulator(config.n_dim, config.N_sk, 
         config.dv_fid[_l:_r], config.dv_std[_l:_r], 
         config.mask[_l:_r], config.nn_model)
-    emu_ks.train(torch.Tensor(train_samples), 
-        torch.Tensor(train_data_vectors[:,_l:_r]),
-        batch_size=config.batch_size, n_epochs=config.n_epochs)
-    if(args.save_emu):
-        emu_ks.save(pjoin(config.modeldir, f'ks_{n}_nn{config.nn_model}'))
+    emu_ks_fn = pjoin(config.modeldir, f'ks_{n}_nn{config.nn_model}')
+    if (args.load_train_if_exist and os.path.exists(emu_ks_fn)):
+        print(f'Loading existing xi_minus emulator from {emu_ks_fn}....')
+        emu_ks.load(emu_ks_fn)
+    else:
+        print("Training w_sk emulator....")
+        emu_ks.train(torch.Tensor(train_samples), 
+            torch.Tensor(train_data_vectors[:,_l:_r]),
+            batch_size=config.batch_size, n_epochs=config.n_epochs)
+        if(args.save_emu):
+            emu_ks.save(emu_ks_fn)
     print("=======================================")
 if (config.kk==1):
     print("=======================================")
-    print("Training CMBL band power emulator....")
     _l, _r = config.N_xi*2+config.N_ggl+config.N_w+config.N_gk+config.N_sk, config.N_xi*2+config.N_ggl+config.N_w+config.N_gk+config.N_sk+config.N_kk
     emu_kk = NNEmulator(config.n_dim, config.N_kk, 
         config.dv_fid[_l:_r], config.dv_std[_l:_r], 
         config.mask[_l:_r], config.nn_model)
-    emu_kk.train(torch.Tensor(train_samples), 
-        torch.Tensor(train_data_vectors[:,_l:_r]),
-        batch_size=config.batch_size, n_epochs=config.n_epochs)
-    if(args.save_emu):
-        emu_kk.save(pjoin(config.modeldir, f'kk_{n}_nn{config.nn_model}'))
+    emu_kk_fn = pjoin(config.modeldir, f'kk_{n}_nn{config.nn_model}')
+    if (args.load_train_if_exist and os.path.exists(emu_kk_fn)):
+        print(f'Loading existing xi_minus emulator from {emu_kk_fn}....')
+        emu_kk.load(emu_kk_fn)
+    else:
+        print("Training CMBL band power emulator....")
+        emu_kk.train(torch.Tensor(train_samples), 
+            torch.Tensor(train_data_vectors[:,_l:_r]),
+            batch_size=config.batch_size, n_epochs=config.n_epochs)
+        if(args.save_emu):
+            emu_kk.save(emu_kk_fn)
     print("=======================================")
 if (config.derived==1):
     print("=======================================")
-    print("Training derived parameters emulator (sigma8) ....")
     emu_s8 = NNEmulator(config.n_pars_cosmo, 1, 
         config.sigma8_fid, config.sigma8_std, 
         np.array([True,]), config.nn_model)
-    emu_s8.train(torch.Tensor(train_samples[:,:n_pars_cosmo]), 
-        torch.Tensor(train_sigma8),
-        batch_size=config.batch_size, n_epochs=config.n_epochs)
-    if(args.save_emu):
-        emu_s8.save(pjoin(config.modeldir, f'sigma8_{n}_nn{config.nn_model}'))
+    emu_s8_fn = pjoin(config.modeldir, f'sigma8_{n}_nn{config.nn_model}')
+    if (args.load_train_if_exist and os.path.exists(emu_s8_fn)):
+        print(f'Loading existing xi_minus emulator from {emu_s8_fn}....')
+        emu_s8.load(emu_s8_fn)
+    else:
+        print("Training derived parameters emulator (sigma8) ....")
+        emu_s8.train(torch.Tensor(train_samples[:,:n_pars_cosmo]), 
+            torch.Tensor(train_sigma8),
+            batch_size=config.batch_size, n_epochs=config.n_epochs)
+        if(args.save_emu):
+            emu_s8.save(emu_s8_fn)
     print("=======================================")
 #==============================================
 os.environ["OMP_NUM_THREADS"] = "1"
