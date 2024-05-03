@@ -245,6 +245,10 @@ with Pool() as pool:
     sampler = emcee.EnsembleSampler(config.n_emcee_walkers, 
         emu_sampler.n_sample_dims, ln_prob, args=(temper_val,), pool=pool)
     sampler.run_mcmc(pos0, config.n_mcmc, progress=True)
+    # save the sampler for debug purpose
+    np.save(pjoin(config.traindir, f'DBG_chain_{n}.npy'), 
+        np.concatenate([sampler.get_chain(), 
+            sampler.get_log_prob()[:,:,np.newaxis]], axis=2))
 
 samples = sampler.chain[:,config.n_burn_in::config.n_thin].reshape((-1, emu_sampler.n_sample_dims))
 
