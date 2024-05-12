@@ -119,7 +119,7 @@ void cpp_initial_setup()
   // nonlimber ?
   // nonLimber: 0; Limber: 1;
   // Doesn't support IA=6 AND nonLimber together
-  like.adopt_limber_gg = 1;
+  like.adopt_limber_gg = 0;
   like.adopt_limber_gammat = 1;
 
   like.high_def_integration = 1;
