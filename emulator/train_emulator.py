@@ -33,11 +33,14 @@ if(args.temper):
 else:
     temper_val = 1.
 print(f'\n>>> Start Emulator Training [Iteration {args.iter}] [1/Temperature {temper_val:2.3f}]\n')
+label = config.emu_type.lower()
+if label=="nn":
+    label = label+f'{config.nn_model}'
 #==============================================
 
-train_samples      = np.load(pjoin(config.traindir, f'samples_{n}.npy'))
-train_data_vectors = np.load(pjoin(config.traindir, f'data_vectors_{n}.npy'))
-train_sigma8       = np.load(pjoin(config.traindir, f'sigma8_{n}.npy'))
+train_samples      = np.load(pjoin(config.traindir, f'samples_{label}_{n}.npy'))
+train_data_vectors = np.load(pjoin(config.traindir, f'data_vectors_{label}_{n}.npy'))
+train_sigma8       = np.load(pjoin(config.traindir, f'sigma8_{label}_{n}.npy'))
 
 #================= Clean data by chi2 cut ================================
 
@@ -283,7 +286,7 @@ with Pool() as pool:
     sampler.run_mcmc(pos0, config.n_mcmc, progress=True)
     # save the sampler for debug purpose
     if (args.debug):
-        np.save(pjoin(config.traindir, f'DBG_nn{config.nn_model}_chain_{n}.npy'), 
+        np.save(pjoin(config.traindir, f'DBG_chain_{label}_{n}.npy'), 
             np.concatenate([sampler.get_chain(), 
                 sampler.get_log_prob()[:,:,np.newaxis]], axis=2))
 
@@ -293,8 +296,8 @@ if(args.temper):
     # only save samples to explore posterior regions
     select_indices = np.random.choice(np.arange(len(samples)), replace=False, size=config.n_resample)
     next_training_samples = samples[select_indices,:-(config.n_fast_pars)]
-    np.save(pjoin(config.traindir, f'samples_nn{config.nn_model}_{n+1}.npy'), next_training_samples)
+    np.save(pjoin(config.traindir, f'samples_{label}_{n+1}.npy'), next_training_samples)
 else:
     # we want the chain
-    np.save(pjoin(config.chaindir, config.chainname+f'_nn{config.nn_model}_{n}.npy'), samples)
+    np.save(pjoin(config.chaindir, config.chainname+f'_{label}_{n}.npy'), samples)
 print("train_emulator.py: iteration %d Done!"%n)

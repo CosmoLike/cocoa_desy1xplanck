@@ -14,6 +14,9 @@ rank = comm.Get_rank()
 
 configfile = sys.argv[1]
 config = Config(configfile)
+label = config.emu_type.lower()
+if label=="nn":
+    label = label+f'{config.nn_model}'
 if(rank==0):
     print("Initializing configuration space data vector dimension!")
     print("N_xip: %d"%(config.N_xi))
@@ -134,7 +137,7 @@ if(n==0):
     lhs_params = comm.bcast(lhs_params, root=0)
     params_list = lhs_params
 else:
-    next_training_samples = np.load(pjoin(config.traindir, f'samples_{n}.npy'))
+    next_training_samples = np.load(pjoin(config.traindir, f'samples_{label}_{n}.npy'))
     params_list = get_params_list(next_training_samples, config.param_labels)
     
 current_iter_samples, current_iter_data_vectors, current_iter_sigma8 = get_data_vectors(params_list, comm, rank, return_s8=True)
@@ -167,9 +170,9 @@ if(rank==0):
     train_samples      = train_samples[select_chi_sq]
     train_sigma8       = train_sigma8[select_chi_sq]
     # ========================================================
-    np.save(pjoin(config.traindir, f'data_vectors_{n}.npy'), train_data_vectors)
-    np.save(pjoin(config.traindir, f'samples_{n}.npy'), train_samples)
-    np.save(pjoin(config.traindir, f'sigma8_{n}.npy'), train_sigma8)
+    np.save(pjoin(config.traindir, f'data_vectors__{label}_{n}.npy'), train_data_vectors)
+    np.save(pjoin(config.traindir, f'samples_{label}_{n}.npy'), train_samples)
+    np.save(pjoin(config.traindir, f'sigma8_{label}_{n}.npy'), train_sigma8)
     # ======================================================== 
     print(f'Done data vector calculation iteration {n}!')
 MPI.Finalize
