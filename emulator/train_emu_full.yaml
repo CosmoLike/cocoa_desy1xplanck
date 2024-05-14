@@ -89,7 +89,7 @@ params:
   mnu:
     #value: 0.06
     prior:
-      min: 0.046
+      min: 0.0558
       max: 0.931
     ref:
       dist: norm
@@ -565,9 +565,9 @@ emulator:
       mask: ./projects/desy1xplanck/data/emu_data/DESY3xPLKR4_Maglim_baseline_Ntheta30_shear_calib_mask.npy
       prior_std: 0.009,0.008,0.008,0.008
   baryons:
-      n_pcas_baryon: 2
-      prior_Q1: -6.,20.
-      prior_Q2: -4.,4.
+      n_pcas_baryon: 0
+      #prior_Q1: -6.,20.
+      #prior_Q2: -4.,4.
   galaxy_bias:
       mask: ./projects/desy1xplanck/data/emu_data/DESY3xPLKR4_Maglim_baseline_Ntheta30_linear_gbias_mask.npy
       bias_fid: 1.5,1.8,1.8,1.9,2.3,2.3
@@ -586,7 +586,11 @@ emulator:
       sigma8_fid: 0.827706
       sigma8_std: 0.500
   sampling:
-      scalecut_mask: ./projects/desy1xplanck/data/masks/xi_DESY3xPLKR4_6x2pt_Maglim_baseline_Ntheta30_emu.mask
+      ### This mask is different from the mask in the dataset file
+      ### Dataset mask: can short-cut model vector evaluation
+      ### This mask: can not short-cut mv calculation, applied in EmuSampler likelihood calc
+      ### To make posterior region broad enough, this mask should be conservative
+      scalecut_mask: ./projects/desy1xplanck/data/masks/xi_DESY3xPLKR4_6x2pt_Maglim_baseline_Ntheta30_Y3aggr.mask
       n_mcmc: 60000
       n_emcee_walkers: 100
       n_burn_in: 40000
