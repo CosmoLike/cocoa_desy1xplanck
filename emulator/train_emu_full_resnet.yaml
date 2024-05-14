@@ -574,7 +574,7 @@ emulator:
       bias_prior: 0.8, 3.0
   training:
       emu_type: nn
-      nn_model: 0
+      nn_model: 4
       dv_fid: ./projects/desy1xplanck/data/data_vectors/xi_DESY3xPLKR4_6x2pt_Maglim_baseline_Ntheta30_dmo.emufid
       chi_sq_cut: 1e+5
       n_train_iter: 4
