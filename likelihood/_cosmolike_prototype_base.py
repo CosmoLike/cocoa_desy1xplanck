@@ -243,6 +243,11 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
         self.log.info('use_baryon_pca = True')
         self.log.info('baryon_pca_file = %s loaded', baryon_pca_file)
         self.use_baryon_pca = True
+        if self.subtract_mean:
+          mean_baryon_diff_file = ini.relativeFileName('mean_baryon_diff_file')
+          self.mean_baryon_diff = np.loadtxt(mean_baryon_diff_file)
+          self.log.info('subtract_mean = True')
+          self.log.info('mean_baryon_diff_file = %s loaded', mean_baryon_diff_file)
       else:
         self.log.info('use_baryon_pca = False')
         self.use_baryon_pca = False
@@ -506,7 +511,9 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
     self.baryon_pcs_qs[2] = params_values.get("DES_BARYON_Q3", 0.0)
     self.baryon_pcs_qs[3] = params_values.get("DES_BARYON_Q4", 0.0)
     
-  def add_baryon_pcs_to_datavector(self, datavector):    
+  def add_baryon_pcs_to_datavector(self, datavector):
+    if self.subtract_mean:
+      datavector[:] += self.mean_baryon_diff 
     return datavector[:] + self.baryon_pcs_qs[0]*self.baryon_pcs[:,0] \
       + self.baryon_pcs_qs[1]*self.baryon_pcs[:,1] \
       + self.baryon_pcs_qs[2]*self.baryon_pcs[:,2] \
@@ -572,16 +579,30 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
 
       baryon_diff[:,i] = (modelv_baryon-modelv_dm)
 
-    baryon_weighted_diff = np.dot(inv_cov_L_cholesky, baryon_diff)
+    # save the difference matrix for debug & PCA explore
+    np.savetxt(self.filename_baryon_pca[:-3]+"diffmat", baryon_diff)
 
+    ### Weights for different feedback scenarios
+    weights = np.ones(nbaryons_scenario)
     if self.use_weights_for_scenarios:
-      weights_file = pd.read_csv(self.scenario_weights, 
-        names=['sim', 'weight'], delimiter=' ')
-      weights = np.ones(nbaryons_scenario)
+      weights_file = pd.read_csv(self.scenario_weights, names=['sim', 'weight'], delimiter=' ')
       for i in range(nbaryons_scenario):
         idx = np.where(weights_file['sim']==ci.get_baryon_pca_scenario_name(i))
         weights[i] = weights_file['weight'][idx[0]].to_numpy()[0]
-      baryon_weighted_diff = np.dot(baryon_weighted_diff, np.diag(weights))
+    V1, V2 = np.sum(weights), np.sum(weights**2)
+    # reduce to I/(Nsim - 1) if equal weights
+    weights_sqrt_mat = np.diag(np.sqrt(weights))/np.sqrt(V1-V2/V1)
+
+    ### Subtract mean 2pcf difference
+    if self.subtract_mean:
+        mean_baryon_diff = np.average(baryon_diff, axis=1, weights=weights)
+        baryon_diff = baryon_diff - mean_baryon_diff[:,np.newaxis]
+        np.savetxt(self.filename_baryon_pca[:-3]+"mean", mean_baryon_diff)
+
+    # Apply weighting both in data vector space and feedback scenario space
+    # Do SVD of L-1 x Diffmat x Omega^(1/2)
+    baryon_weighted_diff = np.dot(inv_cov_L_cholesky, baryon_diff)
+    baryon_weighted_diff = np.dot(baryon_weighted_diff, weights_sqrt_mat)
 
     U, Sdig, VT = np.linalg.svd(baryon_weighted_diff, full_matrices=True)
     print(f'U-shape = {U.shape} / ndata_reduced = {ndata_reduced}')
@@ -595,12 +616,11 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
       PCs[:,i] = U[:,i]
 
     PCs = np.dot(cov_L_cholesky, PCs)
-    if self.use_weights_for_scenarios:
-      PCs = np.dot(PCs, np.diag(1/weights))
 
     if self.save_Qs:
       # Calculate the PCs' amplitude of each scenario, NPCs x Nsims
-      Qs = np.dot(U[:,:nbaryons_scenario].T, baryon_weighted_diff)
+      Qs = np.dot(U[:,:nbaryons_scenario].T, 
+            np.dot(baryon_weighted_diff, 1.0/weights_sqrt_mat))
       print(f'Qs shape = {Qs.shape}/barydiff shape = {baryon_weighted_diff.shape}')
       scenarios = [ci.get_baryon_pca_scenario_name(i) for i in range(nbaryons_scenario)]
       np.savetxt(self.filename_baryon_pca+"_Qs", Qs, 
