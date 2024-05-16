@@ -580,7 +580,10 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
       baryon_diff[:,i] = (modelv_baryon-modelv_dm)
 
     # save the difference matrix for debug & PCA explore
-    np.savetxt(self.filename_baryon_pca[:-3]+"diffmat", baryon_diff)
+    _bd = np.empty(shape=(ndata, nbaryons_scenario))
+    for i in range(nbaryons_scenario):
+      _bd[:,i] = ci.get_expand_dim_from_masked_reduced_dim(baryon_diff[:,i])
+    np.savetxt(self.filename_baryon_pca+"_diffmat", _bd)
 
     ### Weights for different feedback scenarios
     weights = np.ones(nbaryons_scenario)
@@ -597,7 +600,8 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
     if self.subtract_mean:
         mean_baryon_diff = np.average(baryon_diff, axis=1, weights=weights)
         baryon_diff = baryon_diff - mean_baryon_diff[:,np.newaxis]
-        np.savetxt(self.filename_baryon_pca[:-3]+"mean", mean_baryon_diff)
+        np.savetxt(self.filename_baryon_pca+"_mean", 
+          ci.get_expand_dim_from_masked_reduced_dim(mean_baryon_diff))
 
     # Apply weighting both in data vector space and feedback scenario space
     # Do SVD of L-1 x Diffmat x Omega^(1/2)
