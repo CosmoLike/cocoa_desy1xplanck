@@ -580,7 +580,7 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
       baryon_diff[:,i] = (modelv_baryon-modelv_dm)
 
     # save the difference matrix for debug & PCA explore
-    _bd = np.empty(shape=(ndata, nbaryons_scenario))
+    _bd = np.empty(shape=(ci.get_ndim(), nbaryons_scenario))
     for i in range(nbaryons_scenario):
       _bd[:,i] = ci.get_expand_dim_from_masked_reduced_dim(baryon_diff[:,i])
     np.savetxt(self.filename_baryon_pca+"_diffmat", _bd)
