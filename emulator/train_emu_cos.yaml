@@ -350,7 +350,8 @@ theory:
 emulator:
   probe: 6x2pt
   io:
-      savedir: ./projects/desy1xplanck/emulator
+      ###savedir: ./projects/desy1xplanck/emulator
+      savedir: /groups/timeifler/jiachuanxu/emulator_output
       save_train_data: true
       save_intermediate_model: true
   shear_calib:

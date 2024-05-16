@@ -224,26 +224,28 @@ params:
     proposal: 0.003
     latex: \Delta z_\mathrm{l,DES}^4
   DES_DZ_L5:
-    prior:
-      dist: norm
-      loc: 0.002
-      scale: 0.007 
-    ref:
-      dist: norm
-      loc: 0.002
-      scale: 0.000007
-    proposal: 0.0035
+    value: 0.0
+    #prior:
+    #  dist: norm
+    #  loc: 0.002
+    #  scale: 0.007 
+    #ref:
+    #  dist: norm
+    #  loc: 0.002
+    #  scale: 0.000007
+    #proposal: 0.0035
     latex: \Delta z_\mathrm{l,DES}^5
   DES_DZ_L6:
-    prior:
-      dist: norm
-      loc: 0.002
-      scale: 0.008 
-    ref:
-      dist: norm
-      loc: 0.002
-      scale: 0.000008
-    proposal: 0.004
+    value: 0.0
+    #prior:
+    #  dist: norm
+    #  loc: 0.002
+    #  scale: 0.008 
+    #ref:
+    #  dist: norm
+    #  loc: 0.002
+    #  scale: 0.000008
+    #proposal: 0.004
     latex: \Delta z_\mathrm{l,DES}^6
   # =============================
   # Lens galaxies photo-z stretch
@@ -292,26 +294,28 @@ params:
     proposal: 0.025
     latex: \sigma z_\mathrm{l,DES}^4
   DES_STRETCH_L5:
-    prior:
-      dist: norm
-      loc: 1.08
-      scale: 0.067
-    ref:
-      dist: norm
-      loc: 1.08
-      scale: 0.000067
-    proposal: 0.0335
+    value: 1.0
+    #prior:
+    #  dist: norm
+    #  loc: 1.08
+    #  scale: 0.067
+    #ref:
+    #  dist: norm
+    #  loc: 1.08
+    #  scale: 0.000067
+    #proposal: 0.0335
     latex: \sigma z_\mathrm{l,DES}^5
   DES_STRETCH_L6:
-    prior:
-      dist: norm
-      loc: 0.845
-      scale: 0.073
-    ref:
-      dist: norm
-      loc: 0.845
-      scale: 0.000073
-    proposal: 0.0365
+    value: 1.0
+    #prior:
+    #  dist: norm
+    #  loc: 0.845
+    #  scale: 0.073
+    #ref:
+    #  dist: norm
+    #  loc: 0.845
+    #  scale: 0.000073
+    #proposal: 0.0365
     latex: \sigma z_\mathrm{l,DES}^6
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
@@ -558,7 +562,8 @@ theory:
 emulator:
   probe: 6x2pt
   io:
-      savedir: ./projects/desy1xplanck/emulator
+      ###savedir: ./projects/desy1xplanck/emulator
+      savedir: /groups/timeifler/jiachuanxu/emulator_output
       save_train_data: true
       save_intermediate_model: true
   shear_calib:
