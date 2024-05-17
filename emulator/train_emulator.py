@@ -21,9 +21,13 @@ parser.add_argument('--debug', action='store_true', default=False,
                     help='Turn on debugging mode')
 parser.add_argument('--load_train_if_exist', action='store_true', default=False,
                     help='Load existing model data set and skip training if exist')
+parser.add_argument('--only_new_sample', action='store_true', 
+    default=False, help='Only train on new data from this iteration.')
+parser.add_argument('--no_retrain', action='store_true', default=False, 
+    help='Do NOT retrain previous model, train a new model instead.')
 args = parser.parse_args()
 
-#==============================================
+#===============================================================================
 temper_schedule = [0.02, 0.1, 0.2, 0.4, 0.6, 0.7, 0.9, 0.9]
 
 config = Config(args.config)
@@ -36,13 +40,27 @@ print(f'\n>>> Start Emulator Training [Iteration {args.iter}] [1/Temperature {te
 label = config.emu_type.lower()
 if label=="nn":
     label = label+f'{config.nn_model}'
-#==============================================
-
-train_samples      = np.load(pjoin(config.traindir, f'samples_{label}_{n}.npy'))
-train_data_vectors = np.load(pjoin(config.traindir, f'data_vectors_{label}_{n}.npy'))
-train_sigma8       = np.load(pjoin(config.traindir, f'sigma8_{label}_{n}.npy'))
-
-#================= Clean data by chi2 cut ================================
+#================== Loading Training Data ======================================
+if args.only_new_sample:
+    print(f'Loading training data: ONLY LOADING DATA FROM ITERATION {n}!')
+    train_samples = np.load(pjoin(config.traindir, f'samples_{label}_{n}.npy'))
+    train_data_vectors = np.load(pjoin(config.traindir, 
+        f'data_vectors_{label}_{n}.npy'))
+    train_sigma8 = np.load(pjoin(config.traindir, f'sigma8_{label}_{n}.npy'))
+else:
+    print(f'Loading training data: LOADING ALL DATA UNTIL ITERATION {n}!')
+    train_samples = np.load(pjoin(config.traindir, f'samples_{label}_{0}.npy'))
+    train_data_vectors = np.load(pjoin(config.traindir, 
+        f'data_vectors_{label}_{0}.npy'))
+    train_sigma8 = np.load(pjoin(config.traindir, f'sigma8_{label}_{0}.npy'))
+    for i in range(1, n):
+        train_samples = np.vstack([train_samples, 
+            np.load(pjoin(config.traindir, f'samples_{label}_{i}.npy'))])
+        train_data_vectors = np.vstack([train_data_vectors,
+            np.load(pjoin(config.traindir, f'data_vectors_{label}_{i}.npy'))])
+        train_sigma8 = np.vstack([train_sigma8,
+            np.load(pjoin(config.traindir, f'sigma8_{label}_{i}.npy'))])
+#================= Clean data by chi2 cut ======================================
 
 def get_chi_sq_cut(train_data_vectors):
     chi_sq_list = []
@@ -62,11 +80,11 @@ print("Total number of objects: %d"%(selected_obj))
 train_data_vectors = train_data_vectors[select_chi_sq]
 train_samples      = train_samples[select_chi_sq]
 train_sigma8       = train_sigma8[select_chi_sq]
-#================= Init emulator =============================
+#================= Init emulator ===============================================
 torch.set_num_threads(48)
 # NN only hard-coded?
 full_emu = NNEmulator(config.n_dim, config.output_dims, config.dv_fid, config.dv_std, config.mask_ones, config.nn_model)
-#================= Training emulator =============================
+#================= Training emulator ===========================================
 # switch according to probes
 if (config.shear_shear==1):
     print("=======================================")
@@ -79,7 +97,13 @@ if (config.shear_shear==1):
         print(f'Loading existing xi_plus emulator from {emu_xi_plus_fn}....')
         emu_xi_plus.load(emu_xi_plus_fn)
     else:
-        print("Training xi_plus emulator....")
+        if ((not args.no_retrain) and (n>0)):
+            previous_fn = pjoin(config.modeldir, 
+                f'xi_p_{n-1}_nn{config.nn_model}')
+            print(f'Retrain xi_plus emulator from {previous_fn}')
+            emu_xi_plus.load(previous_fn)
+        else:
+            print("Training NEW xi_plus emulator....")
         emu_xi_plus.train(torch.Tensor(train_samples), 
             torch.Tensor(train_data_vectors[:,_l:_r]),
             batch_size=config.batch_size, n_epochs=config.n_epochs)
@@ -96,7 +120,13 @@ if (config.shear_shear==1):
         print(f'Loading existing xi_minus emulator from {emu_xi_minus_fn}....')
         emu_xi_minus.load(emu_xi_minus_fn)
     else:
-        print("Training xi_minus emulator....")
+        if ((not args.no_retrain) and (n>0)):
+            previous_fn = pjoin(config.modeldir, 
+                f'xi_m_{n-1}_nn{config.nn_model}')
+            print(f'Retrain xi_minus emulator from {previous_fn}')
+            emu_xi_minus.load(previous_fn)
+        else:
+            print("Training NEW xi_minus emulator....")
         emu_xi_minus.train(torch.Tensor(train_samples), 
             torch.Tensor(train_data_vectors[:,_l:_r]),
             batch_size=config.batch_size, n_epochs=config.n_epochs)
@@ -114,7 +144,13 @@ if (config.shear_pos==1):
         print(f'Loading existing gammat emulator from {emu_gammat_fn}....')
         emu_gammat.load(emu_gammat_fn)
     else:
-        print("Training gammat emulator....")
+        if ((not args.no_retrain) and (n>0)):
+            previous_fn = pjoin(config.modeldir, 
+                f'gammat_{n-1}_nn{config.nn_model}')
+            print(f'Retrain gammat emulator from {previous_fn}')
+            emu_gammat.load(previous_fn)
+        else:
+            print("Training NEW gammat emulator....")
         emu_gammat.train(torch.Tensor(train_samples), 
             torch.Tensor(train_data_vectors[:,_l:_r]),
             batch_size=config.batch_size, n_epochs=config.n_epochs)
@@ -132,7 +168,13 @@ if (config.pos_pos==1):
         print(f'Loading existing wtheta emulator from {emu_wtheta_fn}....')
         emu_wtheta.load(emu_wtheta_fn)
     else:
-        print("Training wtheta emulator....")
+        if ((not args.no_retrain) and (n>0)):
+            previous_fn = pjoin(config.modeldir, 
+                f'wtheta_{n-1}_nn{config.nn_model}')
+            print(f'Retrain wtheta emulator from {previous_fn}')
+            emu_wtheta.load(previous_fn)
+        else:
+            print("Training NEW wtheta emulator....")
         emu_wtheta.train(torch.Tensor(train_samples), 
             torch.Tensor(train_data_vectors[:,_l:_r]),
             batch_size=config.batch_size, n_epochs=config.n_epochs)
@@ -150,7 +192,13 @@ if (config.gk==1):
         print(f'Loading existing w_gk emulator from {emu_gk_fn}....')
         emu_gk.load(emu_gk_fn)
     else:
-        print("Training w_gk emulator....")
+        if ((not args.no_retrain) and (n>0)):
+            previous_fn = pjoin(config.modeldir, 
+                f'gk_{n-1}_nn{config.nn_model}')
+            print(f'Retrain w_gk emulator from {previous_fn}')
+            emu_gk.load(previous_fn)
+        else:
+            print("Training NEW w_gk emulator....")
         emu_gk.train(torch.Tensor(train_samples), 
             torch.Tensor(train_data_vectors[:,_l:_r]),
             batch_size=config.batch_size, n_epochs=config.n_epochs)
@@ -168,7 +216,13 @@ if (config.ks==1):
         print(f'Loading existing w_sk emulator from {emu_ks_fn}....')
         emu_ks.load(emu_ks_fn)
     else:
-        print("Training w_sk emulator....")
+        if ((not args.no_retrain) and (n>0)):
+            previous_fn = pjoin(config.modeldir, 
+                f'ks_{n-1}_nn{config.nn_model}')
+            print(f'Retrain w_sk emulator from {previous_fn}')
+            emu_ks.load(previous_fn)
+        else:
+            print("Training NEW w_sk emulator....")
         emu_ks.train(torch.Tensor(train_samples), 
             torch.Tensor(train_data_vectors[:,_l:_r]),
             batch_size=config.batch_size, n_epochs=config.n_epochs)
@@ -186,7 +240,13 @@ if (config.kk==1):
         print(f'Loading existing CMBL band power emulator from {emu_kk_fn}....')
         emu_kk.load(emu_kk_fn)
     else:
-        print("Training CMBL band power emulator....")
+        if ((not args.no_retrain) and (n>0)):
+            previous_fn = pjoin(config.modeldir, 
+                f'kk_{n-1}_nn{config.nn_model}')
+            print(f'Retrain CMBL band power emulator from {previous_fn}')
+            emu_kk.load(previous_fn)
+        else:
+            print("Training NEW CMBL band power emulator....")
         emu_kk.train(torch.Tensor(train_samples), 
             torch.Tensor(train_data_vectors[:,_l:_r]),
             batch_size=config.batch_size, n_epochs=config.n_epochs)
@@ -203,7 +263,13 @@ if (config.derived==1):
         print(f'Loading existing derived parameters emulator (sigma8) from {emu_s8_fn}....')
         emu_s8.load(emu_s8_fn)
     else:
-        print("Training derived parameters emulator (sigma8) ....")
+        if ((not args.no_retrain) and (n>0)):
+            previous_fn = pjoin(config.modeldir, 
+                f'sigma8_{n-1}_nn{config.nn_model}')
+            print(f'Retrain derived parameters emulator from {previous_fn}')
+            emu_s8.load(previous_fn)
+        else:
+            print("Training NEW derived parameters emulator....")
         emu_s8.train(torch.Tensor(train_samples[:,:config.n_pars_cosmo]), 
             torch.Tensor(train_sigma8),
             batch_size=config.batch_size, n_epochs=config.n_epochs)
@@ -299,5 +365,8 @@ if(args.temper):
     np.save(pjoin(config.traindir, f'samples_{label}_{n+1}.npy'), next_training_samples)
 else:
     # we want the chain
-    np.save(pjoin(config.chaindir, config.chainname+f'_{label}_{n}.npy'), samples)
+    logprobs= sampler.get_log_prob()[:,config.n_burn_in::config.n_thin].reshape((-1, 1))
+    derived_sigma8 = emu_s8.predict(samples[:,:config.n_pars_cosmo])[0]
+    np.save(pjoin(config.chaindir, config.chainname+f'_{label}_{n}.npy'), 
+        np.vstack([samples, derived_sigma8, logprobs]))
 print("train_emulator.py: iteration %d Done!"%n)
