@@ -53,7 +53,7 @@ else:
     train_data_vectors = np.load(pjoin(config.traindir, 
         f'data_vectors_{label}_{0}.npy'))
     train_sigma8 = np.load(pjoin(config.traindir, f'sigma8_{label}_{0}.npy'))
-    for i in range(1, n):
+    for i in range(1, n+1):
         train_samples = np.vstack([train_samples, 
             np.load(pjoin(config.traindir, f'samples_{label}_{i}.npy'))])
         train_data_vectors = np.vstack([train_data_vectors,
