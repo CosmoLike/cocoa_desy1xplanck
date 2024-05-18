@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
 	samples = sampler.chain[:,config.n_burn_in::config.n_thin].reshape((-1, emu_sampler.n_sample_dims))
 	if emu_s8 is not None:
-		derived_sigma8 = emu_s8.predict(samples[:,:config.n_pars_cosmo])[0]
+		derived_sigma8 = emu_s8.predict(torch.Tensor(samples[:,:config.n_pars_cosmo]))[0]
 		np.save(pjoin(config.chaindir, config.chainname+'.npy'), 
 				np.vstack([samples, derived_sigma8]))
 	else:

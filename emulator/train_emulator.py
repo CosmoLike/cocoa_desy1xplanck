@@ -366,7 +366,7 @@ if(args.temper):
 else:
     # we want the chain
     logprobs= sampler.get_log_prob()[:,config.n_burn_in::config.n_thin].reshape((-1, 1))
-    derived_sigma8 = emu_s8.predict(samples[:,:config.n_pars_cosmo])[0]
+    derived_sigma8 = emu_s8.predict(torch.Tensor(samples[:,:config.n_pars_cosmo]))[0]
     np.save(pjoin(config.chaindir, config.chainname+f'_{label}_{n}.npy'), 
         np.vstack([samples, derived_sigma8, logprobs]))
 print("train_emulator.py: iteration %d Done!"%n)
