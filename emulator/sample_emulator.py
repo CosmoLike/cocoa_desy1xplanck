@@ -62,7 +62,7 @@ if __name__ == '__main__':
 		if os.path.exists(fn+".h5"):
 			print(f'Reading sigma8 NN emulator from {fn}.h5 ...')
 			emu_s8 = NNEmulator(config.n_pars_cosmo, 1, config.sigma8_fid,
-					config.sigma8_std, 1, config.nn_model)
+					config.sigma8_std, np.array([True,]), config.nn_model)
 			emu_s8.load(fn)
 		else:
 			print(f'Can not find sigma8 emulator {fn}!')
