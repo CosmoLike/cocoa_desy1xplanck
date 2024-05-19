@@ -94,10 +94,13 @@ if __name__ == '__main__':
 		sampler.run_mcmc(pos0, config.n_mcmc, progress=True)
 
 	samples = sampler.chain[:,config.n_burn_in::config.n_thin].reshape((-1, emu_sampler.n_sample_dims))
+	logprobs= sampler.get_log_prob()[:,config.n_burn_in::config.n_thin].reshape((-1, 1))
+
 	if emu_s8 is not None:
 		derived_sigma8 = emu_s8.predict(torch.Tensor(samples[:,:config.n_pars_cosmo]))[0]
 		np.save(pjoin(config.chaindir, config.chainname+'.npy'), 
-				np.vstack([samples, derived_sigma8]))
+				np.vstack([samples, derived_sigma8, logprobs]))
 	else:
-		np.save(pjoin(config.chaindir, config.chainname+'.npy'), samples)
+		np.save(pjoin(config.chaindir, config.chainname+'.npy'), 
+			    np.vstack([samples, logprobs]))
 
