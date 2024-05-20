@@ -352,11 +352,13 @@ with Pool() as pool:
     sampler.run_mcmc(pos0, config.n_mcmc, progress=True)
     # save the sampler for debug purpose
     if (args.debug):
+        _sample = sampler.get_chain(flat=True)
+        _logprob= sampler.get_log_prob(flat=True)
+        _sigma8 = emu_s8.predict(torch.Tensor(_sample[:,:config.n_pars_cosmo]))
         np.save(pjoin(config.traindir, f'DBG_chain_{label}_{n}.npy'), 
-            np.concatenate([sampler.get_chain(), 
-                sampler.get_log_prob()[:,:,np.newaxis]], axis=2))
+            np.hstack([_sample, _sigma8, _logprob[:,np.newaxis]]))
 
-samples = sampler.chain[:,config.n_burn_in::config.n_thin].reshape((-1, emu_sampler.n_sample_dims))
+samples = sampler.get_chain(discard=config.n_burn_in, thin=config.n_thin, flat=True)
 
 if(args.temper):
     # only save samples to explore posterior regions
@@ -365,8 +367,8 @@ if(args.temper):
     np.save(pjoin(config.traindir, f'samples_{label}_{n+1}.npy'), next_training_samples)
 else:
     # we want the chain
-    logprobs= sampler.get_log_prob()[:,config.n_burn_in::config.n_thin].reshape((-1, 1))
-    derived_sigma8 = emu_s8.predict(torch.Tensor(samples[:,:config.n_pars_cosmo]))[0]
+    logprobs= sampler.get_log_prob(discard=config.n_burn_in, thin=config.n_thin, flat=True)
+    derived_sigma8 = emu_s8.predict(torch.Tensor(samples[:,:config.n_pars_cosmo]))
     np.save(pjoin(config.chaindir, config.chainname+f'_{label}_{n}.npy'), 
-        np.vstack([samples, derived_sigma8, logprobs]))
+        np.hstack([samples, derived_sigma8, logprobs[:,np.newaxis]]))
 print("train_emulator.py: iteration %d Done!"%n)
