@@ -93,14 +93,15 @@ if __name__ == '__main__':
 		sampler = emcee.EnsembleSampler(config.n_emcee_walkers, emu_sampler.n_sample_dims, ln_prob_wrapper, pool=pool)
 		sampler.run_mcmc(pos0, config.n_mcmc, progress=True)
 
-	samples = sampler.chain[:,config.n_burn_in::config.n_thin].reshape((-1, emu_sampler.n_sample_dims))
-	logprobs= sampler.get_log_prob()[:,config.n_burn_in::config.n_thin].reshape((-1, 1))
+	samples = sampler.get_chain(discard=config.n_burn_in, thin=config.n_thin, flat=True)
+	logprobs= sampler.get_log_prob(discard=config.n_burn_in, thin=config.n_thin, flat=True)
 
 	if emu_s8 is not None:
-		derived_sigma8 = emu_s8.predict(torch.Tensor(samples[:,:config.n_pars_cosmo]))[0]
+		derived_sigma8 = emu_s8.predict(torch.Tensor(samples[:,:config.n_pars_cosmo]))
+		print(samples.shape, derived_sigma8.shape, logprobs.shape)
 		np.save(pjoin(config.chaindir, config.chainname+'.npy'), 
-				np.vstack([samples, derived_sigma8, logprobs]))
+				np.hstack([samples, derived_sigma8, logprobs[:,np.newaxis]]))
 	else:
 		np.save(pjoin(config.chaindir, config.chainname+'.npy'), 
-			    np.vstack([samples, logprobs]))
+			    np.hstack([samples, logprobs[:,np.newaxis]]))
 
