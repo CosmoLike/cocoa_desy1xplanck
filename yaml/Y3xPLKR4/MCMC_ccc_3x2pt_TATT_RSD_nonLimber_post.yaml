@@ -17,384 +17,6 @@
 ### external probes: None
 ### data vector: DES Y3 3x2pt maglim public
 
-timing: True
-debug: False
-stop_at_error: False
-
-likelihood:
-  desy1xplanck.desy3xplanck_3x2pt:
-    path: ./external_modules/data/desy1xplanck
-    data_file: datasets/Y3_250_real.dataset
-    integration_accuracy: 0
-    
-    
-params:
-  As_1e9:
-    prior:
-      min: 0.5
-      max: 5
-    ref:
-      dist: norm
-      loc: 2.1
-      scale: 0.65
-    proposal: 0.4
-    latex: 10^9 A_\mathrm{s}
-    drop: true
-    renames: A
-  As:
-    value: 'lambda As_1e9: 1e-9 * As_1e9'
-    latex: A_\mathrm{s}
-  ns:
-    prior:
-      min: 0.87
-      max: 1.07
-    ref:
-      dist: norm
-      loc: 0.96605
-      scale: 0.01
-    proposal: 0.01
-    latex: n_\mathrm{s}
-  H0:
-    prior:
-      min: 55
-      max: 91
-    ref:
-      dist: norm
-      loc: 67.32
-      scale: 5
-    proposal: 3
-    latex: H_0
-  omegab:
-    prior:
-      min: 0.03
-      max: 0.07
-    ref:
-      dist: norm
-      loc: 0.04
-      scale: 0.004
-    proposal: 0.004
-    latex: \Omega_\mathrm{b}
-    drop: true
-  omegam:
-    prior:
-      min: 0.1
-      max: 0.9
-    ref:
-      dist: norm
-      loc: 0.3
-      scale: 0.02
-    proposal: 0.02
-    latex: \Omega_\mathrm{m}
-    drop: true
-  mnu:
-    prior:
-      min: 0.0558
-      max: 0.6
-    ref:
-      dist: norm
-      loc: 0.06
-      scale: 0.01
-    proposal: 0.01 
-    latex: \m_\\nu
-  w:
-    value: -1
-    latex: w_{0,\mathrm{DE}}
-  wa:
-    value: 0.0
-    latex: w_{a,\mathrm{DE}}
-  tau:
-    value: 0.0697186
-    latex: \tau_\mathrm{reio}
-  # ------------------------------------------------------------------
-  # ------------- Derived Parameters ---------------------------------
-  # ------------------------------------------------------------------
-  omegabh2:
-    value: 'lambda omegab, H0: omegab*(H0/100)**2'
-    latex: \Omega_\mathrm{b} h^2
-  omegach2:
-    value: 'lambda omegam, omegab, mnu, H0: (omegam-omegab)*(H0/100)**2-(mnu*(3.046/3)**0.75)/94.0708'
-    latex: \Omega_\mathrm{c} h^2
-  omegal:
-    latex: \Omega_\Lambda
-  omegamh2:
-    derived: 'lambda omegam, H0: omegam*(H0/100)**2'
-    latex: \Omega_\mathrm{m} h^2
-  sigma8:
-    latex: \sigma_8
-  s8h5:
-    derived: 'lambda sigma8, H0: sigma8*(H0*1e-2)**(-0.5)'
-    latex: \sigma_8/h^{0.5}
-  s8omegamp5:
-    derived: 'lambda sigma8, omegam: sigma8*omegam**0.5'
-    latex: \sigma_8 \Omega_\mathrm{m}^{0.5}
-  s8omegamp25:
-    derived: 'lambda sigma8, omegam: sigma8*omegam**0.25'
-    latex: \sigma_8 \Omega_\mathrm{m}^{0.25}
-  s8:
-    derived: 'lambda sigma8, omegam: sigma8*(omegam/0.3)**0.5'
-    latex: S_8
-  age:
-    latex: '{\rm{Age}}/\mathrm{Gyr}'
-  rdrag:
-    latex: r_\mathrm{drag}
-  yheused:
-    latex: Y_P^\mathrm{BBN}
-  omegan2:
-    latex: \Omega_\mathrm{\\nu} h^2
-  omegan:
-    derived: 'lambda omegan2, H0: omegan2/((H0/100)**2)'
-    latex: \Omega_\mathrm{\\nu}
-  # ------------------------------------------------------------------
-  # DES-Y1 3x2 nuissance parameter begins
-  # ------------------------------------------------------------------
-
-  # galaxy bias: linear bias
-  # ========================
-  # same as default, flat prior [0.8, 3.0] 
-
-  # intrinsic alignment: TATT
-  # ========================
-  # as default, DES_A1_1 [-5, 5]; DES_A1_2 [-5, 5]
-  # fiducial value: 0.6, -1.5
-  DES_A2_1: #TATT, not used for Y1
-    prior:
-      min: -5.0
-      max: 5.0
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 0.2
-    proposal: 0.2
-    latex: A_\mathrm{2-IA,DES}^1 
-  DES_A2_2: #TATT, not used for Y1
-    prior:
-      min: -5.0
-      max: 5.0
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 0.2
-    proposal: 0.2
-    latex: A_\mathrm{2-IA,DES}^2
-  DES_BTA_1: #TATT, not used for Y1
-    prior:
-      min: 0.0
-      max: 2.0
-    ref:
-      dist: norm
-      loc: 1.0
-      scale: 0.1
-    proposal: 0.1
-    latex: A_\mathrm{BTA-IA,DES}^1
-
-  # photo-z uncertainty: gaussian
-  # =============================
-  # Source galaxies photo-z errors
-  DES_DZ_S1:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 0.018
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 0.018
-    proposal: 0.009
-    latex: \Delta z_\mathrm{s,DES}^1
-  DES_DZ_S2:
-    prior:
-      dist: norm
-      loc: 0.0 
-      scale: 0.015
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 0.015
-    proposal: 0.007
-    latex: \Delta z_\mathrm{s,DES}^2
-  DES_DZ_S3:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 0.011
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 0.011
-    proposal: 0.005
-    latex: \Delta z_\mathrm{s,DES}^3
-  DES_DZ_S4:
-    prior:
-      dist: norm
-      loc: 0.0 
-      scale: 0.017
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 0.017
-    proposal: 0.008
-    latex: \Delta z_\mathrm{s,DES}^4
-  # shear calibration bias: multiplicative
-  # ======================================
-  DES_M1:
-    prior:
-      dist: norm
-      loc: -0.006
-      scale: 0.009
-    ref:
-      dist: norm
-      loc: -0.006
-      scale: 0.009
-    proposal: 0.004
-    latex: m_\mathrm{DES}^1
-  DES_M2:
-    prior:
-      dist: norm
-      loc: -0.020
-      scale: 0.008
-    ref:
-      dist: norm
-      loc: -0.020
-      scale: 0.008
-    proposal: 0.004
-    latex: m_\mathrm{DES}^2
-  DES_M3:
-    prior:
-      dist: norm
-      loc: -0.024
-      scale: 0.008
-    ref:
-      dist: norm
-      loc: -0.024
-      scale: 0.008
-    proposal: 0.004
-    latex: m_\mathrm{DES}^3
-  DES_M4:
-    prior:
-      dist: norm
-      loc: -0.037
-      scale: 0.008
-    ref:
-      dist: norm
-      loc: -0.037
-      scale: 0.008
-    proposal: 0.004
-    latex: m_\mathrm{DES}^4
-  # baryon effects: scale cut
-
-  # Fixed params of Maglim bin 5-6
-  DES_DZ_L5:
-    value: 0.002
-    latex: \Delta z_\mathrm{l,DES}^5
-  DES_DZ_L6:
-    value: 0.002
-    latex: \Delta z_\mathrm{l,DES}^6
-  DES_STRETCH_L5:
-    value: 1.08
-    latex: \sigma z_\mathrm{l,DES}^5
-  DES_STRETCH_L6:
-    value: 0.845
-    latex: \sigma z_\mathrm{l,DES}^6
-  DES_B1_5:
-    value: 2.3
-    latex: b_\mathrm{1-DES}^5
-  DES_B1_6:
-    value: 2.3
-    latex: b_\mathrm{1-DES}^6
-  
-
-  # ------------------------------------------------------------------
-  # DES-Y1 3x2 nuissance parameter ends
-  # ------------------------------------------------------------------
-
-theory:
-  camb:
-    path: ./external_modules/code/CAMB
-    use_renames: True
-    extra_args:
-      halofit_version: takahashi
-      AccuracyBoost: 1.1
-      lens_potential_accuracy: 1.1
-      num_massive_neutrinos: 1
-      nnu: 3.046
-      dark_energy_model: ppf
-      accurate_massive_neutrino_transfers: false
-      k_per_logint: 20
-
-sampler:
-  mcmc:
-    # ---------------------------------------------------------------------
-    # File (w/ path) or matrix defining a covariance matrix for the proposal:
-    # - null (default): will be generated from params info (prior and proposal)
-    # - matrix: remember to set `covmat_params` to the parameters in the matrix
-    covmat: ./projects/desy1xplanck/yaml/proposal_covmats/DES_Y3_3x2pt_syn.covmat
-    covmat_params:
-    # ---------------------------------------------------------------------
-    # ---------------------------------------------------------------------
-    # Proposal covariance matrix learning
-    # ---------------------------------------------------------------------
-    # ---------------------------------------------------------------------
-    learn_proposal: True
-    # Don't learn if convergence better than...
-    learn_proposal_Rminus1_min: 0.03
-    # Don't learn if convergence is worse than...
-    learn_proposal_Rminus1_max: 50.
-    # (even earlier if a param is not in the given covariance matrix)
-    learn_proposal_Rminus1_max_early: 2000.
-    # ---------------------------------------------------------------------
-    # ---------------------------------------------------------------------
-    # Convergence and stopping
-    # ---------------------------------------------------------------------
-    # ---------------------------------------------------------------------
-    # Maximum number of posterior evaluations
-    max_samples: .inf
-    # Gelman-Rubin R-1 on means
-    Rminus1_stop: 0.02
-    # Gelman-Rubin R-1 on std deviations
-    Rminus1_cl_stop: 0.2
-    Rminus1_cl_level: 0.95
-    # ---------------------------------------------------------------------
-    # ---------------------------------------------------------------------
-    # Exploiting speed hierarchy
-    # ---------------------------------------------------------------------
-    # ---------------------------------------------------------------------
-    measure_speeds: False
-    drag: False
-    oversample_power: 0.25
-    oversample_thin: True
-    blocking:
-      - [1,
-          [
-             As_1e9, ns, H0, omegab, omegam, mnu
-          ]
-        ]
-      - [3,
-          [
-            DES_DZ_S1, DES_DZ_S2, DES_DZ_S3, DES_DZ_S4, 
-            DES_A1_1, DES_A1_2, DES_A2_1, DES_A2_2, DES_BTA_1,
-            DES_DZ_L1, DES_DZ_L2, DES_DZ_L3, DES_DZ_L4,
-            DES_STRETCH_L1, DES_STRETCH_L2, DES_STRETCH_L3, DES_STRETCH_L4
-          ]
-        ]
-      - [25,
-          [
-            DES_M1, DES_M2, DES_M3, DES_M4,
-            DES_B1_1, DES_B1_2, DES_B1_3, DES_B1_4
-          ]
-        ]
-    # ---------------------------------------------------------------------
-    # ---------------------------------------------------------------------
-    # Avoid chain getting suck forever
-    # ---------------------------------------------------------------------
-    # ---------------------------------------------------------------------
-    max_tries: 10000
-    burn_in: 0
-    # ---------------------------------------------------------------------
-    # ---------------------------------------------------------------------
-    # When no MPI used, number of fractions of the chain to compare
-    # ---------------------------------------------------------------------
-    # ---------------------------------------------------------------------
-    Rminus1_single_split: 4
 post:
   skip: 0.35
   suffix: takahashi2bird
@@ -417,26 +39,7 @@ post:
         path: ./external_modules/data/desy1xplanck
         data_file: datasets/Y3_250_real.dataset
         integration_accuracy: 0
-  add:
-    theory:
-      camb:
-        path: ./external_modules/code/CAMB
-        use_renames: True
-        extra_args:
-          halofit_version: bird
-          AccuracyBoost: 1.1
-          lens_potential_accuracy: 1.1
-          num_massive_neutrinos: 1
-          nnu: 3.046
-          dark_energy_model: ppf
-          accurate_massive_neutrino_transfers: false
-          k_per_logint: 20
-    likelihood:
-      desy1xplanck.desy3xplanck_3x2pt:
-        path: ./external_modules/data/desy1xplanck
-        data_file: datasets/Y3_250_real.dataset
-        integration_accuracy: 0
-    param:
+    params:
       DES_A2_1: #TATT, not used for Y1
         prior:
           min: -5.0
@@ -467,6 +70,93 @@ post:
           scale: 0.1
         proposal: 0.1
         latex: A_\mathrm{BTA-IA,DES}^1
+      DES_DZ_L5:
+        value: 0.002
+        latex: \Delta z_\mathrm{l,DES}^5
+      DES_DZ_L6:
+        value: 0.002
+        latex: \Delta z_\mathrm{l,DES}^6
+      DES_STRETCH_L5:
+        value: 1.08
+        latex: \sigma z_\mathrm{l,DES}^5
+      DES_STRETCH_L6:
+        value: 0.845
+        latex: \sigma z_\mathrm{l,DES}^6
+      DES_B1_5:
+        value: 2.3
+        latex: b_\mathrm{1-DES}^5
+      DES_B1_6:
+        value: 2.3
+        latex: b_\mathrm{1-DES}^6
+
+  add:
+    theory:
+      camb:
+        path: ./external_modules/code/CAMB
+        use_renames: True
+        extra_args:
+          halofit_version: bird
+          AccuracyBoost: 1.1
+          lens_potential_accuracy: 1.1
+          num_massive_neutrinos: 1
+          nnu: 3.046
+          dark_energy_model: ppf
+          accurate_massive_neutrino_transfers: false
+          k_per_logint: 20
+    likelihood:
+      desy1xplanck.desy3xplanck_3x2pt:
+        path: ./external_modules/data/desy1xplanck
+        data_file: datasets/Y3_250_real.dataset
+        integration_accuracy: 0
+    params:
+      DES_A2_1: #TATT, not used for Y1
+        prior:
+          min: -5.0
+          max: 5.0
+        ref:
+          dist: norm
+          loc: 0.0
+          scale: 0.2
+        proposal: 0.2
+        latex: A_\mathrm{2-IA,DES}^1 
+      DES_A2_2: #TATT, not used for Y1
+        prior:
+          min: -5.0
+          max: 5.0
+        ref:
+          dist: norm
+          loc: 0.0
+          scale: 0.2
+        proposal: 0.2
+        latex: A_\mathrm{2-IA,DES}^2
+      DES_BTA_1: #TATT, not used for Y1
+        prior:
+          min: 0.0
+          max: 2.0
+        ref:
+          dist: norm
+          loc: 1.0
+          scale: 0.1
+        proposal: 0.1
+        latex: A_\mathrm{BTA-IA,DES}^1
+      DES_DZ_L5:
+        value: 0.002
+        latex: \Delta z_\mathrm{l,DES}^5
+      DES_DZ_L6:
+        value: 0.002
+        latex: \Delta z_\mathrm{l,DES}^6
+      DES_STRETCH_L5:
+        value: 1.08
+        latex: \sigma z_\mathrm{l,DES}^5
+      DES_STRETCH_L6:
+        value: 0.845
+        latex: \sigma z_\mathrm{l,DES}^6
+      DES_B1_5:
+        value: 2.3
+        latex: b_\mathrm{1-DES}^5
+      DES_B1_6:
+        value: 2.3
+        latex: b_\mathrm{1-DES}^6
 
 
 output: /groups/timeifler/jiachuanxu/cocoa_chains/ccc/MCMC_3x2pt_realdata_TATT_GG-RSDnonLimber

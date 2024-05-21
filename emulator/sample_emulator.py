@@ -98,7 +98,6 @@ if __name__ == '__main__':
 
 	if emu_s8 is not None:
 		derived_sigma8 = emu_s8.predict(torch.Tensor(samples[:,:config.n_pars_cosmo]))
-		print(samples.shape, derived_sigma8.shape, logprobs.shape)
 		np.save(pjoin(config.chaindir, config.chainname+'.npy'), 
 				np.hstack([samples, derived_sigma8, logprobs[:,np.newaxis]]))
 	else:
