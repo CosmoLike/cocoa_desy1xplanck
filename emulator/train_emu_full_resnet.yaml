@@ -456,6 +456,7 @@ emulator:
       savedir: /groups/timeifler/jiachuanxu/emulator_output
       save_train_data: true
       save_intermediate_model: true
+      chainname: emu_testing_chain_nn1_iter4
   shear_calib:
       mask: ./projects/desy1xplanck/data/emu_data/DESY3xPLKR4_Maglim_baseline_Ntheta30_shear_calib_mask.npy
       prior_std: 0.009,0.008,0.008,0.008
@@ -473,8 +474,8 @@ emulator:
       dv_fid: ./projects/desy1xplanck/data/data_vectors/xi_DESY3xPLKR4_6x2pt_Maglim_baseline_Ntheta30_dmo.emufid
       chi_sq_cut: 1e+5
       n_train_iter: 4
-      n_lhs: 32000
-      n_resample: 32000
+      n_lhs: 20000
+      n_resample: 20000
       batch_size: 80
       n_epochs: 50
   derived:
@@ -484,8 +485,9 @@ emulator:
       ### This mask is different from the mask in the dataset file
       ### Dataset mask: can short-cut model vector evaluation
       ### This mask: can not short-cut mv calculation, applied in EmuSampler likelihood calc
-      ### To make posterior region broad enough, this mask should be conservative
-      scalecut_mask: ./projects/desy1xplanck/data/masks/xi_DESY3xPLKR4_6x2pt_Maglim_baseline_Ntheta30_Y3cons.mask
+      ### BUT setting a different mask here would block the gradient back propagation, thus
+      ### the cutted scales are note learnt. 
+      scalecut_mask: ./projects/desy1xplanck/data/masks/xi_DESY3xPLKR4_6x2pt_Maglim_baseline_Ntheta30_emucons.mask
       n_mcmc: 40000
       n_emcee_walkers: 100
       n_burn_in: 20000
