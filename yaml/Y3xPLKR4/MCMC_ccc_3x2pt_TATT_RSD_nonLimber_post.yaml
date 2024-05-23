@@ -16,7 +16,7 @@
 ###     - covariance from public release
 ### external probes: None
 ### data vector: DES Y3 3x2pt maglim public
-
+debug: True
 post:
   skip: 0.35
   suffix: takahashi2bird
@@ -24,6 +24,7 @@ post:
     theory:
       camb:
         path: ./external_modules/code/CAMB
+        version: 1.3.0
         use_renames: True
         extra_args:
           halofit_version: takahashi
@@ -39,60 +40,61 @@ post:
         path: ./external_modules/data/desy1xplanck
         data_file: datasets/Y3_250_real.dataset
         integration_accuracy: 0
-    params:
-      DES_A2_1: #TATT, not used for Y1
-        prior:
-          min: -5.0
-          max: 5.0
-        ref:
-          dist: norm
-          loc: 0.0
-          scale: 0.2
-        proposal: 0.2
-        latex: A_\mathrm{2-IA,DES}^1 
-      DES_A2_2: #TATT, not used for Y1
-        prior:
-          min: -5.0
-          max: 5.0
-        ref:
-          dist: norm
-          loc: 0.0
-          scale: 0.2
-        proposal: 0.2
-        latex: A_\mathrm{2-IA,DES}^2
-      DES_BTA_1: #TATT, not used for Y1
-        prior:
-          min: 0.0
-          max: 2.0
-        ref:
-          dist: norm
-          loc: 1.0
-          scale: 0.1
-        proposal: 0.1
-        latex: A_\mathrm{BTA-IA,DES}^1
-      DES_DZ_L5:
-        value: 0.002
-        latex: \Delta z_\mathrm{l,DES}^5
-      DES_DZ_L6:
-        value: 0.002
-        latex: \Delta z_\mathrm{l,DES}^6
-      DES_STRETCH_L5:
-        value: 1.08
-        latex: \sigma z_\mathrm{l,DES}^5
-      DES_STRETCH_L6:
-        value: 0.845
-        latex: \sigma z_\mathrm{l,DES}^6
-      DES_B1_5:
-        value: 2.3
-        latex: b_\mathrm{1-DES}^5
-      DES_B1_6:
-        value: 2.3
-        latex: b_\mathrm{1-DES}^6
+##    params:
+##      DES_A2_1: #TATT, not used for Y1
+##        prior:
+##          min: -5.0
+##          max: 5.0
+##        ref:
+##          dist: norm
+##          loc: 0.0
+##          scale: 0.2
+##        proposal: 0.2
+##        latex: A_\mathrm{2-IA,DES}^1 
+##      DES_A2_2: #TATT, not used for Y1
+##        prior:
+##          min: -5.0
+##          max: 5.0
+##        ref:
+##          dist: norm
+##          loc: 0.0
+##          scale: 0.2
+##        proposal: 0.2
+##        latex: A_\mathrm{2-IA,DES}^2
+##      DES_BTA_1: #TATT, not used for Y1
+##        prior:
+##          min: 0.0
+##          max: 2.0
+##        ref:
+##          dist: norm
+##          loc: 1.0
+##          scale: 0.1
+##        proposal: 0.1
+##        latex: A_\mathrm{BTA-IA,DES}^1
+##      DES_DZ_L5:
+##        value: 0.002
+##        latex: \Delta z_\mathrm{l,DES}^5
+##      DES_DZ_L6:
+##        value: 0.002
+##        latex: \Delta z_\mathrm{l,DES}^6
+##      DES_STRETCH_L5:
+##        value: 1.08
+##        latex: \sigma z_\mathrm{l,DES}^5
+##      DES_STRETCH_L6:
+##        value: 0.845
+##        latex: \sigma z_\mathrm{l,DES}^6
+##      DES_B1_5:
+##        value: 2.3
+##        latex: b_\mathrm{1-DES}^5
+##      DES_B1_6:
+##        value: 2.3
+##        latex: b_\mathrm{1-DES}^6
 
   add:
     theory:
       camb:
         path: ./external_modules/code/CAMB
+        version: 1.3.0
         use_renames: True
         extra_args:
           halofit_version: bird
