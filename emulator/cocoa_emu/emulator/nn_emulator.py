@@ -44,7 +44,7 @@ class ResBlock(nn.Module):
 
     
 class NNEmulator:
-    def __init__(self, N_DIM, OUTPUT_DIM, dv_fid, dv_std, mask=None, model=None, optim=None, device='cpu'):
+    def __init__(self, N_DIM, OUTPUT_DIM, dv_fid, dv_std, invcov, mask=None, model=None, optim=None, device='cpu'):
         self.N_DIM = N_DIM
         self.model = model
         self.optim = optim
@@ -52,6 +52,7 @@ class NNEmulator:
         self.trained = False
         self.dv_fid = torch.Tensor(dv_fid)
         self.dv_std = torch.Tensor(dv_std)
+        self.invcov = torch.Tensor(invcov)
         if mask is not None:
             self.mask = mask.astype(float)
         else:
@@ -179,7 +180,9 @@ class NNEmulator:
                 y_batch = data[1]
 
                 y_pred = self.model(X_batch)
-                loss = torch.mean(torch.abs(y_batch - y_pred) * self.mask)
+                _d = (y_batch-y_pred)*self.mask*self.y_std
+                _chi2 = (_d*torch.matmul(_d, self.invcov)).sum(-1)
+                loss = torch.mean(_chi2)
                 losses.append(loss)
                 self.optim.zero_grad()
                 loss.backward()
