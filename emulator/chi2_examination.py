@@ -13,8 +13,8 @@ eval_samples_fn = sys.argv[2]
 ##data_vector_fn = sys.argv[3]
 
 
-config = Config(configfile)
-cocoa_model = CocoaModel(configfile, config.likelihood)
+#config = Config(configfile)
+cocoa_model = CocoaModel(configfile, "desy1xplanck.desy3xplanck_3x2pt")
 
 def get_local_data_vector_list(params_list, rank):
     ''' Evaluate data vectors dispatched to the local process
