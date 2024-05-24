@@ -21,7 +21,7 @@ class CocoaModel:
         self.derived = np.array(list(self.model.parameterization.derived_params()))
         self.idx_s8 = np.where(self.derived=='sigma8')[0][0]
         
-    def calculate_data_vector(self, params_values, baryon_scenario=None, return_s8=False):        
+    def calculate_data_vector(self, params_values, baryon_scenario=None, return_s8=False):
         likelihood   = self.model.likelihood[self.likelihood]
         input_params = self.model.parameterization.to_input(params_values)
         self.model.provider.set_current_input_params(input_params)
