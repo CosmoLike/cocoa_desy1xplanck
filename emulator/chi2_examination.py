@@ -70,8 +70,7 @@ def get_data_vectors(params_list, comm, rank):
     return data_vectors
 
 eval_samples = np.load(eval_samples_fn)
-params_list = get_params_list(eval_samples, config.param_labels)
-eval_data_vectors = get_data_vectors(params_list, comm, rank)
+eval_data_vectors = get_data_vectors(eval_samples, comm, rank)
 
 np.save("/groups/timeifler/jiachuanxu/cocoa_chains/ccc/test_model_vectors.npy",
 	eval_data_vectors)
