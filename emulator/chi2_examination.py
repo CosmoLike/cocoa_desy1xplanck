@@ -10,7 +10,7 @@ rank = comm.Get_rank()
 
 configfile = sys.argv[1]
 eval_samples_fn = sys.argv[2]
-data_vector_fn = sys.argv[3]
+##data_vector_fn = sys.argv[3]
 
 
 config = Config(configfile)
