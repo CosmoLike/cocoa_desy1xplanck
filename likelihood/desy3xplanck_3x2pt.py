@@ -14,7 +14,7 @@ class desy3xplanck_3x2pt(_cosmolike_prototype_base):
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
 
-  def logp(self, **params_values):
+  def get_datavector(self, **params_values):
     if self.create_baryon_pca:
       self.generate_baryonic_PCA(**params_values)
       self.force_cache_false = True
@@ -44,5 +44,8 @@ class desy3xplanck_3x2pt(_cosmolike_prototype_base):
       out[:,1] = datavector
       fmt = '%d', '%1.8e'
       np.savetxt(self.print_datavector_file, out, fmt = fmt)
+    return datavector
 
+  def logp(self, **params_values):
+    datavector = self.get_datavector(**params_values)
     return self.compute_logp(datavector)
