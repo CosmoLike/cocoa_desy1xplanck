@@ -183,6 +183,7 @@ class NNEmulator:
                 _d = (y_batch-y_pred)*self.mask*self.y_std
                 _chi2 = (_d*torch.matmul(_d, self.invcov)).sum(-1)
                 loss = torch.mean(_chi2)
+                #loss = torch.mean(torch.abs(y_batch - y_pred) * self.mask)
                 losses.append(loss)
                 self.optim.zero_grad()
                 loss.backward()
