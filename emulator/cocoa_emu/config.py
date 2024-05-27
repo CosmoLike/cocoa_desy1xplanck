@@ -252,7 +252,7 @@ class Config:
         # test positive-definite; compare accu between Python v.s. C++ PMmarg
         w, v = np.linalg.eig(self.masked_inv_cov)
         assert np.min(w)>=0, f'Precision matrix not positive-definite after PMmarg!'
-        self.masked_full_invcov = np.zeros([len(self.dv_std)])
+        self.masked_full_invcov = np.zeros([len(self.dv_std), len(self.dv_std)])
         self.masked_full_invcov[self.mask][:,self.mask] = self.masked_inv_cov
     def get_lhs_minmax(self):
         lh_minmax = {}
