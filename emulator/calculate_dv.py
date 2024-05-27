@@ -123,8 +123,8 @@ def get_data_vectors(params_list, comm, rank, return_s8=False):
         train_sigma8       = np.vstack(sigma8_list)
     return train_params, train_data_vectors, train_sigma8
 
-
-print("Iteration: %d"%(n))
+if(rank==0):
+    print("Iteration: %d"%(n))
 # ============== Retrieve training sample ======================
 if(n==0):
     if(rank==0):
