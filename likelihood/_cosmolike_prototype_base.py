@@ -609,6 +609,12 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
     baryon_weighted_diff = np.dot(baryon_weighted_diff, weights_sqrt_mat)
 
     U, Sdig, VT = np.linalg.svd(baryon_weighted_diff, full_matrices=True)
+    # for debug purpose
+    np.save(self.filename_baryon_pca+"_U", U)
+    if self.subtract_mean:
+      weighted_mean_baryon_diff = np.dot(inv_cov_L_cholesky, mean_baryon_diff)
+      np.save(self.filename_baryon_pca+"_QsOfMean",
+        np.dot(U[:,:nbaryons_scenario].T, weighted_mean_baryon_diff))
     print(f'U-shape = {U.shape} / ndata_reduced = {ndata_reduced}')
     # MAKE SURE WHATEVER VERSION OF NP HAVE U IN THE RIGHT ORDER
     if(np.all(np.diff(Sdig) <= 0) != True):
