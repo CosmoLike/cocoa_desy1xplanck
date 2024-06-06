@@ -338,7 +338,7 @@ theory:
     path: ./external_modules/code/CAMB
     use_renames: True
     extra_args:
-      halofit_version: takahashi
+      halofit_version: bird
       AccuracyBoost: 1.1
       lens_potential_accuracy: 1.1
       num_massive_neutrinos: 1
@@ -358,9 +358,9 @@ emulator:
       mask: ./projects/desy1xplanck/data/emu_data/DESY3xPLKR4_Maglim_baseline_Ntheta30_shear_calib_mask.npy
       prior_std: 0.009,0.008,0.008,0.008
   baryons:
-      n_pcas_baryon: 0
-      #prior_Q1: -6.,20.
-      #prior_Q2: -4.,4.
+      n_pcas_baryon: 2
+      prior_Q1: -6.,20.
+      prior_Q2: -4.,4.
   galaxy_bias:
       mask: ./projects/desy1xplanck/data/emu_data/DESY3xPLKR4_Maglim_baseline_Ntheta30_linear_gbias_mask.npy
       bias_fid: 1.5,1.8,1.8,1.9,2.3,2.3

@@ -73,6 +73,8 @@ def get_local_data_vector_list(params_list, rank, return_s8=False):
     N_samples = len(params_list)
     N_local   = N_samples // size    
     for i in range(rank * N_local, (rank + 1) * N_local):
+        if ((i-rank*N_local)%20==0):
+            print(f'[{rank}/{size}] get_local_data_vector_list: iteration {i-rank*N_local}...')
         params_arr  = np.array(list(params_list[i].values()))
         # Here it calls cocoa to calculate data vectors at requested parameters
         data_vector, _s8 = cocoa_model.calculate_data_vector(params_list[i], return_s8=return_s8)
@@ -156,7 +158,7 @@ if(rank==0):
             chi_sq = delta_dv @ config.masked_inv_cov @ delta_dv
             chi_sq_list.append(chi_sq)
         chi_sq_arr = np.array(chi_sq_list)
-        print(f'chi2 difference [{np.min(chi_sq_arr)}, {np.max(chi_sq_arr)}]')
+        print(f'chi2 difference [{np.nanmin(chi_sq_arr)}, {np.nanmax(chi_sq_arr)}]')
         select_chi_sq = (chi_sq_arr < config.chi_sq_cut)
         return select_chi_sq
     # ===============================================
