@@ -1,0 +1,30 @@
+data_file = ../data_vectors/xi_DESY3_3x2pt_redMaGiC_Ntheta20.publicdata
+cov_file = ../covmats/cov_DESY3_3x2pt_redMaGiC_Ntheta20_public
+mask_file = ../masks/xi_DESY3_3x2pt_redMaGiC_Ntheta20_Y3cons.mask
+U_PMmarg = ../covmats/U_PMmarg_DESY3_redMaGiC_Ntheta20_exact
+nz_lens_file = ../survey_data/nz_redmagic_Y3_unblinded_02_24_21.txt
+nz_source_file = ../survey_data/nz_source_Y3_unblinded_02_24_21.txt
+
+lensing_overlap_cut = 0.00
+lens_ntomo = 5
+source_ntomo = 4
+IA_model = 6
+
+n_theta = 20
+theta_min_arcmin = 2.5
+theta_max_arcmin = 250.
+
+fwhm = 7
+lmin_kappa_cmb = 8
+lmax_kappa_cmb = 2048
+pathHealpixWinFunc = ../survey_data/HPIX1024_pixwin.txt
+
+is_cmb_bandpower = 1
+binmat_file = ../survey_data/dr4_consext8_CMBmarged/binning_matrix_with_correction_table.txt
+offset_file = ../survey_data/dr4_consext8_CMBmarged/Ckk_bandpower_offset.txt
+is_cmb_kkkk_cov_from_sim = 0
+Hartlap_Nvar = 480
+
+n_bp = 9
+lmin_bp = 2
+lmax_bp = 2500
