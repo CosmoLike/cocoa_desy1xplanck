@@ -12,7 +12,7 @@ To compare the data vector predictions from `cosmolike_core` and `cocoa`, run
 > $ mpirun -n 1 --mca btl tcp,self --bind-to core --rank-by core --map-by numa:pe=4 cobaya-run ./projects/desy1xplanck/yaml/EXAMPLE_EVALUATE1.yaml -f
 
 Or
-> $ mpirun -n 1 --mca btl tcp,self cobaya-run ./projects/desy1xplanck/yaml/EVALUATE1.yaml -f
+> $ mpirun -n 1 --mca btl tcp,self cobaya-run ./projects/desy1xplanck/yaml/Y3xPLKR4/EVALUATE1.yaml -f
 
 
 # WARNING: WHEN GENERATING PCs OF BARYON IMPACTS, PLEASE GENERATE WITH SHEAR-ONLY LIKELIHOOD. CURRENTLY WE ARE ONLY CONFIDENT TO APPLY BARYON PCS TO SHEAR-SHEAR CORRELATION FUNCTION, NOT THE OTHER PROBES.

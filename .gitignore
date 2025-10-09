@@ -5,10 +5,6 @@
 *.cfg
 chains/
 sbatch_scripts/
-data/masks/
-data/data_vectors/
-data/covmats/
-data/
 old/
 yaml/
 interface/test_baryon
@@ -18,3 +14,4 @@ emulator/validating_chains/
 emulator/emu_y1_cosmic_shear.py
 likelihood/.params_des_3x2pt.yaml
 likelihood/.params_des_cosmic_shear.yaml
+likelihood/*_emu*

@@ -197,6 +197,8 @@ public:
 
   double get_pm(const int zl, const int zs, const double theta) const;
 
+  double get_pm_exact(const int zl, const int zs, const double theta) const;
+
 private:
   std::vector<double> pm_;
 
