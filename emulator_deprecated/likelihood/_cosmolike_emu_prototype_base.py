@@ -255,6 +255,7 @@ class _cosmolike_emu_prototype_base(_DataSetLikelihood):
 		log_p = -0.5 * delta_dv @ self.masked_inv_cov @ delta_dv
 
 		# derived parameters: sigma8
-		params_values["_derived"]['sigma8'] = self.get_sigma8_emu(**params_values)
+		if self.derive_sigma8 and self.emu_s8:
+			params_values["_derived"]['sigma8'] = self.get_sigma8_emu(**params_values)
 
 		return log_p

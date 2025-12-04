@@ -173,6 +173,8 @@ class Config:
         self.learning_rate = config_args_emu['training']['learning_rate']
         self.weight_decay = config_args_emu['training']['weight_decay']
         self.reduce_lr = config_args_emu['training']['reduce_lr']
+        self.do_pca = config_args_emu['training']['do_pca']
+        self.dropout = config_args_emu['training']['dropout']
         assert (self.emu_type.lower()=='nn') or (self.emu_type.lower()=='gp'),\
                         "emu_type has to be either gp or nn."
         if(self.emu_type.lower()=='nn'):
@@ -262,10 +264,12 @@ class Config:
 
         for param in params_list:
             keys = param_args[param].keys()
+            # if the parameter is being sampled as recorded in the YAML
             if('value' not in keys and 'derived' not in keys and len(keys)>1):
                 _args = param_args[param]
                 self.running_params.append(param)
                 self.running_params_latex.append(_args['latex'])
+                # set the parameter boundary
                 if (_args["prior"].get("dist", "uniform")=="uniform"):
                     self.running_params_fid.append(_args["ref"]["loc"])
                     self.running_params_min.append(_args["prior"]["min"])
@@ -274,20 +278,21 @@ class Config:
                     self.running_params_fid.append(_args["prior"]["loc"])
                     self.running_params_min.append(-np.inf)
                     self.running_params_max.append(np.inf)
+                # determine if the param is cosmological or nuisance
                 if param.startswith("DES")==False:
                     self.running_params_type.append(1) # cosmology parameters
-                elif param.startswith("DES_A"):
-                    self.running_params_type.append(2) # IA parameters
+                elif param.startswith("DES_A") or param.startswith("DES_BTA"):
+                    self.running_params_type.append(2) # IA parameters, src
                 elif param.startswith("DES_DZ_S"):
-                    self.running_params_type.append(2) # Source photo-z
+                    self.running_params_type.append(2) # Source photo-z, src
                 elif param.startswith("DES_DZ_L"):
-                    self.running_params_type.append(3) # Lens photo-z
+                    self.running_params_type.append(3) # Lens photo-z, lens
                 elif param.startswith("DES_STRETCH_L"):
-                    self.running_params_type.append(3) # Lens photo-z stretch
+                    self.running_params_type.append(3) # Lens photo-z stretch, lens
                 elif param.startswith("DES_B1"):
-                    self.running_params_type.append(3) # Lens linear gbias
+                    self.running_params_type.append(3) # Lens linear gbias, lens
                 else:
-                    print(f'Can not support param {param} now!')
+                    print(f'[config.py:Config.load_params]: Can not support param {param} now!')
                     exit(1)
         self.n_dim = len(self.running_params) # total param counts w/o fast ones
         self.n_pars_cosmo = self.get_Npars_cosmo()

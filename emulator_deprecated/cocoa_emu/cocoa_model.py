@@ -33,10 +33,17 @@ class CocoaModel:
             params = {p: input_params[p] for p in component.input_params}
             compute_success = component.check_cache_and_compute(want_derived=False,
                                          dependency_params=depend_list, cached=False, **params)
-        if baryon_scenario is None:
-            data_vector = likelihood.get_datavector(**input_params)
-        else:
-            data_vector = likelihood.compute_barion_datavector_masked_reduced_dim(baryon_scenario, **input_params)
+            if not compute_success:
+                print(f'Error in computing component {component} at parameters {input_params}')
+        try:
+            if baryon_scenario is None:
+                data_vector = likelihood.get_datavector(**input_params)
+            else:
+                data_vector = likelihood.compute_barion_datavector_masked_reduced_dim(baryon_scenario, **input_params)
+        except:
+            print("Error occurred while computing baryon data vector. Evaluated at parameters:")
+            print(input_params)
+            exit(1)
         if not return_s8:
             return np.array(data_vector), None
         else:

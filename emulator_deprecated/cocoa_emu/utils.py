@@ -2,6 +2,7 @@ from pyDOE import lhs
 import numpy as np
 import emcee
 from os.path import join as pjoin
+from numba import jit
 
 def get_params_from_sample(sample, labels):
     """
@@ -79,8 +80,77 @@ def get_lhs_samples(N_dim, N_lhs, lhs_minmax):
     lhs_params = get_lhs_params_list(unit_lhs_samples, lhs_minmax)
     return lhs_params
 
+# setup likelihood
+
+def lnprior(param, param_label, param_prior, temp):
+    ans = 0.0
+    _par_dict = {k:v for k,v in zip(param_label, param)}
+    ### priors defined in the input YAML
+    for i,par in enumerate(param_label):
+        prior = param_prior[par]["prior"]
+        dist = prior.get("dist", "uniform")
+        if dist == "uniform":
+            if param[i] < prior["min"] or param[i]>prior["max"]:
+                ans += -np.inf
+        elif dist == "norm":
+            # JX: Saraivanov et al. include a 100x higher temperature here than the likelihood
+            # But many of the nuisance parameters are prior-dominated, and a high temperature 
+            # will cause numerical failure in CosmoLike when doing LoS integration. 
+            # Therefore I remove the temperature here, except for IA parameters. 
+            # ans += -(0.5/temp/100)*((param[i]-prior["loc"])/prior["scale"])**2
+            ans += -(0.5)*((param[i]-prior["loc"])/prior["scale"])**2
+    ### Other hard priors
+    # BBN hard prior
+    if "omegab" in param_label and "H0" in param_label:
+        ombh2 = _par_dict["omegab"]*(_par_dict["H0"]/100)**2
+        if ombh2<0.005 or ombh2 > 0.04:
+            ans += -np.inf
+    # Physical matter density hard prior
+    if "omegam" in param_label and "H0" in param_label:
+        ommh2 = _par_dict["omegam"]*(_par_dict["H0"]/100)**2
+        if ommh2>0.282 or ommh2<0.01:
+            ans += -np.inf
+    # Neutrino mass hard prior
+    if "mnu" in param_label:
+        if _par_dict["mnu"]<0.0:
+            ans += -np.inf
+    # w0-wa hard prior
+    if "w0pwa" in param_label:
+        if _par_dict["w0pwa"]<-4.0 or _par_dict["w0pwa"]>=0.0:
+            ans += -np.inf
+    elif ("wa" in param_label) and ("w" in param_label):
+        w0pwa = _par_dict["w"] + _par_dict["wa"]
+        if w0pwa<-4.0 or w0pwa>=0.0:
+            ans += -np.inf
+    # Nuisance parameter hard prior
+    # Extreme nuisance parameter might cause numerical failure in CosmoLike
+    for par in param_label:
+        # Photo-z stretch hard prior:
+        if par.startswith("DES_STRETCH"):
+            if _par_dict[par]<0.4 or _par_dict[par]>2.0:
+                ans += -np.inf
+        # Photo-z shift hard prior
+        if par.startswith("DES_DZ"):
+            if np.abs(_par_dict[par])>0.1:
+                ans += -np.inf
+    # IA parameter hard prior
+    # Numerical noise is more significant if TA amplitude is too large
+    if ("DES_A1_1" in param_label) and ("DES_A1_2" in param_label):
+        A1_1 = _par_dict["DES_A1_1"]
+        A1_2 = _par_dict["DES_A1_2"]
+        if (A1_1 >= 0.45) and (A1_2 <= (A1_1-0.45)**0.5 * 5-5):
+            ans += -np.inf
+        
+    return ans
+@jit
+def lnlkl(param, center, invcov, temp):
+    diff = param - center
+    return (-0.5/temp) * (diff @ invcov @ np.transpose(diff))
+def lnpost(param, center, invcov, temp, param_label, param_prior):
+    return lnprior(param, param_label, param_prior, temp)+lnlkl(param, center, invcov, temp)
+
 def get_gaussian_samples(param_fid, param_label, param_prior, N_sample,
-        param_cov, temp, shift):
+        param_cov, temp, shift, pool=None):
     ''' Generate Gaussian sample at parameter space
     Input:
     ======
@@ -101,7 +171,7 @@ def get_gaussian_samples(param_fid, param_label, param_prior, N_sample,
     '''
     gauss_cen = np.array(param_fid.copy())
     Ndim, Nwalker = len(gauss_cen), 4*len(gauss_cen)
-    cov = retrieveParamCov(param_cov, param_label)
+    cov = retrieveParamCov(param_cov, param_label, param_prior)
     param_std = np.diag(cov)**0.5
     invcov = np.linalg.inv(cov)
 
@@ -122,36 +192,20 @@ def get_gaussian_samples(param_fid, param_label, param_prior, N_sample,
                 print(f'Parameter {param} in shift can not be recognized!')
                 exit(1)
 
-    # setup likelihood
-    def lnprior(param):
-        ans = 0.0
-        for i,par in enumerate(param_label):
-            prior = param_prior[par]["prior"]
-            dist = prior.get("dist", "uniform")
-            if dist == "uniform":
-                if param[i] < prior["min"] or param[i]>prior["max"]:
-                    ans += -np.inf
-            elif dist == "norm":
-                # temp here?
-                ans += -(0.5)*((param[i]-prior["loc"])/prior["scale"])**2
-        # BBN hard prior
-        if "omegab" in param_label and "H0" in param_label:
-            _par_dict = {k:v for k,v in zip(param_label, param)}
-            ombh2 = _par_dict["omegab"]*(_par_dict["H0"]/100)**2
-            if ombh2<0.005 or ombh2 > 0.04:
-                ans += -np.inf
-        return ans
-    def lnlkl(param):
-        diff = param - gauss_cen
-        return (-0.5/temp) * (diff @ invcov @ np.transpose(diff))
-    def lnpost(param):
-        return lnprior(param)+lnlkl(param)
-
     # start sampling
     print(f'Retrieving samples...')
-    N_mcmc = int(N_sample*40/Nwalker)
-    p0 = gauss_cen[np.newaxis] + 0.3*param_std[np.newaxis]*np.random.normal(size=(Nwalker, Ndim))
-    sampler = emcee.EnsembleSampler(Nwalker, Ndim, lnpost)
+    N_mcmc = int(N_sample*100/Nwalker)
+    # make sure the initial ball are within prior
+    p0 = np.zeros([Nwalker, Ndim])
+    for i in range(Nwalker):
+        _p0 = gauss_cen + 0.01*param_std*np.random.normal(size=Ndim)
+        while not np.isfinite(lnprior(_p0, param_label, param_prior, temp)):
+            _p0 = gauss_cen + 0.01*param_std*np.random.normal(size=Ndim)
+        p0[i] = _p0
+    #p0 = gauss_cen[np.newaxis] + 0.3*param_std[np.newaxis]*np.random.normal(size=(Nwalker, Ndim))
+    sampler = emcee.EnsembleSampler(Nwalker, Ndim, lnpost, 
+        args=(gauss_cen, invcov, temp, param_label, param_prior),
+        pool=pool)
     sampler.run_mcmc(p0, N_mcmc, progress=True)
     sample = sampler.get_chain(flat=True,thin=10,discard=N_mcmc//2)
     subset = np.random.choice(len(sample), size=N_sample, replace=False)
@@ -159,7 +213,7 @@ def get_gaussian_samples(param_fid, param_label, param_prior, N_sample,
     return sample[subset,:]
 
 
-def retrieveParamCov(param_cov, param_label):
+def retrieveParamCov(param_cov, param_label, param_prior):
     cov = np.genfromtxt(param_cov, names=True)
     N_in = len(cov); N_out = len(param_label)
     _map = {k:v for v,k in enumerate(cov.dtype.names)}
@@ -170,8 +224,17 @@ def retrieveParamCov(param_cov, param_label):
             ii = _map.get(pi, -1)
             jj = _map.get(pj, -1)
             if ii<0 or jj<0:
-                cov_out[i,j] = 0. if i!=j else 1.
-                print(f'Parameter {pi}/{pj} not found in Gaussian covariance!')
+                if i!=j:
+                    cov_out[i,j] = 0.
+                else:
+                    prior = param_prior[pi]["prior"]
+                    dist = prior.get("dist", "uniform")
+                    if dist == "uniform":
+                        std = (prior["max"]-prior["min"])/6.0
+                    else:
+                        std = prior["scale"]
+                    cov_out[i,j] = std**2
+                print(f'{pi}-{pj} not found in Gaussian Cov, fill with prior.')
             else:
                 cov_out[i,j] = cov[ii,jj]
     return cov_out

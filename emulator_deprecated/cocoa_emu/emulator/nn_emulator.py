@@ -74,6 +74,59 @@ class Better_ResBlock(nn.Module):
 
         return o3
 
+class ResBlock_v2(nn.Module):
+    def __init__(self, in_size, out_size, dropout=0.0):
+        super(ResBlock_v2, self).__init__()
+
+        if in_size != out_size:
+            self.skip = nn.Linear(in_size, out_size, bias=False) # we don't consider this. remove?
+        else:
+            self.skip = nn.Identity()
+
+        self.layer1 = nn.Linear(in_size, out_size)
+        self.layer2 = nn.Linear(out_size, out_size)
+
+        self.norm1 = Affine()#torch.nn.BatchNorm1d(in_size)
+        self.norm2 = Affine()#torch.nn.BatchNorm1d(in_size)
+
+        self.act1 = activation_fcn(in_size) 
+        self.act2 = activation_fcn(in_size) 
+
+        if dropout>0.0:
+            self.dropout1 = nn.Dropout(dropout)
+            self.dropout2 = nn.Dropout(dropout)
+        else:
+            self.dropout1 = nn.Identity()
+            self.dropout2 = nn.Identity()
+
+    def forward(self, x):
+        xskip = self.skip(x)
+        o1 = self.dropout1(self.act1(self.layer1(self.norm1(x))))
+        o2 = (self.dropout2(self.act2(self.layer2(self.norm2(o1))))) + xskip
+        return o2
+
+class CNNMLP(nn.Module):
+
+    def __init__(self, input_dim, output_dim, cnn_in_channels, cnn_out_channels, cnn_kernel_size, cnn_stride, cnn_padding):
+
+        super(CNNMLP, self).__init__()
+        self.indim=input_dim
+        self.outdim=output_dim
+        self.in_channels=cnn_in_channels
+
+        self.CNNtrans = nn.Linear(input_dim, output_dim)
+        self.conv = nn.Conv1d(in_channels=cnn_in_channels, out_channels=cnn_out_channels, 
+                              kernel_size=cnn_kernel_size, stride=cnn_stride, padding=cnn_padding)
+        self.Act2 = activation_fcn(output_dim)
+
+    def forward(self, x):
+        x = self.CNNtrans(x)
+        x = x.view(x.size(0), self.in_channels, -1)
+        x = self.conv(x)
+        x = x.view(x.size(0), self.outdim)
+        x = self.Act2(x)
+        return x
+
 class ResBottle(nn.Module):
     def __init__(self, size, N):
         super(ResBottle, self).__init__()
@@ -171,12 +224,12 @@ class Better_Transformer(nn.Module):
         # get/set up hyperparams
         self.int_dim      = in_size//n_partitions 
         self.n_partitions = n_partitions
-        self.act          = nn.Tanh() #activation_fcn(in_size)  #nn.Tanh()#nn.ReLU()#
-        self.norm         = torch.nn.BatchNorm1d(in_size)
+        self.act          = activation_fcn(in_size)  #nn.Tanh()#nn.ReLU()#
+        self.norm         = Affine() #torch.nn.BatchNorm1d(in_size)
         #self.act2         = nn.Tanh()#nn.ReLU()#
         #self.norm2        = torch.nn.BatchNorm1d(in_size)
-        self.act3         = nn.Tanh() #activation_fcn(in_size)  #nn.Tanh()
-        self.norm3        = torch.nn.BatchNorm1d(in_size)
+        self.act3         = activation_fcn(in_size)  #nn.Tanh()
+        self.norm3        = Affine() # torch.nn.BatchNorm1d(in_size)
 
         # set up weight matrices and bias vectors
         weights1 = torch.zeros((n_partitions,self.int_dim,self.int_dim))
@@ -207,10 +260,85 @@ class Better_Transformer(nn.Module):
         #x_norm = self.norm(x)
         #_x = x_norm.reshape(x_norm.shape[0],self.n_partitions,self.int_dim) # reshape into channels
         #_x = x.reshape(x.shape[0],self.n_partitions,self.int_dim) # reshape into channels
-        o1 = self.act(self.norm(torch.matmul(x,mat1)+self.bias1))
-        o2 = torch.matmul(o1,mat2)+self.bias2  #self.act2(self.norm2(torch.matmul(o1,mat2)+self.bias2))
-        o3 = self.act3(self.norm3(o2+x))
-        return o3
+        #o1 = self.act(self.norm(torch.matmul(x,mat1)+self.bias1))
+        #o2 = torch.matmul(o1,mat2)+self.bias2  #self.act2(self.norm2(torch.matmul(o1,mat2)+self.bias2))
+        #o3 = self.act3(self.norm3(o2+x))
+        o1 = self.act(torch.matmul(self.norm(x),mat1)+self.bias1)
+        o2 = self.act3(torch.matmul(self.norm3(o1),mat2)+self.bias2)+x
+        return o2
+
+class BlockLinear(nn.Module):
+    """
+    Implements a block-diagonal linear layer where each block is an nn.Linear.
+    Input is split into chunks, each passed into its own linear layer.
+    """
+    def __init__(self, in_dims, out_dims, bias=True):
+        """
+        in_dims  = [d1, d2, ..., dk]
+        out_dims = [o1, o2, ..., ok]
+        """
+        super().__init__()
+        assert len(in_dims) == len(out_dims)
+        
+        self.blocks = nn.ModuleList([
+            nn.Linear(in_d, out_d, bias=bias)
+            for in_d, out_d in zip(in_dims, out_dims)
+        ])
+        self.in_dims = in_dims
+        self.out_dims = out_dims
+
+    def forward(self, x):
+        # Split input into block segments
+        xs = torch.split(x, self.in_dims, dim=-1)  # last dim split
+        
+        # Apply each block
+        ys = [block(xi) for block, xi in zip(self.blocks, xs)]
+        
+        # Concatenate result to form block-diagonal output
+        return torch.cat(ys, dim=-1)
+class FeedForward(nn.Module):
+    def __init__(self, embed_dim, block_sizes, expansion=4, dropout=0.0):
+        super().__init__()
+        
+        in_dims  = block_sizes
+        hid_dims = [d * expansion for d in block_sizes]
+
+        self.norm = nn.LayerNorm(embed_dim)
+        self.fc1 = BlockLinear(in_dims, hid_dims)
+        self.fc2 = BlockLinear(hid_dims, in_dims)
+
+        self.act = nn.SiLU()  # or SwiGLU if desired
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, x):
+        residual = x
+        
+        x = self.norm(x)
+        x = self.act(self.fc1(x))
+        x = self.dropout(x)
+        x = self.fc2(x)
+        
+        return x + residual   # Linear skip
+class TransformerBlock(nn.Module):
+    def __init__(self, embed_dim, num_heads, block_sizes, expansion=4, dropout=0.0):
+        super().__init__()
+        
+        self.norm_attn = nn.LayerNorm(embed_dim)
+        self.attn = nn.MultiheadAttention(embed_dim, num_heads, dropout=dropout)
+        self.dropout_attn = nn.Dropout(dropout)
+        
+        self.ff = FeedForward(embed_dim, block_sizes, expansion, dropout)
+
+    def forward(self, x):
+        # ---- Attention block (PreNorm) ----
+        x_norm = self.norm_attn(x)
+        attn_out, _ = self.attn(x_norm, x_norm, x_norm)
+        x = x + self.dropout_attn(attn_out)   # Linear skip
+
+        # ---- FeedForward block (PreNorm) ----
+        x = self.ff(x)  # already has skip inside
+
+        return x
 
 class activation_fcn(nn.Module):
     def __init__(self, dim):
@@ -248,7 +376,7 @@ class NNEmulator:
     def __init__(self, N_DIM, OUTPUT_DIM, dv_fid, dv_std, invcov, mask=None, 
         param_mask=None, model=None, deproj_PCA=False, optim=None, 
         device=torch.device('cpu'), lr=1e-3, reduce_lr=True, scheduler=None, 
-        weight_decay=1e-3, dtype='float', print_summary=False):
+        weight_decay=1e-3, dtype='float', print_summary=False, dropout=0.0):
         if dtype=='double':
             torch.set_default_dtype(torch.double)
             print('default data type = double')
@@ -270,6 +398,7 @@ class NNEmulator:
         self.device = device
         self.reduce_lr = reduce_lr
         self.weight_decay = weight_decay
+        self.dropout = dropout
         self.trained = False
 
         # init data vector mask
@@ -383,7 +512,7 @@ class NNEmulator:
         elif(model==5):
             print("Using Evan's ResTRF model...")
             int_dim_res = 256
-            n_channels = 32
+            n_channels = 60
             int_dim_trf = 1024
             self.model = nn.Sequential(
                             nn.Linear(self.N_DIM_REDUCED, int_dim_res),
@@ -411,6 +540,106 @@ class NNEmulator:
                             nn.Linear(int_dim_res, OUTPUT_DIM_REDUCED),
                             Affine()
                         )
+        elif(model==7):
+            print("Using Evan's larger ResNet model...")
+            int_dim_res = 1024
+            self.model = nn.Sequential(
+                            nn.Linear(self.N_DIM_REDUCED, int_dim_res),
+                            Better_ResBlock(int_dim_res, int_dim_res),
+                            Better_ResBlock(int_dim_res, int_dim_res),
+                            Better_ResBlock(int_dim_res, int_dim_res),
+                            nn.Linear(int_dim_res, OUTPUT_DIM_REDUCED),
+                            Affine()
+                        )
+        elif(model==8):
+            print("Using Deep ResMLP model (model 8)...")
+            int_dim_res = 512
+            self.model = nn.Sequential(
+                            nn.Linear(self.N_DIM_REDUCED, int_dim_res),
+                            ResBlock_v2(int_dim_res, int_dim_res, self.dropout),
+                            ResBlock_v2(int_dim_res, int_dim_res, self.dropout),
+                            ResBlock_v2(int_dim_res, int_dim_res, self.dropout),
+                            ResBlock_v2(int_dim_res, int_dim_res, self.dropout),
+                            ResBlock_v2(int_dim_res, int_dim_res, self.dropout),
+                            ResBlock_v2(int_dim_res, int_dim_res, self.dropout),
+                            nn.Linear(int_dim_res, OUTPUT_DIM_REDUCED),
+                            Affine()
+                        )
+        elif(model==9):
+            print("Using CNNMLP model (model 9)...")
+            int_dim_res = 512
+            cnn_dim = 5120
+            cnn_in_channels = 1
+            cnn_out_channels = 16
+            cnn_kernel_size = 5
+            cnn_stride = 16
+            cnn_padding = 2
+            self.model = nn.Sequential(
+                nn.Linear(self.N_DIM_REDUCED, int_dim_res),
+                ResBlock_v2(int_dim_res, int_dim_res, self.dropout),
+                ResBlock_v2(int_dim_res, int_dim_res, self.dropout),
+                ResBlock_v2(int_dim_res, int_dim_res, self.dropout),
+                CNNMLP(int_dim_res, cnn_dim, cnn_in_channels, cnn_out_channels, cnn_kernel_size, cnn_stride, cnn_padding),
+                nn.Linear(cnn_dim, OUTPUT_DIM_REDUCED),
+                Affine()
+            )
+        elif(model==10):
+            print("Using Resv2TRFv2 model (model 10)...")
+            int_dim_res = 256
+            int_dim_trf = 1024
+            n_channels = 32
+            #n_heads = 16
+            #block_sizes = [int_dim_trf//n_heads, ] * n_heads
+            #expansion = 4
+            self.model = nn.Sequential(
+                            nn.Linear(self.N_DIM_REDUCED, int_dim_res),
+                            ResBlock_v2(int_dim_res, int_dim_res, self.dropout),
+                            ResBlock_v2(int_dim_res, int_dim_res, self.dropout),
+                            ResBlock_v2(int_dim_res, int_dim_res, self.dropout),
+                            nn.Linear(int_dim_res, int_dim_trf),
+                            Better_Attention(int_dim_trf, n_channels),
+                            Better_Transformer(int_dim_trf, n_channels),
+                            nn.Linear(int_dim_trf,OUTPUT_DIM_REDUCED),
+                            Affine()
+                        )
+        elif(model==11):
+            print("Using Resv2TRFv2x3 model (model 11)...")
+            int_dim_res = 256
+            int_dim_trf = 1024
+            n_channels = 32
+            #n_heads = 16
+            #block_sizes = [int_dim_trf//n_heads, ] * n_heads
+            #expansion = 4
+            #int_dim_trf = 512
+            self.model = nn.Sequential(
+                            nn.Linear(self.N_DIM_REDUCED, int_dim_res),
+                            ResBlock_v2(int_dim_res, int_dim_res, self.dropout),
+                            ResBlock_v2(int_dim_res, int_dim_res, self.dropout),
+                            ResBlock_v2(int_dim_res, int_dim_res, self.dropout),
+                            nn.Linear(int_dim_res, int_dim_trf),
+                            #TransformerBlock(int_dim_trf, n_heads, block_sizes, expansion=expansion, dropout=self.dropout),
+                            #TransformerBlock(int_dim_trf, n_heads, block_sizes, expansion=expansion, dropout=self.dropout),
+                            #TransformerBlock(int_dim_trf, n_heads, block_sizes, expansion=expansion, dropout=self.dropout),
+                            Better_Attention(int_dim_trf, n_channels),
+                            Better_Transformer(int_dim_trf, n_channels),
+                            Better_Attention(int_dim_trf, n_channels),
+                            Better_Transformer(int_dim_trf, n_channels),
+                            Better_Attention(int_dim_trf, n_channels),
+                            Better_Transformer(int_dim_trf, n_channels),
+                            nn.Linear(int_dim_trf,OUTPUT_DIM_REDUCED),
+                            Affine()
+                        )
+        elif(model==12):
+            print("Using ResMLP v2 model (model 12)...")
+            int_dim_res = 256
+            self.model = nn.Sequential(
+                            nn.Linear(self.N_DIM_REDUCED, int_dim_res),
+                            ResBlock_v2(int_dim_res, int_dim_res, self.dropout),
+                            ResBlock_v2(int_dim_res, int_dim_res, self.dropout),
+                            ResBlock_v2(int_dim_res, int_dim_res, self.dropout),
+                            nn.Linear(int_dim_res, OUTPUT_DIM_REDUCED),
+                            Affine()
+                        )
         else:
             print(f'Can not support model {model}!')
             exit(1)
@@ -427,7 +656,7 @@ class NNEmulator:
         # LR scheduler from Evan's emulator
         if self.reduce_lr:
             print('Reduce LR on plateau: ', self.reduce_lr)
-            self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optim, 'min', patience=10)
+            self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optim, 'min', patience=15, factor=0.5)
 
         ### JX: Initialize model weights
         for m in self.model.modules():
@@ -487,7 +716,7 @@ class NNEmulator:
         torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_grad_norm)
 
     def train(self, X, y, X_validation, y_validation, batch_size=1000, 
-        n_epochs=150, loss_type="mean", debug_grad=False):
+        n_epochs=150, loss_type="mean", debug_grad=False, save_loss_filename=None):
         ''' Train the network with data vectors normalized by covariance PCs
         y: training/validation data
         Y: model prediction
@@ -541,6 +770,9 @@ class NNEmulator:
 
         print('Datasets loaded!')
         print('Begin training...')
+        if save_loss_filename is not None:
+            loss_fp = open(save_loss_filename, 'w')
+            loss_fp.write('# epoch   train_loss   valid_loss\n')
         train_start_time = datetime.now()
         for e in range(n_epochs):
             start_time = datetime.now()
@@ -588,11 +820,15 @@ class NNEmulator:
             print(f'Epoch {e:3d}: {epoch_cost:.2f} s; lr = {self.optim.param_groups[0]["lr"]:.2e}')
             print(f'--- Training loss = <{losses_train[-1]:.2e}>')
             print(f'--- Validation loss = <<{losses_vali[-1]:.2e}>>')
+            if save_loss_filename is not None:
+                loss_fp.write(f'{e:3d} {losses_train[-1]:.6e} {losses_vali[-1]:.6e}\n')
+                loss_fp.flush()
         # Finish all the epochs
+        if save_loss_filename is not None:
+            loss_fp.close()
         train_end_time = datetime.now()
         train_cost = (train_end_time-train_start_time).total_seconds()/3600.
         print(f'Training cost: {train_cost:.2} hours')
-        np.savetxt("losses.txt", np.array([losses_train,losses_vali],dtype=np.float64))
         self.trained = True
 
     def predict(self, X):
