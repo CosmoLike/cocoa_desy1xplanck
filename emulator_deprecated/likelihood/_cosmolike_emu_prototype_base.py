@@ -9,6 +9,8 @@ from cocoa_emu.emulator import NNEmulator
 
 probe_fmts = ["xi_pm", "gammat", "wtheta", "wgk", "wsk", "Ckk"]
 
+#torch.set_default_dtype(torch.float64)
+
 class _cosmolike_emu_prototype_base(_DataSetLikelihood):
 	''' Attributes needed from the likelihood yaml file:
 	- train_config: filename of the training config file
@@ -84,6 +86,7 @@ class _cosmolike_emu_prototype_base(_DataSetLikelihood):
 		### read emulators
 		# try include emu_list as object attribute. If not work, global variable
 		self.log.info("Reading emulator models...")
+		self.log.info(f'invcov dtype: {config.inv_cov.dtype}')
 		self.emu_list = []
 		for i,p in enumerate(probe_fmts):
 			_l, _r = sum(config.probe_size[:i]), sum(config.probe_size[:i+1])

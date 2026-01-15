@@ -159,19 +159,14 @@ class _cosmolike_prototype_base(_DataSetLikelihood):
 
     # ------------------------------------------------------------------------
     self.z_interp_1D = np.linspace(0,2.0,1000)
-#    self.z_interp_1D = np.concatenate((self.z_interp_1D,
-#      np.linspace(2.0,10.1,200)),axis=0)
-#    self.z_interp_1D = np.concatenate((self.z_interp_1D,
-#      np.linspace(1080,2000,20)),axis=0) #CMB 6x2pt g_CMB
     self.z_interp_1D = np.concatenate((self.z_interp_1D,
-      np.linspace(2.0,30.1,200)),axis=0)
+      np.linspace(2.01, 30.1, 200)),axis=0)
     self.z_interp_1D = np.concatenate((self.z_interp_1D,
-      np.linspace(1080,2000,20)),axis=0) #CMB 6x2pt g_CMB
+      np.linspace(1080, 2000, 20)),axis=0) #CMB 6x2pt g_CMB
     self.z_interp_1D[0] = 0
 
     # EUCLID EMULATOR CAN ONLY HANDLE 100 Z's BELOW Z=10
     self.z_interp_2D = np.linspace(0, 2.0, 80)
-    #self.z_interp_2D = np.concatenate((self.z_interp_2D, np.linspace(2.01, 10.0, 20)),axis=0)
     self.z_interp_2D = np.concatenate((self.z_interp_2D, np.linspace(2.01, 30.1, 20)),axis=0)
     self.z_interp_2D[0] = 0
 

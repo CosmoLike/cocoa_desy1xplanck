@@ -884,7 +884,13 @@ void cpp_init_distances(std::vector<double> io_z, std::vector<double> io_chi)
 
   // force initialization - imp to avoid seg fault when openmp is on
   const double io_a = 1.0;
-  chi(io_a);
+  double test_chi = chi(io_a);
+  double test_a = a_chi(test_chi);
+  if(std::abs(test_a - io_a) > 1e-6){
+    spdlog::error("\x1b[90m{}\x1b[0m: Failed testing a_chi(chi(a={})) = {}",
+      "init_distances", io_a, test_a);
+    exit(1);
+  }
 
   spdlog::debug("\x1b[90m{}\x1b[0m: Ends", "init_distances");
 

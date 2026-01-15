@@ -3,15 +3,13 @@ import os
 from os.path import join as pjoin
 from mpi4py import MPI
 import numpy as np
-import torch
-from cocoa_emu import Config, get_lhs_samples, get_params_list, CocoaModel, get_gaussian_samples
-from cocoa_emu.emulator import NNEmulator, GPEmulator
-from cocoa_emu.sampling import EmuSampler
-import emcee
+from cocoa_emu import Config, CocoaModel, get_gaussian_samples
+import time
 
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
+pid = os.getpid()
 
 configfile = sys.argv[1]
 config = Config(configfile)
@@ -38,23 +36,36 @@ if(rank==0):
 
 # ============== Retrieve training & validation sample ======================
 # Note that training sample does not include fast parameters
+training_samples_params_fn = pjoin(config.traindir,f'total_samples_{label_train}.npy')
+validation_samples_params_fn = pjoin(config.traindir,f'total_samples_{label_valid}.npy')
 if(rank==0):
     # retrieve Gaussian-approximation parameters
     # The mean of the Gaussian is specified by config.running_params_fid
     # plus shift from config.gauss_shift.
-    params_train = get_gaussian_samples(config.running_params_fid, 
-        config.running_params, config.params, config.gnsamp_t, 
-        config.gauss_cov, config.gtemp_t, config.gshift_t)
-    params_valid = get_gaussian_samples(config.running_params_fid, 
-        config.running_params, config.params, config.gnsamp_v, 
-        config.gauss_cov, config.gtemp_v, config.gshift_v)
+    if os.path.exists(training_samples_params_fn):
+        print(f'[process 0]: Loading training sample from {training_samples_params_fn}...')
+        params_train = np.load(training_samples_params_fn)
+    else:
+        print(f'[process 0]: Retrieving training sample...')
+        params_train = get_gaussian_samples(config.running_params_fid, 
+            config.running_params, config.params, config.gnsamp_t, 
+            config.gauss_cov, config.gtemp_t, config.gshift_t)
+        print(f'Saving training sample to ', training_samples_params_fn)
+        np.save(training_samples_params_fn, params_train)
+    if os.path.exists(validation_samples_params_fn):
+        print(f'[process 0]: Loading validation sample from {validation_samples_params_fn}...')
+        params_valid =  np.load(validation_samples_params_fn)
+    else:
+        print(f'[process 0]: Retrieving validation sample...')
+        params_valid = get_gaussian_samples(config.running_params_fid, 
+            config.running_params, config.params, config.gnsamp_v, 
+            config.gauss_cov, config.gtemp_v, config.gshift_v)
+        print(f'Saving validation sample to ', validation_samples_params_fn)
+        np.save(validation_samples_params_fn, params_valid)
 else:
     params_train, params_valid = None, None
 params_train = comm.bcast(params_train, root=0)
 params_valid = comm.bcast(params_valid, root=0)
-
-np.save(pjoin(config.traindir,f'total_samples_{label_train}.npy'),params_train)
-np.save(pjoin(config.traindir,f'total_samples_{label_valid}.npy'),params_valid)
 
 # ================== Calculate data vectors ==========================
 
@@ -90,7 +101,15 @@ def get_local_data_vector_list(params_list, rank, label, return_s8=False):
             _p = params_list[i]
         params_arr  = np.array([_p[k] for k in config.running_params])
         # Here it calls cocoa to calculate data vectors at requested parameters
-        data_vector, _s8 = cocoa_model.calculate_data_vector(_p, return_s8=return_s8)
+        try:
+            data_vector, _s8 = cocoa_model.calculate_data_vector(_p, return_s8=return_s8)
+        except Exception as e:
+            print(f'[Error] cocoa_model.calculate_data_vector fails at rank {rank}, iteration {i-rank*N_local}!')
+            print(e)
+            print(f'Failing at parameters:')
+            for k,v in _p.items():
+                print(f'  {k}: {v}')
+            raise e
         train_params_list.append(params_arr)
         train_data_vector_list.append(data_vector)
         if return_s8:

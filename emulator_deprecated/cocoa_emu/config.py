@@ -90,12 +90,12 @@ class Config:
         # Add PM marginalization
         if "U_PMmarg" in dataset:
             U_PMmarg = np.loadtxt(pjoin(dst, dataset["U_PMmarg"]))
-            U = np.zeros([self.mask_lkl.shape[0], self.lens_ntomo])
+            U = np.zeros([self.mask_lkl.shape[0], self.lens_ntomo], dtype=np.float64)
             for line in U_PMmarg:
                 i, j = int(line[0]), int(line[1])
                 U[i,j] = float(line[2])
             U = U[self.mask_lkl,:]
-            central_block = np.diag(np.ones(self.lens_ntomo)) + U.T@invcov@U
+            central_block = np.diag(np.ones(self.lens_ntomo, dtype=np.float64)) + U.T@invcov@U
             w, v = np.linalg.eig(central_block)
             assert np.min(w)>=0, f'Central block not positive-definite!'
             corr = invcov @ (U@np.linalg.inv(central_block)@U.T) @ invcov
@@ -104,7 +104,7 @@ class Config:
         # test positive-definite; compare accu between Python v.s. C++ PMmarg
         w, v = np.linalg.eig(self.masked_inv_cov)
         assert np.min(w)>=0, f'Precision matrix not positive-definite after PMmarg!'
-        self.inv_cov = np.zeros([self.mask_lkl.shape[0],self.mask_lkl.shape[0]])
+        self.inv_cov = np.zeros([self.mask_lkl.shape[0],self.mask_lkl.shape[0]], dtype=np.float64)
         for i in range(self.inv_cov.shape[0]):
             for j in range(self.inv_cov.shape[1]):
                 if (self.mask_lkl[i]>0) and (self.mask_lkl[j]>0):
@@ -344,7 +344,7 @@ class Config:
     def get_full_cov(self, cov_file):
         full_cov = np.loadtxt(cov_file)
         Ndim = len(self.dv_lkl)
-        cov = np.zeros((Ndim, Ndim))
+        cov = np.zeros((Ndim, Ndim), dtype=np.float64)
         cov_scenario = full_cov.shape[1]
         
         for line in full_cov:

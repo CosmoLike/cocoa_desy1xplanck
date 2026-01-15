@@ -9,6 +9,16 @@ import sys
 from torchinfo import summary
 from datetime import datetime
 
+torch.autograd.set_detect_anomaly(True)
+EPS = 1e-7 if torch.get_default_dtype() == torch.float32 else 1e-15
+
+def assert_finite(x, name):
+    if not torch.isfinite(x).all():
+        raise RuntimeError(f"NaN/Inf detected in {name}")
+def assert_non_negative(x, name):
+    if (x < 0).any():
+        raise RuntimeError(f"Negative values detected in {name}")
+
 class Affine(nn.Module):
     def __init__(self):
         super(Affine, self).__init__()
@@ -104,6 +114,37 @@ class ResBlock_v2(nn.Module):
         o1 = self.dropout1(self.act1(self.layer1(self.norm1(x))))
         o2 = (self.dropout2(self.act2(self.layer2(self.norm2(o1))))) + xskip
         return o2
+    
+class ResBlock_v3(nn.Module):
+    def __init__(self, in_size, out_size, dropout=0.0):
+        super(ResBlock_v3, self).__init__()
+
+        if in_size != out_size:
+            self.skip = nn.Linear(in_size, out_size, bias=False) # we don't consider this. remove?
+        else:
+            self.skip = nn.Identity()
+
+        self.layer1 = nn.Linear(in_size, out_size)
+        self.layer2 = nn.Linear(out_size, out_size)
+
+        self.norm1 = torch.nn.LayerNorm(in_size)
+        self.norm2 = torch.nn.LayerNorm(out_size)
+
+        self.act1 = nn.SiLU() #activation_fcn(in_size) 
+        self.act2 = nn.SiLU() #activation_fcn(out_size) 
+
+        if dropout>0.0:
+            self.dropout1 = nn.Dropout(dropout)
+            self.dropout2 = nn.Dropout(dropout)
+        else:
+            self.dropout1 = nn.Identity()
+            self.dropout2 = nn.Identity()
+
+    def forward(self, x):
+        xskip = self.skip(x)
+        o1 = self.dropout1(self.layer1(self.act1(self.norm1(x))))
+        o2 = (self.dropout2(self.layer2(self.act2(self.norm2(o1))))) + xskip
+        return o2
 
 class CNNMLP(nn.Module):
 
@@ -118,12 +159,14 @@ class CNNMLP(nn.Module):
         self.conv = nn.Conv1d(in_channels=cnn_in_channels, out_channels=cnn_out_channels, 
                               kernel_size=cnn_kernel_size, stride=cnn_stride, padding=cnn_padding)
         self.Act2 = activation_fcn(output_dim)
+        #self.norm = nn.LayerNorm(output_dim)
 
     def forward(self, x):
         x = self.CNNtrans(x)
         x = x.view(x.size(0), self.in_channels, -1)
         x = self.conv(x)
         x = x.view(x.size(0), self.outdim)
+        #x = self.norm(x)
         x = self.Act2(x)
         return x
 
@@ -341,18 +384,21 @@ class TransformerBlock(nn.Module):
         return x
 
 class activation_fcn(nn.Module):
+    ''' Trainable Swish activation function
+    f(x)=(gamma+(1+exp(-beta*x))^(-1)*(1-gamma))*x
+    '''
     def __init__(self, dim):
         super(activation_fcn, self).__init__()
 
-        self.dim = dim
         self.gamma = nn.Parameter(torch.zeros((dim)))
         self.beta = nn.Parameter(torch.zeros((dim)))
+        #self.m = nn.Sigmoid()
 
     def forward(self,x):
-        exp = -1*torch.mul(self.beta,x)
-        inv = (1+torch.exp(exp)).pow_(-1)
-        fac_2 = 1-self.gamma
-        out = torch.mul(self.gamma + torch.mul(inv,fac_2), x)
+        #inv = self.m(torch.mul(self.beta,x))
+        inv = torch.sigmoid(torch.mul(self.beta,x))
+        fac = 1-self.gamma
+        out = torch.mul(self.gamma + torch.mul(inv,fac), x)
         return out
 
 class True_Transformer(nn.Module):
@@ -377,9 +423,6 @@ class NNEmulator:
         param_mask=None, model=None, deproj_PCA=False, optim=None, 
         device=torch.device('cpu'), lr=1e-3, reduce_lr=True, scheduler=None, 
         weight_decay=1e-3, dtype='float', print_summary=False, dropout=0.0):
-        if dtype=='double':
-            torch.set_default_dtype(torch.double)
-            print('default data type = double')
         self.generator=torch.Generator("cpu")
 
         ### Set the input parameter space dimension
@@ -392,7 +435,6 @@ class NNEmulator:
         else:
             self.param_mask = np.ones(N_DIM, dtype=bool)
             self.N_DIM_REDUCED = N_DIM
-        self.model = model
         self.optim = optim
         self.deproj_PCA = deproj_PCA
         self.device = device
@@ -409,24 +451,27 @@ class NNEmulator:
         OUTPUT_DIM_REDUCED = self.mask.sum()
         # init data vector, dv covariance, and dv std (and deproject to PCs)
         # and also get rid off masked data points
-        self.dv_fid = torch.Tensor(dv_fid)
-        self.dv_std = torch.Tensor(dv_std)
-        self.invcov = torch.Tensor(invcov)
+        # NOTE: double precision for these tensors to avoid numerical issues
+        self.dv_fid = torch.tensor(dv_fid, dtype=torch.float64)
+        self.dv_std = torch.tensor(dv_std, dtype=torch.float64)
+        self.invcov = torch.tensor(invcov, dtype=torch.float64)
         if self.deproj_PCA:
             # note that mask the dv and cov before building PCs
-            dv_fid_masked = torch.Tensor(dv_fid[self.mask])
-            invcov_masked = torch.Tensor(invcov[self.mask][:,self.mask])
+            dv_fid_masked = torch.tensor(dv_fid[self.mask], dtype=torch.float64)
+            invcov_masked = torch.tensor(invcov[self.mask][:,self.mask], dtype=torch.float64)
             eigenvalues, eigenvectors = np.linalg.eigh(invcov_masked)
-            assert np.all(eigenvalues>0), 'Non-positive-def invcov!'
-            self.PC_masked = torch.Tensor(eigenvectors)
-            self.dv_std_reduced = torch.Tensor(1./np.sqrt(eigenvalues))
-            self.dv_fid_reduced = torch.Tensor(dv_fid_masked@self.PC_masked)
-            self.invcov_reduced = torch.Tensor(np.diag(eigenvalues))
+            eigenvalues = torch.as_tensor(eigenvalues, dtype=torch.float64)
+            eigenvectors = torch.as_tensor(eigenvectors, dtype=torch.float64)
+            assert torch.all(eigenvalues>0), 'Non-positive-def invcov!'
+            self.PC_masked = eigenvectors.detach().clone()
+            self.dv_std_reduced = (1./torch.sqrt(eigenvalues)).detach().clone()
+            self.dv_fid_reduced = dv_fid_masked@self.PC_masked
+            self.invcov_reduced = torch.diag(eigenvalues).detach().clone()
         else:
             self.PC_masked = None
-            self.dv_fid_reduced = torch.Tensor(dv_fid[self.mask])
-            self.dv_std_reduced = torch.Tensor(dv_std[self.mask])
-            self.invcov_reduced = torch.Tensor(invcov[self.mask][:,self.mask])
+            self.dv_fid_reduced = torch.tensor(dv_fid[self.mask], dtype=torch.float64)
+            self.dv_std_reduced = torch.tensor(dv_std[self.mask], dtype=torch.float64)
+            self.invcov_reduced = torch.tensor(invcov[self.mask][:,self.mask], dtype=torch.float64)
         
         if (model==0):
             print("Using simply connected NN...")
@@ -640,11 +685,62 @@ class NNEmulator:
                             nn.Linear(int_dim_res, OUTPUT_DIM_REDUCED),
                             Affine()
                         )
+        elif(model==13):
+            print("Using CNNMLP model (model 13, with ResMLP v3)...")
+            int_dim_res = 512
+            cnn_dim = 5120
+            cnn_in_channels = 1
+            cnn_out_channels = 16
+            cnn_kernel_size = 5
+            cnn_stride = 16
+            cnn_padding = 2
+            self.model = nn.Sequential(
+                nn.Linear(self.N_DIM_REDUCED, int_dim_res),
+                ResBlock_v3(int_dim_res, int_dim_res, self.dropout),
+                ResBlock_v3(int_dim_res, int_dim_res, self.dropout),
+                ResBlock_v3(int_dim_res, int_dim_res, self.dropout),
+                CNNMLP(int_dim_res, cnn_dim, cnn_in_channels, cnn_out_channels, cnn_kernel_size, cnn_stride, cnn_padding),
+                nn.Linear(cnn_dim, OUTPUT_DIM_REDUCED),
+                Affine()
+            )
+        elif(model==14):
+            print("Using CNNMLP model (model 14, with ResMLP v3)...")
+            int_dim_res = 512
+            cnn_dim = 5120
+            cnn_in_channels = 1
+            cnn_out_channels = 16
+            cnn_kernel_size = 5
+            cnn_stride = 16
+            cnn_padding = 2
+            self.model = nn.Sequential(
+                nn.Linear(self.N_DIM_REDUCED, int_dim_res),
+                ResBlock_v3(int_dim_res, int_dim_res, self.dropout),
+                ResBlock_v3(int_dim_res, int_dim_res, self.dropout),
+                ResBlock_v3(int_dim_res, int_dim_res, self.dropout),
+                ResBlock_v3(int_dim_res, int_dim_res, self.dropout),
+                ResBlock_v3(int_dim_res, int_dim_res, self.dropout),
+                ResBlock_v3(int_dim_res, int_dim_res, self.dropout),
+                CNNMLP(int_dim_res, cnn_dim, cnn_in_channels, cnn_out_channels, cnn_kernel_size, cnn_stride, cnn_padding),
+                nn.Linear(cnn_dim, OUTPUT_DIM_REDUCED),
+                Affine()
+            )
         else:
             print(f'Can not support model {model}!')
             exit(1)
         if print_summary:
             summary(self.model)
+        if dtype=='double':
+            self.model = self.model.double()
+            self.model_dtype = torch.double
+            print('Using double precision for the model.')
+        elif dtype=='float':
+            self.model = self.model.float()
+            self.model_dtype = torch.float32
+            print('Using single precision for the model.')
+        elif dtype=='half':
+            self.model = self.model.half()
+            self.model_dtype = torch.float16
+            print('Using half precision for the model.')
         self.model.to(device)
 
         if self.optim is None:
@@ -661,7 +757,7 @@ class NNEmulator:
         ### JX: Initialize model weights
         for m in self.model.modules():
             if isinstance(m, nn.Linear):
-                nn.init.xavier_uniform_(m.weight)
+                nn.init.xavier_uniform_(m.weight, gain=0.5)
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
 
@@ -673,47 +769,45 @@ class NNEmulator:
         assert self.deproj_PCA==True
         return PC_coeff@(self.PC_masked.T)
 
-    def chi2_to_loss(self, loss_arr, loss_type="mean"):
-        ''' map dchi2 to loss functions
+    def chi2_to_loss(self, chi2_arr, loss_type="mean"):
+        ''' Map dchi2 to loss functions
         '''
+        assert_finite(chi2_arr, "Delta chi2 array")
+        assert_non_negative(chi2_arr, "Delta chi2 array")
         if loss_type=="mean":
-            loss = torch.mean(loss_arr)
+            loss = torch.mean(chi2_arr)
         elif loss_type=="clipped_mean":
-            loss = torch.mean(torch.sort(loss_arr)[0][:-5])
+            loss = torch.mean(torch.sort(chi2_arr)[0][:-5])
         elif loss_type=="log_chi2":
-            loss = torch.mean(torch.log(loss_arr))
+            loss = torch.mean(torch.log(chi2_arr.clamp(min=EPS)))
         elif loss_type=="log_hyperbola":
-            loss = torch.mean(torch.log(1+loss_arr))
+            loss = torch.mean(torch.log((1+chi2_arr).clamp(min=EPS)))
         elif loss_type=="hyperbola":
-            loss = torch.mean((1+2*loss_arr)**(1/2))-1
+            loss = torch.mean((1+2*chi2_arr)**(1/2))-1
         elif loss_type=="hyperbola-1/3":
-            loss = torch.mean((1+3*loss_arr)**(1/3))-1
+            loss = torch.mean((1+3*chi2_arr)**(1/3))-1
         else:
             print(f'Can not find loss function type {loss_type}!')
             print(f'Available choices: [mean, clipped_mean, log_chi2, log_hyperbola, hyperbola, hyperbola-1/3]')
             exit(1)
-        assert torch.isfinite(loss), f'Invalid loss: {loss_arr.detach().cpu()}'
+        assert torch.isfinite(loss), f'Invalid loss: {chi2_arr.detach().cpu()}'
         return loss
 
-    def monitor_grad(self, epoch, max_grad_norm=1e25):
+    def monitor_grad(self, epoch):
         ''' Monitor the model parameters gradient for debugging purpose
         '''
-        total_norm, total_norm_ct = 0, 0
+        NaN_norm_counts = 0
         min_norm, max_norm = np.inf, -np.inf
         for param in self.model.parameters():
             if param.grad is not None:
                 param_norm = param.grad.data.norm(2)
                 if torch.isfinite(param_norm):
-                    total_norm += param_norm.item() ** 2
-                    total_norm_ct += 1
-                    min_norm = min_norm if total_norm>min_norm else total_norm
-                    max_norm = max_norm if total_norm<max_norm else total_norm
+                    min_norm = min_norm if param_norm > min_norm else param_norm
+                    max_norm = max_norm if param_norm < max_norm else param_norm
                 else:
                     NaN_norm_counts += 1
-        total_norm = total_norm ** 0.5
-        print(f'\rEpoch {e:3d}: total grad norm = {total_norm:.1e} min = {min_norm:.1e} max = {max_norm:.1e} NaN counts {NaN_norm_counts:d}', end='', flush=True)
-        # clipping exploding gradient
-        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_grad_norm)
+        print(f'\rEpoch {epoch:3d}: Gradient norm range [{min_norm:.1e}, {max_norm:.1e}], {NaN_norm_counts:d} NaN grad', 
+              end='', flush=True)
 
     def train(self, X, y, X_validation, y_validation, batch_size=1000, 
         n_epochs=150, loss_type="mean", debug_grad=False, save_loss_filename=None):
@@ -735,17 +829,17 @@ class NNEmulator:
             y_validation_reduced = self.do_pca(y_validation[:,self.mask]) - self.dv_fid_reduced
         else:
             # only get rid off masked elements
-            y_reduced = y[:,self.mask] - self.dv_fid_reduced
-            y_validation_reduced = y_validation[:,self.mask] - self.dv_fid_reduced
-        X_reduced = X[:,self.param_mask]
-        X_validation_reduced = X_validation[:,self.param_mask]
+            y_reduced = (y[:,self.mask]).double() - self.dv_fid_reduced
+            y_validation_reduced = (y_validation[:,self.mask]).double() - self.dv_fid_reduced
+        X_reduced = (X[:,self.param_mask]).double()
+        X_validation_reduced = (X_validation[:,self.param_mask]).double()
 
-        # get normalization factors
+        # get normalization factors, float64 for better dynamic range
         if not self.trained:
-            self.X_mean = torch.Tensor(X_reduced.mean(axis=0, keepdims=True))
-            self.X_std  = torch.Tensor(X_reduced.std(axis=0, keepdims=True))
-            self.y_mean = self.dv_fid_reduced
-            self.y_std  = self.dv_std_reduced
+            self.X_mean = X_reduced.mean(axis=0, keepdims=True).clone().detach()
+            self.X_std  = X_reduced.std(axis=0, keepdims=True).clone().detach()
+            self.y_mean = self.dv_fid_reduced.clone().detach()
+            self.y_std  = self.dv_std_reduced.clone().detach()
         # initialize arrays
         losses_train = []
         losses_vali = []
@@ -757,16 +851,18 @@ class NNEmulator:
         tmp_cov_inv      = self.invcov_reduced.to(self.device)
         tmp_X_mean       = self.X_mean.to(self.device)
         tmp_X_std        = self.X_std.to(self.device)
-        tmp_X_validation = (X_validation_reduced.to(self.device) - tmp_X_mean)/tmp_X_std
+        tmp_X_validation = ((X_validation_reduced.to(self.device) - tmp_X_mean)/tmp_X_std).to(self.model_dtype)
         tmp_y_validation = y_validation_reduced.to(self.device)
 
-        # Here is the input normalization
-        X_train     = ((X_reduced - self.X_mean)/self.X_std)
+        # Normalize in float64, then convert to float32 for model input
+        X_train     = ((X_reduced - self.X_mean)/self.X_std).to(self.model_dtype)
         y_train     = y_reduced
         trainset    = torch.utils.data.TensorDataset(X_train, y_train)
         validset    = torch.utils.data.TensorDataset(tmp_X_validation,tmp_y_validation)
-        trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=False, drop_last=True, num_workers=0, generator=self.generator)
-        validloader = torch.utils.data.DataLoader(validset, batch_size=batch_size, shuffle=False, drop_last=True, num_workers=0, generator=self.generator)
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=False, 
+                                                  drop_last=True, num_workers=0, generator=self.generator)
+        validloader = torch.utils.data.DataLoader(validset, batch_size=batch_size, shuffle=False, 
+                                                  drop_last=True, num_workers=0, generator=self.generator)
 
         print('Datasets loaded!')
         print('Begin training...')
@@ -780,13 +876,14 @@ class NNEmulator:
             # training loss
             self.model.train()
             losses = []
-            NaN_norm_counts = 0
-            for i, data in enumerate(trainloader):
+            for data in trainloader:
                 # normalized X and y
-                X       = data[0].to(self.device)
-                y_batch = data[1].to(self.device)
-                Y_pred  = self.model(X) * tmp_y_std
-                diff = y_batch - Y_pred
+                X       = data[0].to(self.device) # self.model_dtype
+                y_batch = data[1].to(self.device) # float64
+                # make sure dchi2 calculation in float64
+                Y_pred  = self.model(X).to(torch.float64) * tmp_y_std
+                assert_finite(Y_pred, "Model prediction")
+                diff = (y_batch - Y_pred).to(torch.float64)
                 chi2_arr = torch.diag((diff@tmp_cov_inv)@torch.t(diff))
                 loss = self.chi2_to_loss(chi2_arr, loss_type)
                 losses.append(loss.cpu().detach().numpy())
@@ -794,6 +891,8 @@ class NNEmulator:
                 loss.backward()
                 if debug_grad:
                     self.monitor_grad(e)
+                # clipping exploding gradient
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), 100.0)
                 self.optim.step()
             losses_train.append(np.mean(losses))
 
@@ -801,13 +900,14 @@ class NNEmulator:
             with torch.no_grad():
                 self.model.eval()
                 losses = []
-                for i, data in enumerate(validloader):  
-                    X_v       = data[0].to(self.device)
-                    y_v_batch = data[1].to(self.device)
-                    Y_v_pred = self.model(X_v) * tmp_y_std
-
-                    v_diff = y_v_batch - Y_v_pred 
-                    chi2_arr_v =torch.diag((v_diff@tmp_cov_inv)@torch.t(v_diff))
+                for data in validloader:  
+                    X_v       = data[0].to(self.device) # self.model_dtype
+                    y_v_batch = data[1].to(self.device) # float64
+                    # make sure dchi2 calculation in float64
+                    Y_v_pred = self.model(X_v).to(torch.float64) * tmp_y_std
+                    assert_finite(Y_v_pred, "Model prediction")
+                    v_diff = (y_v_batch - Y_v_pred).to(torch.float64)
+                    chi2_arr_v = torch.diag((v_diff@tmp_cov_inv)@torch.t(v_diff))
                     loss_v = self.chi2_to_loss(chi2_arr_v, loss_type)
                     losses.append(loss_v.cpu().detach().numpy())
                 losses_vali.append(np.mean(losses))
@@ -817,7 +917,7 @@ class NNEmulator:
             # count per epoch time consumed 
             end_time = datetime.now()
             epoch_cost = (end_time-start_time).total_seconds()
-            print(f'Epoch {e:3d}: {epoch_cost:.2f} s; lr = {self.optim.param_groups[0]["lr"]:.2e}')
+            print(f'\nEpoch {e:3d}: {epoch_cost:.2f} s; lr = {self.optim.param_groups[0]["lr"]:.2e}')
             print(f'--- Training loss = <{losses_train[-1]:.2e}>')
             print(f'--- Validation loss = <<{losses_vali[-1]:.2e}>>')
             if save_loss_filename is not None:
@@ -851,8 +951,8 @@ class NNEmulator:
             y_mean = self.y_mean.clone().detach()
             y_std  = self.y_std.clone().detach()
 
-            X_norm = (X[:,self.param_mask] - X_mean) / X_std
-            y_pred = self.model(X_norm).cpu()*y_std + y_mean
+            X_norm = ((X[:,self.param_mask].clone().detach().to(torch.float64) - X_mean) / X_std).to(self.model_dtype)
+            y_pred = (self.model(X_norm).cpu()).to(torch.float64) * y_std + y_mean
         if self.deproj_PCA:
             data_vector_masked = self.do_inverse_pca(y_pred).numpy()
         else:
@@ -876,6 +976,7 @@ class NNEmulator:
             f['mask'] = self.mask
             f['param_mask'] = self.param_mask
             f['deproj_PCA'] = self.deproj_PCA
+            f['model_dtype'] = str(self.model_dtype)
             if self.deproj_PCA:
                 f['PC_masked'] = self.PC_masked
         
@@ -892,84 +993,19 @@ class NNEmulator:
             self.model.load_state_dict(torch.load(filename,map_location=device))
         self.model.eval()
         with h5.File(filename + '.h5', 'r') as f:
-            self.X_mean = torch.Tensor(f['X_mean'][:])
-            self.X_std  = torch.Tensor(f['X_std'][:])
-            self.y_mean = torch.Tensor(f['Y_mean'][:])
-            self.y_std  = torch.Tensor(f['Y_std'][:])
-            # self.dv_fid = torch.Tensor(f['dv_fid'][:])
-            # self.dv_std = torch.Tensor(f['dv_std'][:])
-            # self.dv_fid_reduced = torch.Tensor(f['dv_fid_reduced'][:])
-            # self.dv_std_reduced = torch.Tensor(f['dv_std_reduced'][:])
+            self.X_mean = torch.tensor(f['X_mean'][:], dtype=torch.float64)
+            self.X_std  = torch.tensor(f['X_std'][:], dtype=torch.float64)
+            self.y_mean = torch.tensor(f['Y_mean'][:], dtype=torch.float64)
+            self.y_std  = torch.tensor(f['Y_std'][:], dtype=torch.float64)
             self.mask = f['mask'][:].astype(bool)
             self.param_mask = f['param_mask'][:].astype(bool)
             self.deproj_PCA = f['deproj_PCA'][()].astype(bool)
+            try:
+                self.model_dtype = eval(f['model_dtype'][()].decode('utf-8'))
+            except:
+                self.model_dtype = torch.float64
             if self.deproj_PCA:
-                self.PC_masked = torch.Tensor(f['PC_masked'][:])
+                self.PC_masked = torch.tensor(f['PC_masked'][:], dtype=torch.float64)
                 self.invcov_reduced = torch.diag(1./self.y_std**2)
             else:
                 self.PC_masked = None
-            # print(f'=== X_mean = {self.X_mean}')
-            # print(f'=== X_std  = {self.X_std}')
-            # print(f'=== y_mean = {self.y_mean}')
-            # print(f'=== y_std  = {self.y_std}')
-            # print(f'=== dv_fid = {self.dv_fid}')
-            # print(f'=== dv_std = {self.dv_std}')
-            # print(f'=== dv_fid_reduced = {self.dv_fid_reduced}')
-            # print(f'=== dv_std_reduced = {self.dv_std_reduced}')
-            # print(f'=== mask   = {self.mask}')
-            # print(f'=== param_mask = {self.param_mask}')
-            # print(f'=== deproj_PCA = {self.deproj_PCA}')
-            # print(f'=== PC_masked = {self.PC_masked}')
-
-#     def train(self, X, y, test_split=None, batch_size=32, n_epochs=100):
-#         assert self.deproj_PCA==False, f'Please use train_PCA()!'
-#         if not self.trained:
-#             self.X_mean = torch.Tensor(X.mean(axis=0, keepdims=True))
-#             self.X_std  = torch.Tensor(X.std(axis=0, keepdims=True))
-#             self.y_mean = self.dv_fid
-#             self.y_std  = self.dv_std
-
-#         X_train = (X - self.X_mean) / self.X_std
-# #         y_train = y / self.dv_fid
-#         y_train = (y - self.y_mean) / self.y_std
-
-#         trainset = torch.utils.data.TensorDataset(X_train, y_train)
-#         trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True, drop_last=True, num_workers=1)
-#         epoch_range = tqdm(range(n_epochs))
-        
-#         losses = []
-#         loss = 100.
-#         for _ in epoch_range:
-#             for i, data in enumerate(trainloader):
-#                 X_batch = data[0]
-#                 y_batch = data[1]
-
-#                 y_pred = self.model(X_batch)
-#                 _d = (y_batch-y_pred)*self.mask*self.y_std
-#                 _chi2 = (_d*torch.matmul(_d, self.invcov)).sum(-1)
-#                 loss = torch.mean(_chi2)
-#                 #loss = torch.mean(torch.abs(y_batch - y_pred) * self.mask)
-#                 losses.append(loss)
-#                 self.optim.zero_grad()
-#                 loss.backward()
-#                 self.optim.step()
-                
-#             epoch_range.set_description('Loss: {0}'.format(loss))
-
-#         self.trained = True
-
-#     def predict(self, X):
-#         assert self.trained, "The emulator needs to be trained first before predicting"
-#         assert self.deproj_PCA==False, f'Please use predict_PCA()!'
-
-#         with torch.no_grad():
-#             X_mean = self.X_mean.clone().detach()
-#             X_std  = self.X_std.clone().detach()
-
-#             X_norm = (X - X_mean) / X_std
-#             y_pred = self.model.eval()(X_norm).cpu()
-        
-# #         y_pred = y_pred * self.dv_fid
-#         y_pred = y_pred * self.y_std + self.y_mean
-
-#         return y_pred.numpy()

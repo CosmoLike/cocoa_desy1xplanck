@@ -24,14 +24,15 @@ args = parser.parse_args()
 #size = comm.Get_size()
 #rank = comm.Get_rank()
 
-if torch.cuda.is_available():
+#if torch.cuda.is_available():
+if False:
    device = torch.device('cuda')
    #torch.set_default_tensor_type('torch.cuda.FloatTensor')
 else:
    device = torch.device('cpu')
-   torch.set_num_interop_threads(40) # Inter-op parallelism
-   torch.set_num_threads(40) # Intra-op parallelism
-torch.set_default_dtype(torch.double)
+   torch.set_num_interop_threads(4) # Inter-op parallelism
+   torch.set_num_threads(4) # Intra-op parallelism
+torch.set_default_dtype(torch.float32)
 
 config = Config(args.config)
 iss = f'{config.init_sample_type}'
@@ -43,6 +44,10 @@ print(f'Loading validating data...')
 valid_samples = np.load(pjoin(config.traindir, f'samples_{label_valid}.npy'))[::args.thin]
 valid_data_vectors = np.load(pjoin(config.traindir, f'data_vectors_{label_valid}.npy'))[::args.thin]
 valid_sigma8 = np.load(pjoin(config.traindir, f'sigma8_{label_valid}.npy'))[::args.thin]
+mask_samples = np.all(np.isfinite(valid_sigma8), axis=1) & np.all(np.isfinite(valid_data_vectors), axis=1)
+valid_samples = valid_samples[mask_samples]
+valid_data_vectors = valid_data_vectors[mask_samples]
+valid_sigma8 = valid_sigma8[mask_samples]
 N_samples = valid_samples.shape[0]
 print(f'Validation dataset loaded (thin by {args.thin} down to {N_samples})')
 
@@ -53,7 +58,8 @@ probe_fmts = ["xi_pm", "gammat", "wtheta", "wgk", "wsk", "Ckk"]
 emu_list = []
 for i,p in enumerate(probe_fmts):
     _l, _r = sum(config.probe_size[:i]), sum(config.probe_size[:i+1])
-    fn = pjoin(config.modeldir, f'{p}_nn{config.nn_model}')
+    #fn = pjoin(config.modeldir, f'{p}_nn{config.nn_model}')
+    fn = pjoin(config.modeldir, f'{probe_fmts[i]}_nn{config.nn_model}_wd{config.weight_decay}_PCA{int(config.do_pca)}_dropout{config.dropout}')
     if os.path.exists(fn+".h5"):
         print(f'Reading {p} NN emulator from {fn}.h5 ...')
         emu = NNEmulator(config.n_dim, config.probe_size[i], 
@@ -61,9 +67,9 @@ for i,p in enumerate(probe_fmts):
             config.inv_cov[_l:_r,_l:_r],
             mask=config.mask_lkl[_l:_r],param_mask=config.probe_params_mask[i],
             model=config.nn_model, device=device,
-            deproj_PCA=True, lr=config.learning_rate, 
-            reduce_lr=config.reduce_lr, 
-            weight_decay=config.weight_decay, dtype="double")
+            deproj_PCA=config.do_pca, lr=config.learning_rate, 
+            reduce_lr=config.reduce_lr, weight_decay=config.weight_decay, 
+            dropout=config.dropout, dtype="float")
         emu.load(fn)
     else:
         print(f'Can not find {p} emulator {fn}! Ignore probe {p}!')
@@ -72,18 +78,19 @@ for i,p in enumerate(probe_fmts):
 emu_sampler = EmuSampler(emu_list, config)
 
 ### Load sigma_8 emulator
-fn = pjoin(config.modeldir, f'sigma8_nn{config.nn_model}')
-if os.path.exists(fn+".h5"):
-    print(f'Reading sigma8 NN emulator from {fn}.h5 ...')
+#fn = pjoin(config.modeldir, f'sigma8_nn{config.nn_model}')
+emu_s8_fn = pjoin(config.modeldir, f'sigma8_nn{config.nn_model}_wd{config.weight_decay}_PCA{int(config.do_pca)}_dropout{config.dropout}')
+if os.path.exists(emu_s8_fn+".h5"):
+    print(f'Reading sigma8 NN emulator from {emu_s8_fn}.h5 ...')
     emu_s8 = NNEmulator(config.n_pars_cosmo, 1, config.sigma8_fid, 
             config.sigma8_std, np.atleast_2d(1.0/config.sigma8_std**2), 
             model=config.nn_model, device=device,
             deproj_PCA=False, lr=config.learning_rate, 
-            reduce_lr=config.reduce_lr, 
-            weight_decay=config.weight_decay, dtype="double")
-    emu_s8.load(fn)
+            reduce_lr=config.reduce_lr, dropout=config.dropout,
+            weight_decay=config.weight_decay, dtype="float")
+    emu_s8.load(emu_s8_fn)
 else:
-    print(f'Can not find sigma8 emulator {fn}!')
+    print(f'Can not find sigma8 emulator {emu_s8_fn}!')
     emu_s8 = None
 
 print("\n\n\n Computing dchi2...")
@@ -122,9 +129,9 @@ frac_dchi2_2 = np.sum(dchi2_list>0.2)/dchi2_list.shape[0]
 print(f'{frac_dchi2_1} chance of getting dchi2 > 1.0 from validation sample')
 print(f'{frac_dchi2_2} chance of getting dchi2 > 0.2 from validation sample')
 
-np.save(pjoin(config.traindir, "../dchi2_dsigma8_validation_v3_025"),
+np.save(pjoin(config.modeldir, f'dchi2_dsigma8_validation_w0waCDM_HF_NLA_025_model{config.nn_model}_wd{config.weight_decay}_PCA{int(config.do_pca)}_dropout{config.dropout}'),
 	np.vstack([dchi2_list, dsigma8_list]))
-np.save(pjoin(config.traindir, "../mv_thinned_validation_v3_025"),
+np.save(pjoin(config.modeldir, f'mv_thinned_validation_w0waCDM_HF_NLA_025_model{config.nn_model}_wd{config.weight_decay}_PCA{int(config.do_pca)}_dropout{config.dropout}'),
     np.vstack(mv_list))
 
 print("Done!")

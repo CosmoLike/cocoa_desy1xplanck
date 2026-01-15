@@ -14,8 +14,10 @@ parser = ArgumentParser()
 parser.add_argument('config', type=str, help='Configuration file')
 parser.add_argument('--overwrite', action='store_true', default=False,
                     help='Overwrite existing model files')
-parser.add_argument('--debug', action='store_true', default=False,
-                    help='Turn on debugging mode')
+parser.add_argument('--double_precision', action='store_true', default=False,
+                    help='Use double precision for NN model parameters')
+parser.add_argument('--monitor_gradient', action='store_true', default=False,
+                    help='Monitor NN model gradient during training')
 args = parser.parse_args()
 
 if torch.cuda.is_available():
@@ -25,8 +27,18 @@ else:
     device = torch.device('cpu')
     torch.set_num_interop_threads(40) # Inter-op parallelism
     torch.set_num_threads(40) # Intra-op parallelism
-torch.set_default_dtype(torch.double)
+### Precision for NN model
+#torch.set_default_dtype(torch.float32)
+if args.double_precision:
+    #torch.set_default_dtype(torch.float64)
+    _DTYPE_ = torch.float64
+    _DTYPE_STRING_ = "double"
+else:
+    #torch.set_default_dtype(torch.float32)
+    _DTYPE_ = torch.float32
+    _DTYPE_STRING_ = "float"
 print('Using device: ',device)
+print('Torch default dtype: ', torch.get_default_dtype())
 
 #===============================================================================
 config = Config(args.config)
@@ -49,32 +61,40 @@ dv_mask = dv_mask * 60 + [0,] * 9
 dv_mask = np.array(dv_mask, dtype=bool)
 dv_mask = dv_mask & (fid_dv!=0.0)
 #================== Loading Training & Validating Data =========================
+# NOTE: training/validating data are stored in float64 precision
 print(f'Loading training data!')
-train_samples = np.load(pjoin(config.traindir, f'samples_{label_train}.npy'))
-train_data_vectors = np.load(pjoin(config.traindir, f'data_vectors_{label_train}.npy'))
-train_sigma8 = np.load(pjoin(config.traindir, f'sigma8_{label_train}.npy'))
-#train_mask = np.array([np.any(np.abs(train_data_vectors[i, dv_mask]/fid_dv[dv_mask]) < 1e-3) \
-#                 for i in range(train_data_vectors.shape[0])])
-#print(f'Training dataset dimension: {train_samples.shape} / {np.sum(~train_mask)} valid samples')
+train_samples = np.load(pjoin(config.traindir, f'samples_{label_train}.npy')).astype(np.float64)
+train_data_vectors = np.load(pjoin(config.traindir, f'data_vectors_{label_train}.npy')).astype(np.float64)
+train_sigma8 = np.load(pjoin(config.traindir, f'sigma8_{label_train}.npy')).astype(np.float64)
+# Assert no NaN or inf values in training data
+train_mask = np.all(np.isfinite(train_sigma8), axis=1) & np.all(np.isfinite(train_data_vectors), axis=1)
+
 print(f'Loading validating data!')
-valid_samples = np.load(pjoin(config.traindir, f'samples_{label_valid}.npy'))
-valid_data_vectors = np.load(pjoin(config.traindir, f'data_vectors_{label_valid}.npy'))
-valid_sigma8 = np.load(pjoin(config.traindir, f'sigma8_{label_valid}.npy'))
-#valid_mask = np.array([np.any(np.abs(valid_data_vectors[i, dv_mask]/fid_dv[dv_mask]) < 1e-3) \
-#                 for i in range(valid_data_vectors.shape[0])])
-#print(f'Validation dataset dimension: {valid_samples.shape} / {np.sum(~valid_mask)} valid samples')
-# train_samples = torch.Tensor(train_samples[~train_mask])
-# train_data_vectors = torch.Tensor(train_data_vectors[~train_mask])
-# train_sigma8 = torch.Tensor(train_sigma8[~train_mask])
-# valid_samples = torch.Tensor(valid_samples[~valid_mask])
-# valid_data_vectors = torch.Tensor(valid_data_vectors[~valid_mask])
-# valid_sigma8 = torch.Tensor(valid_sigma8[~valid_mask])
-train_samples = torch.Tensor(train_samples)
-train_data_vectors = torch.Tensor(train_data_vectors)
-train_sigma8 = torch.Tensor(train_sigma8)
-valid_samples = torch.Tensor(valid_samples)
-valid_data_vectors = torch.Tensor(valid_data_vectors)
-valid_sigma8 = torch.Tensor(valid_sigma8)
+valid_samples = np.load(pjoin(config.traindir, f'samples_{label_valid}.npy')).astype(np.float64)
+valid_data_vectors = np.load(pjoin(config.traindir, f'data_vectors_{label_valid}.npy')).astype(np.float64)
+valid_sigma8 = np.load(pjoin(config.traindir, f'sigma8_{label_valid}.npy')).astype(np.float64)
+# Assert no NaN or inf values in validating data
+valid_mask = np.all(np.isfinite(valid_sigma8), axis=1) & np.all(np.isfinite(valid_data_vectors), axis=1)
+
+### Convert to torch Tensors
+### By default, the tensor will be in float32 precision although the numpy arrays are in float64
+train_samples = torch.tensor(train_samples[train_mask], dtype=_DTYPE_)
+train_data_vectors = torch.tensor(train_data_vectors[train_mask], dtype=_DTYPE_)
+train_sigma8 = torch.tensor(train_sigma8[train_mask], dtype=_DTYPE_)
+valid_samples = torch.tensor(valid_samples[valid_mask], dtype=_DTYPE_)
+valid_data_vectors = torch.tensor(valid_data_vectors[valid_mask], dtype=_DTYPE_)
+valid_sigma8 = torch.tensor(valid_sigma8[valid_mask], dtype=_DTYPE_)
+
+### Testing data type of some dataset
+dtype_cov = config.inv_cov.dtype
+dtype_dverr = config.dv_std.dtype
+dtype_dv = config.dv_lkl.dtype
+dtype_train_dv = train_data_vectors.dtype
+dtype_train_samp = train_samples.dtype
+print(f'Data type check:')
+print(f'  inv_cov: {dtype_cov}, dv_std: {dtype_dverr}, dv_lkl: {dtype_dv}')
+print(f'  train_data_vectors: {dtype_train_dv}, train_samples: {dtype_train_samp}')
+
 #================= Training emulator ===========================================
 # switch according to probes
 probes = ["xi_pm", "gammat", "wtheta", "wgk", "wsk", "Ckk"]
@@ -82,6 +102,7 @@ for i in range(len(config.probe_mask)):
 #for i in range(1):
     print("============= Training %s Emulator ================="%(probes[i]))
     l, r = sum(config.probe_size[:i]), sum(config.probe_size[:i+1])
+    # NOTE: dtype only controls NN model params precision
     emu = NNEmulator(config.n_dim, config.probe_size[i], 
         config.dv_lkl[l:r], config.dv_std[l:r], 
         config.inv_cov[l:r,l:r],
@@ -90,17 +111,19 @@ for i in range(len(config.probe_mask)):
         model=config.nn_model, device=device,
         deproj_PCA=config.do_pca, lr=config.learning_rate, 
         reduce_lr=config.reduce_lr, weight_decay=config.weight_decay,
-        dropout=config.dropout, dtype="double")
+        dropout=config.dropout, dtype=_DTYPE_STRING_)
     emu_fn = pjoin(config.modeldir, f'{probes[i]}_nn{config.nn_model}_wd{config.weight_decay}_PCA{int(config.do_pca)}_dropout{config.dropout}')
     loss_fn = pjoin(config.modeldir, f'{probes[i]}_nn{config.nn_model}_wd{config.weight_decay}_PCA{int(config.do_pca)}_dropout{config.dropout}_losses.txt')
     if (not os.path.exists(emu_fn)) or args.overwrite:
         emu.train(train_samples, train_data_vectors[:,l:r],
                 valid_samples, valid_data_vectors[:,l:r],
                 batch_size=config.batch_size, n_epochs=config.n_epochs, 
-                loss_type=config.loss_type, save_loss_filename=loss_fn)
+                loss_type=config.loss_type, save_loss_filename=loss_fn, 
+                debug_grad=args.monitor_gradient)
         emu.save(emu_fn)
 
-# skip sigma8 training
+# skip sigma_8 training, for testing purpose
+# exit(0)
 
 # train sigma_8 emulator
 if (config.derived==1):
@@ -111,13 +134,15 @@ if (config.derived==1):
         model=config.nn_model, device=device,
         deproj_PCA=False, lr=config.learning_rate, 
         reduce_lr=config.reduce_lr, weight_decay=config.weight_decay,
-        dtype="double")
-    emu_s8_fn = pjoin(config.modeldir, f'sigma8_nn{config.nn_model}')
+        dropout=config.dropout, dtype=_DTYPE_STRING_)
+    emu_s8_fn = pjoin(config.modeldir, f'sigma8_nn{config.nn_model}_wd{config.weight_decay}_PCA{int(config.do_pca)}_dropout{config.dropout}')
+    loss_fn = pjoin(config.modeldir, f'sigma8_nn{config.nn_model}_wd{config.weight_decay}_PCA{int(config.do_pca)}_dropout{config.dropout}_losses.txt')
     if (not os.path.exists(emu_s8_fn)) or args.overwrite:
         emu_s8.train(train_samples[:,:config.n_pars_cosmo], train_sigma8,
             valid_samples[:,:config.n_pars_cosmo], valid_sigma8,
             batch_size=config.batch_size, n_epochs=config.n_epochs,
-            loss_type=config.loss_type)
+            loss_type=config.loss_type, save_loss_filename=loss_fn,
+            debug_grad=args.monitor_gradient)
         emu_s8.save(emu_s8_fn)
 
 print(f'\n>>> Emulator Training Completed!\n')
