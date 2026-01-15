@@ -1,0 +1,28 @@
+### Old Y3 public data vector
+data_file = ../data_vectors/xi_DESY3_3x2pt_Maglim_Ntheta30.publicdata
+### Old Y3 covariance 
+cov_file = ../covmats/cov_DESY3_3x2pt_Ntheta30_public
+U_PMmarg = ../covmats/U_PMmarg_DESY3_Maglim_Ntheta30_exact
+mask_file = ../masks/xi_DESY3xPLKR4_6x2pt_Maglim_baseline_Ntheta30_Y3aggr.mask
+nz_lens_file = ../survey_data/nz_maglim_Y3_unblinded_02_26_21.txt
+nz_source_file = ../survey_data/nz_source_Y3_unblinded_02_26_21.txt
+baryon_pca_file = ../PCs/DESY3xPLKR4_6x2pt_antilles_Ntheta30_250_v2.pca
+lensing_overlap_cut = 0.00
+lens_ntomo = 6
+source_ntomo = 4
+IA_model = 4
+n_theta = 30
+theta_min_arcmin = 0.25
+theta_max_arcmin = 250.0
+fwhm = 7
+lmin_kappa_cmb = 8
+lmax_kappa_cmb = 2048
+pathHealpixWinFunc = ../survey_data/HPIX1024_pixwin.txt
+is_cmb_bandpower = 1
+binmat_file = ../survey_data/dr4_consext8_CMBmarged/binning_matrix_with_correction_table.txt
+offset_file = ../survey_data/dr4_consext8_CMBmarged/Ckk_bandpower_offset.txt
+is_cmb_kkkk_cov_from_sim = 0
+###Hartlap_Nvar = 480
+n_bp = 9
+lmin_bp = 2
+lmax_bp = 2500
