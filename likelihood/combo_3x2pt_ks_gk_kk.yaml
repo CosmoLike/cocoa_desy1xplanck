@@ -4,8 +4,10 @@ accuracyboost: 1.0
 integration_accuracy: 0 # integer 0, 1 or 2
 lmax: 75000 
 kmax_boltzmann: 10.0
+speed: 1
 non_linear_emul: 2
-speed: 2
+external_nz_modeling: 0
+use_emulator: False
 debug: False
 # IA REDSHIFT EVOLUTION: 0 = NO_IA (AMPLITUDES SET TO ZERO), 
 #                        1 = IA_NLA_LF
@@ -14,8 +16,8 @@ debug: False
 IA_redshift_evolution: 3
 # IA_MODEL: 0 = NLA, 1 = TATT
 IA_model: 0 
-external_nz_modeling: 0
-use_emulator: False
+# IA_code: 0 = C FASTPT, 1 = Python PAST-PT
+IA_code: 0
 
 # BIAS REDSHIFT EVOLUTION [b1,b2,bs2,b3,bmag] (see bias.c)
 bias_model: [0,0,0,1,0]
@@ -26,9 +28,9 @@ which_bsims_add_on_dv: "antilles-2"
 use_baryon_pca: False
 create_baryon_pca: False
 baryon_pca_select_sims: "antilles-2-99/antilles-101-378/antilles-380-400"
-filename_baryon_pca: "./projects/desy1xplanck/data/PCs/desy1xplanck.pca"
+filename_baryon_pca: "./projects/desy1xplanck/chains/pca.txt"
 
 print_datavector: False
 print_datavector_file: "./projects/desy1xplanck/chains/theory.modelvector"
 
-params: !defaults [params_lens_maglim, params_source]
+params: !defaults [params_source, params_lens_maglim]

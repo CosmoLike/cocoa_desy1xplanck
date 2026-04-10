@@ -1,6 +1,6 @@
 timing: True
 debug: False
-stop_at_error: True
+stop_at_error: False
 
 likelihood:
   desy1xplanck.cosmic_shear:
@@ -10,9 +10,11 @@ likelihood:
     integration_accuracy: 0
     lmax: 75000 # lmax computed for real space correlation function
     kmax_boltzmann: 7.5
-    # 1 EE2, 2 Halofit
+    # 1 EE2, 2 Halofit (check below on the slow/fast decomposition)
+    # Warning: Euclid Emulator has strict boundaries
     non_linear_emul: 2
     IA_model: 1
+    IA_code: 0  # CFASTPT (0) or FASTPT (1) (only works if not NLA)
     IA_redshift_evolution: 3
     use_baryon_pca: True
 
@@ -24,8 +26,8 @@ params:
     ref:
       dist: norm
       loc: 2.1
-      scale: 0.65
-    proposal: 0.4
+      scale: 0.2
+    proposal: 0.2
     latex: 10^9 A_\mathrm{s}
     drop: true
     renames: A
@@ -36,8 +38,8 @@ params:
     ref:
       dist: norm
       loc: 0.96605
-      scale: 0.01
-    proposal: 0.01
+      scale: 0.015
+    proposal: 0.015
     latex: n_\mathrm{s}
   H0:
     prior:
@@ -46,7 +48,7 @@ params:
     ref:
       dist: norm
       loc: 67.32
-      scale: 5
+      scale: 3
     proposal: 3
     latex: H_0
   omegab:
@@ -56,8 +58,8 @@ params:
     ref:
       dist: norm
       loc: 0.0495
-      scale: 0.004
-    proposal: 0.004
+      scale: 0.005
+    proposal: 0.005
     latex: \Omega_\mathrm{b}
     drop: true
   omegam:
@@ -67,36 +69,34 @@ params:
     ref:
       dist: norm
       loc: 0.316
-      scale: 0.02
-    proposal: 0.02
+      scale: 0.015
+    proposal: 0.015
     latex: \Omega_\mathrm{m}
-    drop: true
-  mnu:
-    value: 0.06
-  w0pwa:
-    value: -1.0
-    latex: w_{0,\mathrm{DE}}+w_{a,\mathrm{DE}}
     drop: true
   w:
     value: -1.0
     latex: w_{0,\mathrm{DE}}
+  w0pwa:
+    value: -1.0
+    latex: w_{0,\mathrm{DE}}+w_{a,\mathrm{DE}}
+    drop: true
+  wa:
+    value: 'lambda w0pwa, w: w0pwa - w'
+    latex: w_{a,\mathrm{DE}}
+  mnu:
+    value: 0.06
   tau:
     value: 0.0697186
     latex: \tau_\mathrm{reio}
-  # ----------------------------------------------------------------------------
-  # ----------------------------------------------------------------------------
-  # -------------------------- DERIVED PARAMETERS ------------------------------
-  # ----------------------------------------------------------------------------
-  # WARNING: DO NOT REMOVE omegabh2/omegach2/omegamh2/ FROM DERIVED PARAMETERS
-  # WARNING: DO NOT REMOVE THE DROP FLAG FROM omegab/omegam/As_1e9/w0pwa
+  # ---------------------------------------------------------------------------------------
+  # ------------------------------------- DERIVED PARAMETERS ------------------------------
+  # ---------------------------------------------------------------------------------------
+  # WARNING: DO NOT REMOVE omegabh2/omegach2/omegamh2/wa/As/ FROM DERIVED PARAMETERS
   # SEE: github.com/CosmoLike/cocoa#warning-warning-warning-weak-lensing-yaml-files-in-cobaya-
   # --------------------------------------------------------------------------------------- 
   As:
     value: 'lambda As_1e9: 1e-9 * As_1e9'
     latex: A_\mathrm{s}
-  wa:
-    value: 'lambda w0pwa, w: w0pwa - w'
-    latex: w_{a,\mathrm{DE}}
   omegabh2:
     value: 'lambda omegab, H0: omegab*(H0/100)**2'
     latex: \Omega_\mathrm{b} h^2
@@ -108,6 +108,8 @@ params:
   omegamh2:
     derived: 'lambda omegam, H0: omegam*(H0/100)**2'
     latex: \Omega_\mathrm{m} h^2
+  sigma8:
+    latex: \sigma_8
   s8h5:
     derived: 'lambda sigma8, H0: sigma8*(H0*1e-2)**(-0.5)'
     latex: \sigma_8/h^{0.5}
@@ -127,7 +129,7 @@ params:
   yheused:
     latex: Y_P^\mathrm{BBN}
   omegan2:
-    latex: \Omega_\mathrm{\nu} h^2
+    latex: \Omega_\mathrm{\\nu} h^2
   omegan:
     derived: 'lambda omegan2, H0: omegan2/((H0/100)**2)'
     latex: \Omega_\mathrm{\nu}
@@ -178,11 +180,12 @@ theory:
     extra_args:
       halofit_version: takahashi
       AccuracyBoost: 1.0
+      lens_potential_accuracy: 1.0
       num_massive_neutrinos: 1
       nnu: 3.046
       dark_energy_model: ppf
       accurate_massive_neutrino_transfers: false
-      k_per_logint: 10
+      k_per_logint: 12
       kmax: 10
 
 sampler:
@@ -202,7 +205,7 @@ sampler:
     # Don't learn if convergence better than...
     learn_proposal_Rminus1_min: 0.03
     # Don't learn if convergence is worse than...
-    learn_proposal_Rminus1_max: 50.
+    learn_proposal_Rminus1_max: 150
     # (even earlier if a param is not in the given covariance matrix)
     learn_proposal_Rminus1_max_early: 300.
     # ---------------------------------------------------------------------
@@ -224,7 +227,7 @@ sampler:
     # ---------------------------------------------------------------------
     measure_speeds: False
     drag: False
-    oversample_power: 0.25
+    oversample_power: 0.2
     oversample_thin: True
     blocking:
       - [1,
@@ -247,7 +250,7 @@ sampler:
     # Avoid chain getting suck forever
     # ---------------------------------------------------------------------
     # ---------------------------------------------------------------------
-    max_tries: 10000
+    max_tries: .inf
     burn_in: 0
     # ---------------------------------------------------------------------
     # ---------------------------------------------------------------------
@@ -255,5 +258,8 @@ sampler:
     # ---------------------------------------------------------------------
     # ---------------------------------------------------------------------
     Rminus1_single_split: 4
-
-output: ./projects/desy1xplanck/chains/EXAMPLE_MCMC1.yaml
+    # ---------------------------------------------------------------------
+    # ---------------------------------------------------------------------
+    # ---------------------------------------------------------------------
+    # ---------------------------------------------------------------------
+output: ./projects/desy1xplanck/chains/EXAMPLE_MCMC1

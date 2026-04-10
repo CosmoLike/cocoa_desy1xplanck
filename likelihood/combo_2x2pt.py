@@ -4,4 +4,4 @@ import numpy as np
 
 class combo_2x2pt(_cosmolike_prototype_base):
   def initialize(self):
-    super(combo_2x2pt, self).initialize(probe="2x2pt")
+    super(combo_2x2pt,self).initialize(probe="2x2pt")
