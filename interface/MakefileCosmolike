@@ -42,16 +42,18 @@ LDLIBS :=
 CPPSOURCES =
 OBJECTCPP =
 
-CFLAGS = -std=c99 -I ${ROOTDIR}/.local/include/ -I ${ROOTDIR}/external_modules/code/
-CXXFLAGS = -std=c++20 -I ${ROOTDIR}/.local/include/ -I ${ROOTDIR}/external_modules/code/
+CFLAGS = -std=gnu99 -I ${ROOTDIR}/.local/include/ -I ${ROOTDIR}/external_modules/code/
+CXXFLAGS = -std=c++20  -I ${ROOTDIR}/.local/include/ -I ${ROOTDIR}/external_modules/code/
 LDFLAGS += -L$(CONDA_PREFIX)/lib -L$(ROOTDIR)/.local/lib 
 LDFLAGS += -Wl,-rpath,$(CONDA_PREFIX)/lib -Wl,-rpath,$(ROOTDIR)/.local/lib
 
 ifdef COSMOLIKE_DEBUG_MODE
 	COMMON_FLAGS += -O0  -DDEBUG -W -Wall -Wextra -Wcomment -pedantic -g -fmax-errors=1 -Wno-unknown-pragmas -fsignaling-nans
 	ifeq ($(PYOS),Darwin)
-		COMMON_FLAGS += -fsanitize=undefined,float-divide-by-zero -fno-sanitize-recover=all
-	endif
+		COMMON_FLAGS += -ferror-limit=1 -fsanitize=undefined,float-divide-by-zero -fno-sanitize-recover=all
+	else
+		COMMON_FLAGS += -fmax-errors=1 -fsignaling-nans
+	endif 
 else
 	COMMON_FLAGS += -O3 -march=native -fno-fast-math -fno-associative-math -frounding-math
 	ifeq ($(PYOS),Darwin)
@@ -138,7 +140,7 @@ endif
 ifdef HDF5
 	CXXFLAGS += -DHDF5LIB
 	CFLAGS += -DHDF5LIB
-	LDLIBS += -lhdf5 -lhdf5_cpp
+	LDLIBS += -lhdf5
 endif
 
 LDLIBS += -lm
@@ -158,6 +160,7 @@ CSOURCES += \
 		${ROOTDIR}/external_modules/code/cosmolike/baryons.c \
 		${ROOTDIR}/external_modules/code/cosmolike/cosmo3D.c \
 		${ROOTDIR}/external_modules/code/cosmolike/cosmo2D.c \
+		${ROOTDIR}/external_modules/code/cosmolike/cosmo2D_scuts.c \
 		${ROOTDIR}/external_modules/code/cosmolike/halo.c \
 		${ROOTDIR}/external_modules/code/cosmolike/IA.c \
 		${ROOTDIR}/external_modules/code/cosmolike/radial_weights.c \
@@ -177,20 +180,23 @@ OBJECTC += \
 		./bias.o \
 		./cosmo3D.o \
 		./cosmo2D.o \
+		./cosmo2D_scuts.o \
 		./halo.o \
 		./IA.o \
 		./radial_weights.o \
 		./redshift_spline.o \
 		./structs.o \
-		./pt_cfastpt.o \
+		./pt_cfastpt.o
 
 CPPSOURCES += \
 		${ROOTDIR}/external_modules/code/cosmolike/generic_interface.cpp \
-		${ROOTDIR}/external_modules/code/cosmolike/cosmo2D_wrapper.cpp
+		${ROOTDIR}/external_modules/code/cosmolike/cosmo2D_wrapper.cpp \
+		${ROOTDIR}/external_modules/code/cosmolike/cosmo2D_scuts_wrapper.cpp
 
 OBJECTCPP += \
 		./generic_interface.o \
-		./cosmo2D_wrapper.o
+		./cosmo2D_wrapper.o \
+		./cosmo2D_scuts_wrapper.o
 
 $(OBJECTC): $(CSOURCES)
 	$(CC) $(CFLAGS) -fPIC -c $(CSOURCES)
@@ -204,15 +210,10 @@ cosmolike_desy1xplanck_interface.so: $(OBJECTC) $(OBJECTCPP)
 	      $(LDFLAGS) $(INSTALL_NAME_FLAG) $(LDLIBS)
 	@rm *.o
 
-test: $(OBJECTC) $(OBJECTCPP) interface.cpp
+test: $(OBJECTC) $(CSOURCES) $(OBJECTCPP) interface.cpp
 	$(CXX) $(CXXFLAGS) -DCOBAYA_SAMPLER -fPIC -o $@ \
 		$(OBJECTC) $(OBJECTCPP) interface.cpp \
-		$(LDFLAGS) $(LDLIBS) 
-
-test_baryon: $(OBJECTC) $(OBJECTCPP) test_baryon.cpp
-	$(CXX) $(CXXFLAGS) -DCOBAYA_SAMPLER -fPIC -o $@ \
-		$(OBJECTC) $(OBJECTCPP) interface.cpp \
-		$(LDFLAGS) $(LDLIBS) 
+		$(LDFLAGS) $(LDLIBS)
 
 clean:
-	@rm -rf cosmolike_desy1xplanck_interface.so cosmolike_desy1xplanck_interface.so.dSYM  *.o
+	@rm -rf test cosmolike_desy1xplanck_interface.so cosmolike_desy1xplanck_interface.so.dSYM  *.o
