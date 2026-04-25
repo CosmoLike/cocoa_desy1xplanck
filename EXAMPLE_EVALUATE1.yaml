@@ -16,8 +16,8 @@ likelihood:
     kmax_boltzmann: 7.5
     # 1 EE2, 2 Halofit
     non_linear_emul: 2
-    IA_model: 0   # NLA (0) or TATT (1)
-    IA_code: 0    # CFASTPT (0) or FASTPT (1) (only works if not NLA)
+    IA_model: 0 # NLA (0) or TATT (1)
+    IA_code: 0  # CFASTPT (0) or FASTPT (1) (only works if not NLA)
     IA_redshift_evolution: 3
     debug: false
     use_baryon_pca: false
@@ -163,15 +163,6 @@ params:
   # ----------------------------------------------------------------------------
   # DES-Y3 nuisance parameters begins
   # ----------------------------------------------------------------------------
-  DES_A2_1:
-    value: 0.0
-    latex: A_\mathrm{2-IA,DES}^1
-  DES_A2_2:
-    value: 1.0
-    latex: A_\mathrm{2-IA,DES}^2
-  DES_BTA_1:
-    value: 0.0
-    latex: A_\mathrm{BTA-IA,DES}^1
   # baryon effects: the first two PCs
   # Q1 informative: [0, 7]
   # Q1 wide: [-6, 20]
@@ -215,8 +206,8 @@ theory:
       accurate_massive_neutrino_transfers: false
       k_per_logint: 12
       kmax: 10
-#  fastpt:
-#    path: ./external_modules/code/FAST-PT
+  fastpt:
+    path: ./external_modules/code/FAST-PT
 #    #extra_args:
 #      #accuracyboost: 5
 #      #kmax_boltzmann: 7.5
@@ -246,7 +237,10 @@ sampler:
       # TATT PARAMETERS
       DES_A1_1: -0.7
       DES_A1_2: -1.7
-#      DES_A2_2: -1.51541
+      DES_A2_1: 0.0
+      DES_BTA_1: 0.0
 #      DES_A2_1: 0.6
 #      DES_BTA_1: 1.01257
+      DES_A2_2: -1.51541
+
 output: ./projects/desy1xplanck/chains/EXAMPLE_EVALUATE1

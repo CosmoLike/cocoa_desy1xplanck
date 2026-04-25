@@ -11,7 +11,6 @@
 #include <random>
 #include <map>
 
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_INFO
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/cfg/env.h>
@@ -44,7 +43,7 @@ namespace py = pybind11;
 PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
 {
   m.doc() = "CosmoLike Interface for DESY3 x Planck 6x2pt Module";
-  
+
   // --------------------------------------------------------------------
   // INIT FUNCTIONS
   // --------------------------------------------------------------------
@@ -132,10 +131,11 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
     );
 
   m.def("init_IA",
-      &cosmolike_interface::init_IA,
+      &cosmolike_interface::init_IA_fastpt,
       "Init IA related options",
       py::arg("ia_model").none(false).noconvert(),
-      py::arg("ia_redshift_evolution").none(false).noconvert()
+      py::arg("ia_redshift_evolution").none(false).noconvert(),
+      py::arg("ia_code").none(false).noconvert()
     );
 
   m.def("init_probes",
@@ -285,11 +285,13 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
     );
 
   m.def("set_nuisance_bias",
-      &cosmolike_interface::set_nuisance_bias,
+      &cosmolike_interface::set_nuisance_bias_fastpt,
       "Set nuisance Bias Parameters",
       py::arg("B1").none(false),
       py::arg("B2").none(false),
       py::arg("B_MAG").none(false),
+      py::arg("B3nl").none(false),
+      py::arg("BK").none(false),
       py::return_value_policy::move
     );
 
