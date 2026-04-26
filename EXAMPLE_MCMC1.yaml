@@ -13,9 +13,10 @@ likelihood:
     # 1 EE2, 2 Halofit (check below on the slow/fast decomposition)
     # Warning: Euclid Emulator has strict boundaries
     non_linear_emul: 2
-    IA_model: 1
+    IA_model: 1 # NLA (0) or TATT (1)
     IA_code: 0  # CFASTPT (0) or FASTPT (1) (only works if not NLA)
     IA_redshift_evolution: 3
+    debug: false
     use_baryon_pca: True
 
 params:
