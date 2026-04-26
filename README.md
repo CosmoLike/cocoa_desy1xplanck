@@ -21,7 +21,7 @@ The fiducial `cosmolike_core` data vector is `./data/xi_desy1xplanck_6x2pt_fid_c
 The fiducial parameters to generate `cosmolike_core` data vector is recorded in `./data/README.md`
 The `./likelihood/desy1xplanck_6x2pt.py` will write the data vector at fiducial parameters to `./chains/EXAMPLE_EVALUATE1.model_vector`
 
-## Running Cosmolike projects (Basic instructions) <a name="roman_running_cosmolike_projects"></a> 
+## Running Cosmolike projects (Basic instructions) <a name="desy1xplanck_running_cosmolike_projects"></a> 
 
 From `Cocoa/Readme` instructions:
 
@@ -36,8 +36,8 @@ From `Cocoa/Readme` instructions:
 >     # ------------------------------------------------------------------------------
 >     #export IGNORE_COSMOLIKE_LSSTY1_CODE=1
 >     #export IGNORE_COSMOLIKE_DES_Y3_CODE=1
->     #export IGNORE_COSMOLIKE_ROMAN_FOURIER_CODE=1
->     export IGNORE_COSMOLIKE_ROMAN_REAL_CODE=1
+>     (...)
+>     export IGNORE_COSMOLIKE_DESXPLANCK_CODE=1
 >
 >     (...)
 > 
@@ -45,15 +45,14 @@ From `Cocoa/Readme` instructions:
 >     # Cosmolike projects below -------------------------------------------
 >     # ------------------------------------------------------------------------------
 >     (...)
->     export ROMAN_REAL_URL="https://github.com/CosmoLike/cocoa_roman_real.git"
->     export ROMAN_REAL_NAME="roman_real"
+>     export ROMAN_REAL_URL="https://git@github.com/CosmoLike/cocoa_desy1xplanck.git"
+>     export DESXPLANCK_GIT_NAME="desy1xplanck"
 >     #BRANCH: if unset, load the latest commit on the specified branch
->     #export ROMAN_REAL_BRANCH="main"
+>     #export DESXPLANCK_GIT_BRANCH="main"
 >     #COMMIT: if unset, load the specified commit
->     export ROMAN_REAL_COMMIT="23a774c32480b7b4bd5da5f637270310bc88f86c"
+>     export DESXPLANCK_GIT_COMMIT="abc"
 >     #BRANCH: if unset, load the specified TAG
->     #export ROMAN_REAL_TAG="v4.0-beta17"
-
+>     export DESXPLANCK_GIT_TAG=v4.07
 
 > [!NOTE]
 > If users want to recompile cosmolike, there is no need to rerun the Cocoa general scripts. Instead, run the following three commands:
@@ -68,9 +67,9 @@ From `Cocoa/Readme` instructions:
 > 
 >       source ./installation_scripts/compile_all_projects.sh
 > 
-> or (in case users just want to compile roman_real project)
+> or (in case users just want to compile desy1xplanck project)
 >
->       source ./projects/roman_real/scripts/compile_roman_real.sh
+>       source ./projects/desy1xplanck/scripts/compile_desy1xplanck.sh
 
 > [!TIP]
 > Assuming Cocoa is installed on a local (not remote!) machine, type the command below after step 2️⃣ to run Jupyter Notebooks.
@@ -89,7 +88,7 @@ From `Cocoa/Readme` instructions:
 > 
 >     [... NotebookApp] or http://127.0.0.1:8888/?token=XXX
 >
-> The project roman_real contains jupyter notebook examples located at `projects/roman_real`.
+> The project desy1xplanck contains jupyter notebook examples located at `projects/desy1xplanck`.
 
 To run the example
 
@@ -105,7 +104,7 @@ and
     
     export OMP_PROC_BIND=close; export OMP_NUM_THREADS=8; export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE
       
- **Step :three:**: The folder `projects/roman_real` contains examples. So, run the `cobaya-run` on the first example following the commands below.
+ **Step :three:**: The folder `projects/desy1xplanck` contains examples. So, run the `cobaya-run` on the first example following the commands below.
 
 - **One model evaluation**:
 

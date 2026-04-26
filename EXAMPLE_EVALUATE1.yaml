@@ -9,7 +9,7 @@ likelihood:
     path: ./external_modules/data/desy1xplanck
     data_file: Y3xPlanckPR4.dataset
     print_datavector: False
-    print_datavector_file: "./projects/roman_real/chains/theory.modelvector"
+    print_datavector_file: "./projects/desy1xplanck/chains/theory.modelvector"
     accuracyboost: 1.0
     integration_accuracy: 0
     lmax: 75000 # lmax computed for real space correlation function
@@ -24,6 +24,7 @@ likelihood:
     create_baryon_pca: false
     baryon_pca_select_sims: "antilles-2-99/antilles-101-378/antilles-380-400"
     filename_baryon_pca: "./projects/lsst_y1/chains/pca.txt"
+
 params:
   As_1e9:
     prior:
