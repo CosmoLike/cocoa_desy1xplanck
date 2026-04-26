@@ -3,7 +3,12 @@
 *.so
 *.pyo
 *.cfg
+chains*/
 chains/
+chains2/
+.ipynb_checkpoints/
+.ipynb_*
+*.sbatch
 sbatch_scripts/
 old/
 yaml/
@@ -15,3 +20,7 @@ emulator/emu_y1_cosmic_shear.py
 likelihood/.params_des_3x2pt.yaml
 likelihood/.params_des_cosmic_shear.yaml
 likelihood/*_emu*
+likelihood/.DS_Store
+scripts/.DS_Store
+interface/.DS_Store
+scripts/.DS_Store
