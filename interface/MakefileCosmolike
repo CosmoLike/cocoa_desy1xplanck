@@ -149,9 +149,6 @@ all:  shared
 shared: cosmolike_desy1xplanck_interface.so
 
 CSOURCES += \
-		${ROOTDIR}/external_modules/code/cfftlog/cfftlog.c \
-		${ROOTDIR}/external_modules/code/cfftlog/utils_complex.c \
-		${ROOTDIR}/external_modules/code/cfftlog/utils.c \
 		${ROOTDIR}/external_modules/code/cfastpt/cfastpt.c \
 		${ROOTDIR}/external_modules/code/cfastpt/utils_complex_cfastpt.c \
 		${ROOTDIR}/external_modules/code/cfastpt/utils_cfastpt.c \
@@ -169,9 +166,6 @@ CSOURCES += \
 		${ROOTDIR}/external_modules/code/cosmolike/pt_cfastpt.c \
 
 OBJECTC += \
-		./cfftlog.o \
-		./utils_complex.o \
-		./utils.o \
 		./cfastpt.o \
 		./utils_complex_cfastpt.o \
 		./utils_cfastpt.o \
