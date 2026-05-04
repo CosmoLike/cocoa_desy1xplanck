@@ -34,6 +34,9 @@ PYBIND := 1
 # LINK HDF5 LIBRARY
 HDF5 := 1
 
+# LINK TO SIMDE LIBRARY
+SIMDE := 1
+
 CSOURCES :=
 OBJECTC :=
 LDFLAGS := 
@@ -89,6 +92,12 @@ ifdef GSL
 		LDFLAGS += -L$(GLOBAL_PACKAGES_LOCATION)/lib
 	endif
 	LDLIBS += -lgsl -lgslcblas
+endif
+
+ifdef SIMDE
+	COMMON_FLAGS += -I ${ROOTDIR}/external_modules/code/simde
+else
+	COMMON_FLAGS += -DCOSMO2D_NOT_USE_SIMD
 endif
 
 ifdef FMT
