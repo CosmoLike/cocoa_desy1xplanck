@@ -37,14 +37,15 @@ class _cosmolike_prototype_base(DataSetLikelihood):
 
     # ------------------------------------------------------------------------   
     tmp=int(1000 + 250*self.accuracyboost)
-    self.z_interp_1D = np.concatenate((np.linspace(0.0,3.0,max(100,int(0.80*tmp))),
-                                       np.linspace(3.0,50.1,max(100,int(0.40*tmp))),
+    self.z_interp_1D = np.concatenate((np.linspace(0.0,3.0,max(100,int(0.80*tmp)),endpoint=False),
+                                       np.linspace(3.0,50.1,max(100,int(0.40*tmp)),endpoint=False),
                                        np.linspace(1070,1100,max(50,int(0.10*tmp)))),axis=0)
     self.len_z_interp_1D = len(self.z_interp_1D)
 
     tmp=int(min(120 + 20*self.accuracyboost,250))
-    self.z_interp_2D = np.concatenate((np.linspace(0,3.0,max(50,int(0.75*tmp))), 
-                                       np.linspace(3.01,50.1,max(30,int(0.25*tmp)))),axis=0)
+    # zmax of the hybrid emulator is 50 (why 50? Only relevant if CMB lensing included)
+    self.z_interp_2D = np.concatenate((np.linspace(0,3.0,max(50,int(0.75*tmp)),endpoint=False), 
+                                       np.linspace(3.0,49.99,max(30,int(0.25*tmp)))),axis=0)
     self.len_z_interp_2D = len(self.z_interp_2D)
     
     self.log10k_interp_2D = np.linspace(-4.99,2.0,int(1250+250*self.accuracyboost))

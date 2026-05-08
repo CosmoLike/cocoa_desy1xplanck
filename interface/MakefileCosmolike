@@ -44,6 +44,7 @@ LDLIBS :=
 
 CPPSOURCES =
 OBJECTCPP =
+VEC_FLAGS =
 
 CFLAGS = -std=gnu99 -I ${ROOTDIR}/.local/include/ -I ${ROOTDIR}/external_modules/code/
 CXXFLAGS = -std=c++20  -I ${ROOTDIR}/.local/include/ -I ${ROOTDIR}/external_modules/code/
@@ -52,17 +53,21 @@ LDFLAGS += -Wl,-rpath,$(CONDA_PREFIX)/lib -Wl,-rpath,$(ROOTDIR)/.local/lib
 
 ifdef COSMOLIKE_DEBUG_MODE
 	COMMON_FLAGS += -O0  -DDEBUG -W -Wall -Wextra -Wcomment -pedantic -g -fmax-errors=1 -Wno-unknown-pragmas -fsignaling-nans
+	COMMON_FLAGS += -DCOSMO2D_NOT_USE_SIMD
 	ifeq ($(PYOS),Darwin)
 		COMMON_FLAGS += -ferror-limit=1 -fsanitize=undefined,float-divide-by-zero -fno-sanitize-recover=all
 	else
 		COMMON_FLAGS += -fmax-errors=1 -fsignaling-nans
-	endif 
+	endif
 else
-	COMMON_FLAGS += -O3 -march=native -fno-fast-math -fno-associative-math -frounding-math
+	COMMON_FLAGS += -g -O3 -march=native -fno-fast-math -fno-associative-math -frounding-math
+	COMMON_FLAGS += -DCOSMO3D_ASSUME_PIECEWISE_UNIFORM
 	ifeq ($(PYOS),Darwin)
 	  COMMON_FLAGS += -fopenmp -ftrapping-math
+	  #VEC_FLAGS += -Rpass=loop-vectorize -Rpass-missed=loop-vectorize -Rpass-analysis=loop-vectorize
 	else
 	  COMMON_FLAGS += -fopenmp -ftrapping-math -fsignaling-nans
+	  #VEC_FLAGS += -fopt-info-vec-all
 	endif
 endif
 
