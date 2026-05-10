@@ -1,6 +1,6 @@
 timing: True
 debug: False
-stop_at_error: False
+stop_at_error: True
 
 likelihood:
   #desy1xplanck.combo_2x2pt_ss_sg:

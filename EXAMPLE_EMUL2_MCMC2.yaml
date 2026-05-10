@@ -5,6 +5,7 @@ stop_at_error: False
 likelihood:
   #desy1xplanck.combo_3x2pt:
   desy1xplanck.combo_6x2pt:
+    use_emulator: 2
     path: ./external_modules/data/desy1xplanck
     data_file: Y3xPlanckPR4.dataset
     accuracyboost: 1.0
@@ -14,12 +15,11 @@ likelihood:
     # 1 EE2, 2 Halofit (check below on the slow/fast decomposition)
     # Warning: Euclid Emulator has strict boundaries
     non_linear_emul: 2
-    IA_model: 1 # NLA (0) or TATT (1): we don't have TATT for sk and gk
+    IA_model: 0 # NLA (0) or TATT (1): we don't have TATT for sk and gk
     IA_code: 0  # CFASTPT (0) or FASTPT (1) (only works if not NLA)
     IA_redshift_evolution: 3
     debug: false
     use_baryon_pca: False
-
 params:
   As_1e9:
     prior:
@@ -28,10 +28,9 @@ params:
     ref:
       dist: norm
       loc: 2.1
-      scale: 0.2
+      scale: 0.25
     proposal: 0.2
     latex: 10^9 A_\mathrm{s}
-    drop: true
     renames: A
   ns:
     prior:
@@ -40,8 +39,8 @@ params:
     ref:
       dist: norm
       loc: 0.96605
-      scale: 0.015
-    proposal: 0.015
+      scale: 0.01
+    proposal: 0.01
     latex: n_\mathrm{s}
   H0:
     prior:
@@ -50,7 +49,7 @@ params:
     ref:
       dist: norm
       loc: 67.32
-      scale: 3
+      scale: 5
     proposal: 3
     latex: H_0
   omegab:
@@ -60,10 +59,9 @@ params:
     ref:
       dist: norm
       loc: 0.0495
-      scale: 0.005
-    proposal: 0.005
+      scale: 0.004
+    proposal: 0.004
     latex: \Omega_\mathrm{b}
-    drop: true
   omegam:
     prior:
       min: 0.1
@@ -71,10 +69,9 @@ params:
     ref:
       dist: norm
       loc: 0.316
-      scale: 0.015
-    proposal: 0.015
+      scale: 0.01
+    proposal: 0.01
     latex: \Omega_\mathrm{m}
-    drop: true
   w:
     value: -1.0
     latex: w_{0,\mathrm{DE}}
@@ -87,54 +84,15 @@ params:
     latex: w_{a,\mathrm{DE}}
   mnu:
     value: 0.06
-  tau:
-    value: 0.0697186
-    latex: \tau_\mathrm{reio}
-  # ---------------------------------------------------------------------------------------
-  # ------------------------------------- DERIVED PARAMETERS ------------------------------
-  # ---------------------------------------------------------------------------------------
-  # WARNING: DO NOT REMOVE omegabh2/omegach2/omegamh2/wa/As/ FROM DERIVED PARAMETERS
-  # SEE: github.com/CosmoLike/cocoa#warning-warning-warning-weak-lensing-yaml-files-in-cobaya-
-  # --------------------------------------------------------------------------------------- 
-  As:
-    value: 'lambda As_1e9: 1e-9 * As_1e9'
-    latex: A_\mathrm{s}
   omegabh2:
     value: 'lambda omegab, H0: omegab*(H0/100)**2'
     latex: \Omega_\mathrm{b} h^2
   omegach2:
     value: 'lambda omegam, omegab, mnu, H0: (omegam-omegab)*(H0/100)**2-(mnu*(3.046/3)**0.75)/94.0708'
     latex: \Omega_\mathrm{c} h^2
-  omegal:
-    latex: \Omega_\Lambda
-  omegamh2:
-    derived: 'lambda omegam, H0: omegam*(H0/100)**2'
-    latex: \Omega_\mathrm{m} h^2
-  sigma8:
-    latex: \sigma_8
-  s8h5:
-    derived: 'lambda sigma8, H0: sigma8*(H0*1e-2)**(-0.5)'
-    latex: \sigma_8/h^{0.5}
-  s8omegamp5:
-    derived: 'lambda sigma8, omegam: sigma8*omegam**0.5'
-    latex: \sigma_8 \Omega_\mathrm{m}^{0.5}
-  s8omegamp25:
-    derived: 'lambda sigma8, omegam: sigma8*omegam**0.25'
-    latex: \sigma_8 \Omega_\mathrm{m}^{0.25}
-  s8:
-    derived: 'lambda sigma8, omegam: sigma8*(omegam/0.3)**0.5'
-    latex: S_8
-  age:
-    latex: '{\rm{Age}}/\mathrm{Gyr}'
-  rdrag:
-    latex: r_\mathrm{drag}
-  yheused:
-    latex: Y_P^\mathrm{BBN}
-  omegan2:
-    latex: \Omega_\mathrm{\\nu} h^2
-  omegan:
-    derived: 'lambda omegan2, H0: omegan2/((H0/100)**2)'
-    latex: \Omega_\mathrm{\\nu}
+  As:
+    value: 'lambda As_1e9: 1e-9 * As_1e9'
+    latex: A_\mathrm{s}
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
@@ -635,33 +593,49 @@ params:
   # DES-Y3 3x2pt nuissance parameter End
   # ----------------------------------------------------------------------------
 theory:
-  camb:
-    path: ./external_modules/code/CAMB
-    stop_at_error: False
-    use_renames: True
+  emulrdrag:
+    path: ./cobaya/cobaya/theories/
+    provides: ['rdrag']
     extra_args:
-      halofit_version: takahashi
-      AccuracyBoost: 1.0
-      lens_potential_accuracy: 1.0
-      num_massive_neutrinos: 1
-      nnu: 3.046
-      dark_energy_model: ppf
-      accurate_massive_neutrino_transfers: false
-      k_per_logint: 12
-      kmax: 10
+      file: ['external_modules/data/emultrf/BAO_SN_RES/emul_lcdm_rdrag_GP.joblib'] 
+      extra: ['external_modules/data/emultrf/BAO_SN_RES/extra_lcdm_rdrag.npy'] 
+      ord: [['omegabh2','omegach2']]
+  emulbaosn:
+    path: ./cobaya/cobaya/theories/
+    stop_at_error: True
+    provides: ['comoving_radial_distance', 'angular_diameter_distance', 'Hubble']
+    extra_args:
+      device: "cuda"
+      file:  [None, 'external_modules/data/emultrf/BAO_SN_RES/w0wa/emul_w0wa_H.pt']
+      extra: [None, 'external_modules/data/emultrf/BAO_SN_RES/w0wa/extra_w0wa_H.npy']    
+      ord: [None, ['omegam','H0','w','wa']]
+      extrapar: [{'MLA': 'INT', 'ZMIN' : 0.0001, 'ZMAX' : 3, 'NZ' : 600},
+                 {'MLA': 'ResMLP', 'offset' : 0.0, 'INTDIM' : 4, 'NLAYER' : 6,
+                  'TMAT': 'external_modules/data/emultrf/BAO_SN_RES/w0wa/PCA_w0wa_H.npy',
+                  'ZLIN': 'external_modules/data/emultrf/BAO_SN_RES/w0wa/z_lin_w0wa.npy'}]
+  emulmps:
+    path: ./cobaya/cobaya/theories/
+    stop_at_error: True
+    extra_args:
+      model_file:    "external_modules/data/emultrf/emulmps/npce_emul/emulator_npce.keras"
+      metadata_file: "external_modules/data/emultrf/emulmps/npce_emul/metadata.joblib"
+      nl_model_file:    "external_modules/data/emultrf/emulmps/w0wa_halofit/emulator_halofit.keras"
+      nl_metadata_file: "external_modules/data/emultrf/emulmps/w0wa_halofit/metadata.joblib"
+      use_syren: False
+      param_order: ["As_1e9", "ns", "H0", "omegab", "omegam", 'w', 'wa']
 #  fastpt:
 #    path: ./external_modules/code/FAST-PT
-    #extra_args:
-      #accuracyboost: 5
-      #kmax_boltzmann: 7.5
-      #extrap_kmax: 250.0
+#    extra_args:
+#      accuracyboost: 10
+#      kmax_boltzmann: 7.5
+#      extrap_kmax: 250.0
 sampler:
   mcmc:
     # ---------------------------------------------------------------------
     # File (w/ path) or matrix defining a covariance matrix for the proposal:
     # - null (default): will be generated from params info (prior and proposal)
     # - matrix: remember to set `covmat_params` to the parameters in the matrix
-    covmat: 
+    covmat: './projects/des_y3/EXAMPLE_MCMC2.covmat'
     covmat_params:
     # ---------------------------------------------------------------------
     # ---------------------------------------------------------------------
@@ -670,7 +644,7 @@ sampler:
     # ---------------------------------------------------------------------
     learn_proposal: True
     # Don't learn if convergence better than...
-    learn_proposal_Rminus1_min: 0.03
+    learn_proposal_Rminus1_min: 0.035
     # Don't learn if convergence is worse than...
     learn_proposal_Rminus1_max: 150
     # (even earlier if a param is not in the given covariance matrix)
@@ -721,7 +695,7 @@ sampler:
     # Avoid chain getting suck forever
     # ---------------------------------------------------------------------
     # ---------------------------------------------------------------------
-    max_tries: .inf
+    max_tries: 10000
     burn_in: 0
     # ---------------------------------------------------------------------
     # ---------------------------------------------------------------------
@@ -729,8 +703,4 @@ sampler:
     # ---------------------------------------------------------------------
     # ---------------------------------------------------------------------
     Rminus1_single_split: 4
-    # ---------------------------------------------------------------------
-    # ---------------------------------------------------------------------
-    # ---------------------------------------------------------------------
-    # ---------------------------------------------------------------------
-output: ./projects/desy1xplanck/chains/EXAMPLE_MCMC2
+output: ./projects/des_y3/chains/EXAMPLE_EMUL2_MCMC2

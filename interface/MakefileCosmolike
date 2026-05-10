@@ -67,15 +67,22 @@ else ifdef COSMOLIKE_AGGRESSIVE_MODE
 	COMMON_FLAGS += -DCOSMO3D_ASSUME_PIECEWISE_UNIFORM
 	ifeq ($(PYOS),Darwin)
 		COMMON_FLAGS += -fopenmp
+		 LDFLAGS +=  -Wno-pass-failed
 	else
 		COMMON_FLAGS += -fopenmp -funroll-loops
 	endif
 else
-	COMMON_FLAGS += -O3 -march=native -flto=auto
-	COMMON_FLAGS += -fno-fast-math -fno-associative-math -frounding-math -ftrapping-math -fsignaling-nans
-	COMMON_FLAGS += -funroll-loops -ftree-vectorize -fomit-frame-pointer
-	COMMON_FLAGS += -DCOSMO3D_ASSUME_PIECEWISE_UNIFORM
-	COMMON_FLAGS += -fopenmp
+  COMMON_FLAGS += -O3 -march=native -flto=auto
+  COMMON_FLAGS += -fno-fast-math -fno-associative-math -frounding-math -ftrapping-math
+  COMMON_FLAGS += -fomit-frame-pointer
+  COMMON_FLAGS += -DCOSMO3D_ASSUME_PIECEWISE_UNIFORM
+  COMMON_FLAGS += -fopenmp
+  ifeq ($(PYOS),Darwin)
+    COMMON_FLAGS += -fno-reciprocal-math -Wno-pass-failed
+    LDFLAGS += -Wno-pass-failed
+  else
+    COMMON_FLAGS += -fsignaling-nans -funroll-loops -ftree-vectorize
+  endif
 endif
 
 ifeq ($(PYOS),Darwin)
