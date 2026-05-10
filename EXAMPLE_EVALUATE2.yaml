@@ -26,7 +26,6 @@ likelihood:
     create_baryon_pca: false
     baryon_pca_select_sims: "antilles-2-99/antilles-101-378/antilles-380-400"
     filename_baryon_pca: "./projects/lsst_y1/chains/pca.txt"
-
 params:
   As_1e9:
     prior:
@@ -193,7 +192,6 @@ params:
   # ----------------------------------------------------------------------------
   # DES-Y3 nuisance parameters ends
   # ----------------------------------------------------------------------------
- 
 theory:
   camb:
     path: ./external_modules/code/CAMB
@@ -266,7 +264,7 @@ sampler:
       DES_A1_2: -1.7
       DES_A2_1: 0.0
       DES_BTA_1: 0.0
-#      DES_A2_1: 0.6
-#      DES_BTA_1: 1.01257
+      #DES_A2_1: 0.6
+      #DES_BTA_1: 1.01257
       DES_A2_2: -1.51541
 output: ./projects/desy1xplanck/chains/EXAMPLE_EVALUATE2

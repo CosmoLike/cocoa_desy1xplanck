@@ -44,6 +44,7 @@ LDLIBS :=
 
 CPPSOURCES =
 OBJECTCPP =
+VEC_FLAGS =
 
 CFLAGS = -std=gnu99 -I ${ROOTDIR}/.local/include/ -I ${ROOTDIR}/external_modules/code/
 CXXFLAGS = -std=c++20  -I ${ROOTDIR}/.local/include/ -I ${ROOTDIR}/external_modules/code/
@@ -51,19 +52,30 @@ LDFLAGS += -L$(CONDA_PREFIX)/lib -L$(ROOTDIR)/.local/lib
 LDFLAGS += -Wl,-rpath,$(CONDA_PREFIX)/lib -Wl,-rpath,$(ROOTDIR)/.local/lib
 
 ifdef COSMOLIKE_DEBUG_MODE
-	COMMON_FLAGS += -O0  -DDEBUG -W -Wall -Wextra -Wcomment -pedantic -g -fmax-errors=1 -Wno-unknown-pragmas -fsignaling-nans
+	COMMON_FLAGS += -O0 -DDEBUG -W -Wall -Wextra -Wcomment -pedantic -g -fmax-errors=1 -Wno-unknown-pragmas -fsignaling-nans
+	COMMON_FLAGS += -DCOSMO2D_NOT_USE_SIMD
 	ifeq ($(PYOS),Darwin)
 		COMMON_FLAGS += -ferror-limit=1 -fsanitize=undefined,float-divide-by-zero -fno-sanitize-recover=all
 	else
 		COMMON_FLAGS += -fmax-errors=1 -fsignaling-nans
-	endif 
-else
-	COMMON_FLAGS += -O3 -march=native -fno-fast-math -fno-associative-math -frounding-math
-	ifeq ($(PYOS),Darwin)
-	  COMMON_FLAGS += -fopenmp -ftrapping-math
-	else
-	  COMMON_FLAGS += -fopenmp -ftrapping-math -fsignaling-nans
 	endif
+else ifdef COSMOLIKE_AGGRESSIVE_MODE
+	COMMON_FLAGS += -O3 -march=native -flto=auto
+	COMMON_FLAGS += -ffast-math -fno-signed-zeros -fno-trapping-math
+	COMMON_FLAGS += -freciprocal-math -ffinite-math-only
+	COMMON_FLAGS += -funsafe-math-optimizations -fassociative-math
+	COMMON_FLAGS += -DCOSMO3D_ASSUME_PIECEWISE_UNIFORM
+	ifeq ($(PYOS),Darwin)
+		COMMON_FLAGS += -fopenmp
+	else
+		COMMON_FLAGS += -fopenmp -funroll-loops
+	endif
+else
+	COMMON_FLAGS += -O3 -march=native -flto=auto
+	COMMON_FLAGS += -fno-fast-math -fno-associative-math -frounding-math -ftrapping-math -fsignaling-nans
+	COMMON_FLAGS += -funroll-loops -ftree-vectorize -fomit-frame-pointer
+	COMMON_FLAGS += -DCOSMO3D_ASSUME_PIECEWISE_UNIFORM
+	COMMON_FLAGS += -fopenmp
 endif
 
 ifeq ($(PYOS),Darwin)
