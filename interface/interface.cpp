@@ -1,3 +1,6 @@
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #include <string>
 #include <vector>
 #include <numeric>
@@ -217,6 +220,19 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
   // --------------------------------------------------------------------
   // SET FUNCTIONS
   // --------------------------------------------------------------------
+  m.def("set_omp_threads",
+    [](int n) {
+#ifdef _OPENMP
+      if (n > 0) { omp_set_num_threads(n); }
+#else
+      (void) n;
+#endif
+    },
+    pybind11::arg("n"),
+    "Set the OpenMP thread count for cosmolike's internal parallel regions. "
+    "Must be called before any compute_* function if you've set because some "
+    "Python libraries silently call omp_set_num_threads(1)");
+
   m.def("set_distances",
       [](arma::Col<double> z, 
          arma::Col<double> chi)

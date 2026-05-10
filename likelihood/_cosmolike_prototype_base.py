@@ -6,6 +6,7 @@ import scipy
 from scipy.interpolate import interp1d
 import sys
 import time
+import functools
 
 # Local
 from cobaya.likelihoods.base_classes import DataSetLikelihood
@@ -15,7 +16,32 @@ from getdist import IniFile
 import euclidemu2 as ee2
 import math
 
+from contextlib import contextmanager
+@contextmanager
+def timer(label):
+  t0 = time.perf_counter()
+  yield
+  print(f"{label}: {time.perf_counter() - t0:.4f}s")
+
 import cosmolike_desy1xplanck_interface as ci
+
+COSMOLIKE_OMP_THREADS = int(os.environ.get("OMP_NUM_THREADS", 1))
+
+def with_omp_threads(fn):
+    """
+    WHY THIS EXISTS
+    ---------------
+    Cosmolike's hot loops are parallelized with OpenMP and rely on
+    omp_get_max_threads() returning the value set by OMP_NUM_THREADS
+    However, some Python libraries silently call omp_set_num_threads(1). 
+    This globally drops the OpenMP thread count, forcing cosmolike's 
+    parallel-for regions to run on a single core afterwards.
+    """
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        ci.set_omp_threads(COSMOLIKE_OMP_THREADS)
+        return fn(*args, **kwargs)
+    return wrapper
 
 survey = "DES"
 
@@ -239,7 +265,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
-
+  @with_omp_threads
   def set_cosmo_related(self):
     h = self.provider.get_param("H0")/100.0
     if not (self.use_emulator == 1):
@@ -338,7 +364,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
-
+  @with_omp_threads
   def set_source_related(self, **params):
     ntomo = self.source_ntomo
     ci.set_nuisance_shear_calib(
@@ -377,7 +403,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
-
+  @with_omp_threads
   def set_lens_related(self, **params):
     ntomo = self.lens_ntomo
     ci.set_point_mass(
@@ -435,7 +461,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
-
+  @with_omp_threads
   def get_datavector(self, **params):        
     if self.use_emulator == 1:
       #dv = self.internal_get_datavector_emulator(**params)
