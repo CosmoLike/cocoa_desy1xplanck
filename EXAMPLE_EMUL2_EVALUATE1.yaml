@@ -194,18 +194,18 @@ sampler:
       DES_DZ_S2: 0.0
       DES_DZ_S3: 0.0
       DES_DZ_S4: 0.0
+      # TATT PARAMETERS
+      DES_A1_1: -0.7
+      DES_A1_2: -1.7
+      DES_A2_1: 0.0
+      DES_A2_2: -1.51541
+      DES_BTA_1: 0.0
+#      DES_A2_1: 0.6
+#      DES_BTA_1: 1.01257
       DES_M1: -0.0063
       DES_M2: -0.0198
       DES_M3: -0.0241
       DES_M4: -0.0369
       DES_BARYON_Q1: 0.0
       DES_BARYON_Q2: 0.0
-      # TATT PARAMETERS
-      DES_A1_1: -0.7
-      DES_A1_2: -1.7
-      DES_A2_1: 0.0
-      DES_BTA_1: 0.0
-#      DES_A2_1: 0.6
-#      DES_BTA_1: 1.01257
-      DES_A2_2: -1.51541
 output: ./projects/desy1xplanck/chains/EXAMPLE_EMUL2_EVALUATE1

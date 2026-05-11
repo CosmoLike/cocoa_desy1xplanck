@@ -1,0 +1,350 @@
+timing: True
+debug: False
+stop_at_error: False
+
+likelihood:
+  desy1xplanck.cosmic_shear:
+    use_emulator: 2
+    path: ./external_modules/data/desy1xplanck
+    data_file: Y3xPlanckPR4.dataset
+    accuracyboost: 1.0
+    integration_accuracy: 0
+    lmax: 75000 # lmax computed for real space correlation function
+    kmax_boltzmann: 7.5
+    # 1 EE2, 2 Halofit (check below on the slow/fast decomposition)
+    # Warning: Euclid Emulator has strict boundaries
+    non_linear_emul: 2
+    IA_model: 1 # NLA (0) or TATT (1)
+    IA_code: 0  # CFASTPT (0) or FASTPT (1) (only works if not NLA)
+    IA_redshift_evolution: 3
+    debug: false
+    use_baryon_pca: True
+params:
+  As_1e9:
+    prior:
+      min: 0.5
+      max: 5
+    ref:
+      dist: norm
+      loc: 2.1
+      scale: 0.25
+    proposal: 0.2
+    latex: 10^9 A_\mathrm{s}
+    renames: A
+  ns:
+    prior:
+      min: 0.87
+      max: 1.07
+    ref:
+      dist: norm
+      loc: 0.96605
+      scale: 0.01
+    proposal: 0.01
+    latex: n_\mathrm{s}
+  H0:
+    prior:
+      min: 55
+      max: 91
+    ref:
+      dist: norm
+      loc: 67.32
+      scale: 5
+    proposal: 3
+    latex: H_0
+  omegab:
+    prior:
+      min: 0.03
+      max: 0.07
+    ref:
+      dist: norm
+      loc: 0.0495
+      scale: 0.004
+    proposal: 0.004
+    latex: \Omega_\mathrm{b}
+  omegam:
+    prior:
+      min: 0.1
+      max: 0.9
+    ref:
+      dist: norm
+      loc: 0.316
+      scale: 0.01
+    proposal: 0.01
+    latex: \Omega_\mathrm{m}
+  w:
+    value: -1.0
+    latex: w_{0,\mathrm{DE}}
+  w0pwa:
+    value: -1.0
+    latex: w_{0,\mathrm{DE}}+w_{a,\mathrm{DE}}
+    drop: true
+  wa:
+    value: 'lambda w0pwa, w: w0pwa - w'
+    latex: w_{a,\mathrm{DE}}
+  mnu:
+    value: 0.06
+  omegabh2:
+    value: 'lambda omegab, H0: omegab*(H0/100)**2'
+    latex: \Omega_\mathrm{b} h^2
+  omegach2:
+    value: 'lambda omegam, omegab, mnu, H0: (omegam-omegab)*(H0/100)**2-(mnu*(3.046/3)**0.75)/94.0708'
+    latex: \Omega_\mathrm{c} h^2
+  As:
+    value: 'lambda As_1e9: 1e-9 * As_1e9'
+    latex: A_\mathrm{s}
+  # ----------------------------------------------------------------------------
+  # DES-Y3 nuisance parameters begins
+  # ----------------------------------------------------------------------------
+  # baryon effects: the first two PCs
+  # Q1 informative: [0, 7]
+  # Q1 wide: [-6, 20]
+  # Q2: [-4, 4] 
+  DES_BARYON_Q1:
+    prior:
+      min: 0.0
+      max: 7.0
+    ref:
+      dist: norm
+      loc: 2.0
+      scale: 0.5
+    proposal: 0.5
+    latex: Q_\mathrm{DES}^1
+  DES_BARYON_Q2:
+    prior:
+      min: -4.0
+      max: 4.0
+    ref:
+      dist: norm
+      loc: 2.0
+      scale: 0.5
+    proposal: 0.5
+    latex: Q_\mathrm{DES}^2
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # WL photo-z errors
+  DES_DZ_S1:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.018
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.018
+    proposal: 0.009
+    latex: \Delta z_\mathrm{s,DES}^1
+  DES_DZ_S2:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.015
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.015
+    proposal: 0.0075
+    latex: \Delta z_\mathrm{s,DES}^2
+  DES_DZ_S3:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.011
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.011
+    proposal: 0.0055
+    latex: \Delta z_\mathrm{s,DES}^3
+  DES_DZ_S4:
+    prior:
+      dist: norm
+      loc: 0.0
+      scale: 0.017
+    ref:
+      dist: norm
+      loc: 0.0
+      scale: 0.017
+    proposal: 0.0085
+    latex: \Delta z_\mathrm{s,DES}^4
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # Intrinsic alignment
+  DES_A1_1:
+    prior:
+      min: -5
+      max:  5
+    ref:
+      dist: norm
+      loc: 0.7
+      scale: 0.5
+    proposal: 0.75
+    latex: A_\mathrm{1-IA,DES}^1
+  DES_A1_2:
+    prior:
+      min: -5
+      max:  5
+    ref:
+      dist: norm
+      loc: -1.7
+      scale: 0.5
+    proposal: 0.75
+    latex: A_\mathrm{1-IA,DES}^2
+  DES_A1_3:
+    value: 0
+    latex: A_\mathrm{1-IA,DES}^3        
+  DES_A1_4:
+    value: 0
+    latex: A_\mathrm{1-IA,DES}^4  
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  DES_A2_1:
+    prior:
+      min: -5.0
+      max: 5.0
+    ref:
+      dist: norm
+      loc: -1.36
+      scale: 0.2
+    proposal: 0.2
+    latex: A_\mathrm{2-IA,DES}^1
+  DES_A2_2:
+    prior:
+      min: -5.0
+      max: 5.0
+    ref:
+      dist: norm
+      loc: -2.5
+      scale: 0.2
+    proposal: 0.2
+    latex: A_\mathrm{2-IA,DES}^2
+  DES_A2_3:
+    value: 0.0
+    latex: A_\mathrm{2-IA,DES}^3
+  DES_A2_4:
+    value: 0.0
+    latex: A_\mathrm{2-IA,DES}^4
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  DES_BTA_1:
+    prior:
+      min: 0.0
+      max: 2.0
+    ref:
+      dist: norm
+      loc: 1.0
+      scale: 0.1
+    proposal: 0.1
+    latex: A_\mathrm{BTA-IA,DES}^1
+  DES_BTA_2:
+    value: 0
+    latex: A_\mathrm{BTA-IA,DES}^2
+  DES_BTA_3:
+    value: 0
+    latex: A_\mathrm{BTA-IA,DES}^3        
+  DES_BTA_4:
+    value: 0
+    latex: A_\mathrm{BTA-IA,DES}^4
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # Shear calibration parameters
+  DES_M1:
+    prior:
+      dist: norm
+      loc: -0.0063
+      scale: 0.0091
+    ref:
+      dist: norm
+      loc: -0.0063
+      scale: 0.0091
+    proposal: 0.0045
+    latex: m_\mathrm{DES}^1
+  DES_M2:
+    prior:
+      dist: norm
+      loc: -0.0198
+      scale: 0.0078
+    ref:
+      dist: norm
+      loc: -0.0198
+      scale: 0.0078
+    proposal: 0.004
+    latex: m_\mathrm{DES}^2
+  DES_M3:
+    prior:
+      dist: norm
+      loc: -0.0241
+      scale: 0.0076
+    ref:
+      dist: norm
+      loc: -0.0241
+      scale: 0.0076
+    proposal: 0.004
+    latex: m_\mathrm{DES}^3
+  DES_M4:
+    prior:
+      dist: norm
+      loc: -0.0369
+      scale: 0.0076
+    ref:
+      dist: norm
+      loc: -0.0369
+      scale: 0.0076
+    proposal: 0.004
+    latex: m_\mathrm{DES}^4 
+  # ----------------------------------------------------------------------------
+  # DES-Y3 nuisance parameters ends
+  # ----------------------------------------------------------------------------
+theory:
+  emulrdrag:
+    path: ./cobaya/cobaya/theories/
+    provides: ['rdrag']
+    extra_args:
+      file: ['external_modules/data/emultrf/BAO_SN_RES/emul_lcdm_rdrag_GP.joblib'] 
+      extra: ['external_modules/data/emultrf/BAO_SN_RES/extra_lcdm_rdrag.npy'] 
+      ord: [['omegabh2','omegach2']]
+  emulbaosn:
+    path: ./cobaya/cobaya/theories/
+    stop_at_error: True
+    provides: ['comoving_radial_distance', 'angular_diameter_distance', 'Hubble']
+    extra_args:
+      device: "cuda"
+      file:  [None, 'external_modules/data/emultrf/BAO_SN_RES/w0wa/emul_w0wa_H.pt']
+      extra: [None, 'external_modules/data/emultrf/BAO_SN_RES/w0wa/extra_w0wa_H.npy']    
+      ord: [None, ['omegam','H0','w','wa']]
+      extrapar: [{'MLA': 'INT', 'ZMIN' : 0.0001, 'ZMAX' : 3, 'NZ' : 600},
+                 {'MLA': 'ResMLP', 'offset' : 0.0, 'INTDIM' : 4, 'NLAYER' : 6,
+                  'TMAT': 'external_modules/data/emultrf/BAO_SN_RES/w0wa/PCA_w0wa_H.npy',
+                  'ZLIN': 'external_modules/data/emultrf/BAO_SN_RES/w0wa/z_lin_w0wa.npy'}]
+  emulmps:
+    path: ./cobaya/cobaya/theories/
+    stop_at_error: True
+    extra_args:
+      model_file:    "external_modules/data/emultrf/emulmps/npce_emul/emulator_npce.keras"
+      metadata_file: "external_modules/data/emultrf/emulmps/npce_emul/metadata.joblib"
+      nl_model_file:    "external_modules/data/emultrf/emulmps/w0wa_halofit/emulator_halofit.keras"
+      nl_metadata_file: "external_modules/data/emultrf/emulmps/w0wa_halofit/metadata.joblib"
+      use_syren: False
+      param_order: ["As_1e9", "ns", "H0", "omegab", "omegam", 'w', 'wa']
+#  fastpt:
+#    path: ./external_modules/code/FAST-PT
+#    extra_args:
+#      accuracyboost: 10
+#      kmax_boltzmann: 7.5
+#      extrap_kmax: 250.0
+sampler:
+  polychord:
+    path: null
+    nlive: 1024
+    num_repeats: 3d
+    do_clustering: false
+    measure_speeds: False
+    oversample_power: 0
+    precision_criterion: 0.05
+    boost_posterior: 10
+    feedback: 2
+output: ./projects/desy1xplanck/chains/EXAMPLE_EMUL2_POLY1
