@@ -7,7 +7,7 @@ kmax_boltzmann: 10.0
 speed: 1
 non_linear_emul: 2
 external_nz_modeling: 0
-use_emulator: False
+use_emulator: 0
 debug: False
 # IA REDSHIFT EVOLUTION: 0 = NO_IA (AMPLITUDES SET TO ZERO), 
 #                        1 = IA_NLA_LF

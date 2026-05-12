@@ -93,7 +93,7 @@ From `Cocoa/Readme` instructions:
 To run the example
 
  **Step :one:**: activate the cocoa Conda environment,  and the private Python environment 
-    
+
       conda activate cocoa
 
 and
@@ -101,9 +101,9 @@ and
       source start_cocoa.sh
  
  **Step :two:**: Select the number of OpenMP cores (below, we set it to 8).
-    
+
     export OMP_PROC_BIND=close; export OMP_NUM_THREADS=8; export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE
-      
+
  **Step :three:**: The folder `projects/desy1xplanck` contains examples. So, run the `cobaya-run` on the first example following the commands below.
 
 - **One model evaluation**:
