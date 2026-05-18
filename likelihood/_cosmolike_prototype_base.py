@@ -215,14 +215,10 @@ class _cosmolike_prototype_base(DataSetLikelihood):
           } # in Mpc
         }     
     elif self.use_emulator == 2:
-      return {
+      _requirements_ = {
         "As": None,
         "H0": None,
         "omegam": None,
-        "omegab": None,
-        "mnu": None,
-        "w": None,
-        "wa": None,
         "Pk_interpolator": {
           "z": self.z_interp_2D,
           "k_max": self.kmax_boltzmann * self.accuracyboost,
@@ -230,9 +226,19 @@ class _cosmolike_prototype_base(DataSetLikelihood):
           "vars_pairs": ([("delta_tot", "delta_tot")])
         },
         "comoving_radial_distance": {
-          "z": self.z_interp_1D 
+          "z": self.z_interp_1D
         }, # in Mpc
       }
+      # Also need Python FAST-PT if IA_code == 1
+      if (self.IA_code == 1):
+        _requirements_["IA_PS"] = None
+        _requirements_["bias_PS"] = None
+      if self.non_linear_emul == 1:
+        _requirements_["omegab"] = None
+        _requirements_["mnu"] = None
+        _requirements_["w"] = None
+        _requirements_["wa"] = None
+      return _requirements_
     else:
       _requirements_ = {
         "As": None,
