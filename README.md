@@ -34,13 +34,12 @@ From `Cocoa/Readme` instructions:
 >     # ------------------------------------------------------------------------------
 >     # The keys below control which cosmolike projects will be installed and compiled
 >     # ------------------------------------------------------------------------------
->     #export IGNORE_COSMOLIKE_LSSTY1_CODE=1
+>     #export IGNORE_COSMOLIKE_LSST_Y1_CODE=1
 >     #export IGNORE_COSMOLIKE_DES_Y3_CODE=1
 >     (...)
 >     export IGNORE_COSMOLIKE_DESXPLANCK_CODE=1
 >
 >     (...)
-> 
 >     # ------------------------------------------------------------------------------
 >     # Cosmolike projects below -------------------------------------------
 >     # ------------------------------------------------------------------------------
@@ -53,6 +52,22 @@ From `Cocoa/Readme` instructions:
 >     export DESXPLANCK_GIT_COMMIT="abc"
 >     #BRANCH: if unset, load the specified TAG
 >     export DESXPLANCK_GIT_TAG=v4.07
+
+> [!NOTE]
+> In case users need to rerun `setup_cocoa.sh`, Cocoa will not download previously installed packages, cosmolike projects, or large datasets, unless the following keys are set on `set_installation_options.sh`
+>
+>     [Adapted from Cocoa/set_installation_options.sh shell script]
+>     # ------------------------------------------------------------------------------
+>     # OVERWRITE_EXISTING_XXX_CODE=1 -> setup_cocoa overwrites existing PACKAGES ----
+>     # overwrite: delete the existing PACKAGE folder and install it again -----------
+>     # redownload: delete the compressed file and download data again ---------------
+>     # These keys are only relevant if you run setup_cocoa multiple times -----------
+>     # ------------------------------------------------------------------------------
+>     (...)
+>     export OVERWRITE_EXISTING_ALL_PACKAGES=1    # except cosmolike projects
+>     #export OVERWRITE_EXISTING_COSMOLIKE_CODE=1 # dangerous (possible loss of uncommitted work)
+>                                                 # if unset, users must manually delete cosmolike projects
+>     #export REDOWNLOAD_EXISTING_ALL_DATA=1      # warning: some data is many GB
 
 > [!NOTE]
 > If users want to recompile cosmolike, there is no need to rerun the Cocoa general scripts. Instead, run the following three commands:
@@ -92,7 +107,7 @@ From `Cocoa/Readme` instructions:
 
 To run the example
 
- **Step :one:**: activate the cocoa Conda environment,  and the private Python environment 
+ **Step :one:**: activate the Cocoa Conda environment,  and the private Python environment 
 
       conda activate cocoa
 
@@ -102,30 +117,50 @@ and
  
  **Step :two:**: Select the number of OpenMP cores (below, we set it to 8).
 
-    export OMP_PROC_BIND=close; export OMP_NUM_THREADS=8; export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE
+  - Linux
+    
+        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=close; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
+
+  - macOS (arm)
+    
+        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=disabled; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
 
  **Step :three:**: The folder `projects/desy1xplanck` contains examples. So, run the `cobaya-run` on the first example following the commands below.
+
+> [!Warning] 
+> (Linux only) In some HPC nodes, `numa` can cause you problems. If that is the case,
+> replace `numa` with `slot`
 
 - **One model evaluation**:
 
   - Linux
 
-        mpirun -n 1 --oversubscribe --mca pml ^ucx --mca btl vader,tcp,self --report-bindings \
-           --bind-to core:overload-allowed --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
-           cobaya-run ./projects/desy1xplanck/EXAMPLE_EVALUATE1.yaml -f
+        mpirun -n 1 --oversubscribe --mca pml ob1 --mca btl vader,tcp,self \
+          --mca btl_tcp_if_exclude lo,docker0,virbr0,ib0 \
+          --bind-to core:overload-allowed --report-bindings \
+          --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
+          cobaya-run ./projects/desy1xplanck/EXAMPLE_EVALUATE1.yaml -f
 
-  -  macOS (arm)
+  - macOS (arm)
 
-         mpirun -n 1 --oversubscribe cobaya-run ./projects/desy1xplanck/EXAMPLE_EVALUATE1.yaml -f
+        mpirun -n 1 --oversubscribe \
+         cobaya-run ./projects/desy1xplanck/EXAMPLE_EVALUATE1.yaml -f
 
 - **MCMC (Metropolis-Hastings Algorithm)**:
 
   - Linux
 
-        mpirun -n 4 --oversubscribe --mca pml ^ucx --mca btl vader,tcp,self --report-bindings \
-           --bind-to core:overload-allowed --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
-           cobaya-run ./projects/desy1xplanck/EXAMPLE_MCMC1.yaml -f
+        mpirun -n 4 --oversubscribe --mca pml ob1 --mca btl vader,tcp,self \
+          --mca btl_tcp_if_exclude lo,docker0,virbr0,ib0 \
+          --bind-to core:overload-allowed --report-bindings \
+          --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
+          cobaya-run ./projects/desy1xplanck/EXAMPLE_MCMC1.yaml -f
 
-   -  macOS (arm)
-     
-          mpirun -n 4 --oversubscribe cobaya-run ./projects/desy1xplanck/EXAMPLE_MCMC1.yaml -f
+  - macOS (arm)
+
+        mpirun -n 4 --oversubscribe \
+          cobaya-run ./projects/desy1xplanck/EXAMPLE_MCMC1.yaml -f
