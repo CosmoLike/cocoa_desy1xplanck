@@ -44,7 +44,7 @@ From `Cocoa/Readme` instructions:
 >     # Cosmolike projects below -------------------------------------------
 >     # ------------------------------------------------------------------------------
 >     (...)
->     export ROMAN_REAL_URL="https://git@github.com/CosmoLike/cocoa_desy1xplanck.git"
+>     export DESXPLANCK_URL="https://git@github.com/CosmoLike/cocoa_desy1xplanck.git"
 >     export DESXPLANCK_GIT_NAME="desy1xplanck"
 >     #BRANCH: if unset, load the latest commit on the specified branch
 >     #export DESXPLANCK_GIT_BRANCH="main"
