@@ -107,7 +107,7 @@ From `Cocoa/Readme` instructions:
 
 To run the example
 
- **Step :one:**: activate the Cocoa Conda environment,  and the private Python environment 
+**Step :one:**: activate the Cocoa Conda environment,  and the private Python environment 
 
       conda activate cocoa
 
@@ -115,7 +115,7 @@ and
 
       source start_cocoa.sh
  
- **Step :two:**: Select the number of OpenMP cores (below, we set it to 8).
+**Step :two:**: Select the number of OpenMP cores (below, we set it to 8).
 
   - Linux
     
@@ -129,7 +129,7 @@ and
         export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
         export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
 
- **Step :three:**: The folder `projects/desy1xplanck` contains examples. So, run the `cobaya-run` on the first example following the commands below.
+**Step :three:**: The folder `projects/desy1xplanck` contains examples. So, run the `cobaya-run` on the first example following the commands below.
 
 > [!Warning] 
 > (Linux only) In some HPC nodes, `numa` can cause you problems. If that is the case,
