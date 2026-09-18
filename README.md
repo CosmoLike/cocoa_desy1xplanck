@@ -142,6 +142,41 @@ and
         mpirun -n 4 --oversubscribe \
           cobaya-run ./projects/desy1xplanck/EXAMPLE_MCMC1.yaml -f
 
+# Baryonic feedback on EXAMPLE_EVALUATE1 <a name="desy1xplanck_baryonic_feedback"></a>
+
+`EXAMPLE_EVALUATE1.yaml` can apply an external baryonic feedback suppression to the
+matter power spectrum via the `bfmt` theory block (SP(k), BCEmu, Flamingo, BACCOemu,
+or BCemu2025). By default, the example runs without feedback.
+
+**Step :one:**: ensure the lines below are commented out in `set_installation_options.sh`
+before running `setup_cocoa.sh` and `compile_cocoa.sh`. *By default, these lines should
+be commented out, but it is worth checking*.
+
+      [Adapted from Cocoa/set_installation_options.sh shell script]
+      #export IGNORE_PYSPK_CODE=1     # SP(k)
+      #export IGNORE_BCEMU_CODE=1     # BCEmu
+      #export IGNORE_FBRE_CODE=1      # FlamingoBaryonResponseEmulator
+      #export IGNORE_BACCOEMU_CODE=1  # BACCOemu
+      #export IGNORE_BFMT_CODE=1      # Baryon Feedback Theory Block
+
+**Step :two:**: in `EXAMPLE_EVALUATE1.yaml`, uncomment the `bfmt` theory block and select
+the model:
+
+      theory:
+        bfmt:
+          baryon_model: 2 # 1 = SP(k), 2 = BCEmu, 3 = FlamingoEmulator, 4 = BACCOemu, 5 = BCemu2025
+
+**Step :three:**: set `external_baryon_suppression: True` on the `desy1xplanck.cosmic_shear`
+likelihood block.
+
+**Step :four:**: uncomment the selected model's parameters in the `params` block and in
+the `sampler: evaluate: override` block (the example carries a commented block for each
+model).
+
+> [!TIP]
+> For the sampled parameters of each model, their validity ranges, and the `bfmt`
+> options, see `Cocoa/external_modules/code/baryon_suppression/README.md`.
+
 # Running Hybrid Cosmolike-ML emulators <a name="desy1xplanck_examples_emul2"></a>
 
 > [!Warning]

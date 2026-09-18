@@ -26,6 +26,7 @@ use_baryon_pca: False
 create_baryon_pca: False
 baryon_pca_select_sims: "antilles-2-99/antilles-101-378/antilles-380-400"
 filename_baryon_pca: "./projects/desy1xplanck/chains/pca.txt"
+external_baryon_suppression: False
 print_datavector: False
 print_datavector_file: "./projects/desy1xplanck/chains/theory.modelvector"
 
