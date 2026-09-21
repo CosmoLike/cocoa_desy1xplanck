@@ -12,15 +12,15 @@ dimensions trigger inside cosmolike (desy1xplanck has that layout), and
 every project keeps one architecture. The commands below stay the
 same.
 
-Contents:
+# Table of contents
 
 1. [Running the tests](#run_tests)
 2. [The tests](#the_tests)
     1. [Running Accuracy checks](#accuracy_checks)
     2. [Synthetic data vectors](#synthetic_vectors)
-3. [Appendix](#appendix)
-    1. [FAQ: Tests keep their own copy of configurations and data](#frozen_copy)
-    2. [FAQ: Refreshing the frozen state (maintainers only)](#refreeze)
+3. [Appendices about the frozen state](#appendix)
+    1. [FAQ: How do the tests keep their own copy of configurations and data?](#frozen_copy)
+    2. [FAQ: How can maintainers refresh the frozen state?](#refreeze)
 
 ## Running the tests <a name="run_tests"></a>
 
@@ -124,9 +124,9 @@ Both come from the example2 (6x2pt) model, whose full-length vector
 serves every probe; at its own minimum the $\chi^2$ response is quadratic
 and the drift and accuracy numbers stay meaningful.
 
-# Appendix <a name="appendix"></a>
+# Appendices about the frozen state <a name="appendix"></a>
 
-## :interrobang: FAQ: Tests keep their own copy of configurations and data <a name="frozen_copy"></a>
+## :interrobang: FAQ: How do the tests keep their own copy of configurations and data? <a name="frozen_copy"></a>
 
 The tests read nothing from the live project: not `../data`, not the
 `EXAMPLE_EVALUATE` yaml files, and not the likelihood default yaml
@@ -151,7 +151,7 @@ edited, naming the file. The result: users may change the live data
 and examples freely, and nobody can quietly edit the frozen state
 either.
 
-## :interrobang: FAQ: Refreshing the frozen state (maintainers only) <a name="refreeze"></a>
+## :interrobang: FAQ: How can maintainers refresh the frozen state? <a name="refreeze"></a>
 
 A deliberate change to the data vectors, n(z), covariance, examples,
 or likelihood defaults requires a re-freeze.
