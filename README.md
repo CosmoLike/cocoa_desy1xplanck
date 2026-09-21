@@ -437,19 +437,25 @@ re-freeze procedure for maintainers.
 ## Minimum accuracy parameters <a name="desy1xplanck_minimum_accuracy"></a>
 
 The default `accuracyboost: 1.0` in the likelihood configuration is
-converged: raising the boost moves the 6x2pt chi2 by at most 0.004
-through boost 3.25, and each of the other numerical knobs
-(`integration_accuracy`, `lmax`, `kmax_boltzmann` with camb `kmax`,
-camb `AccuracyBoost`, camb `k_per_logint`) moves it by 0.014 or less
-on its own.
+converged: raising the boost moves the 6x2pt chi2 by +0.008 at boost
+1.25, +0.012 at 3, and +0.013 at the stress value 5, and each of the
+other numerical knobs (`integration_accuracy`, `lmax`,
+`kmax_boltzmann` with camb `kmax`, camb `AccuracyBoost`, camb
+`k_per_logint`) moves it by 0.015 or less on its own.
 
-Keep `accuracyboost` at or below 3. Above that value the 6x2pt
-integration tables break down: the chi2 shifts by +0.013 at boost 3.5,
-+0.049 at 3.75, +0.256 at 4, and +27.06 at 5, entirely from this one
-knob. The breakdown does not depend on the intrinsic-alignment model
-and sits in the galaxy-clustering and galaxy-galaxy-lensing sections:
-cosmic shear alone shifts by only +0.0006 at boost 5. Every yaml in
-this project repeats this warning next to its `accuracyboost` line.
+`accuracyboost` refines a nested z grid in the power-spectrum
+tables: every coarser grid's nodes are a subset of every finer
+grid's, so a higher boost tightens the same interpolation instead of
+moving the nodes (the construction is commented in
+`likelihood/_cosmolike_prototype_base.py`). The `accuracyboost <= 3`
+warnings next to the `accuracyboost` lines in this project's yaml
+files describe cosmolike builds whose FFTLog zero-padding stays
+constant while the boost densifies the chi grid (chi2 +0.256 at
+boost 4 and +27.06 at 5, in the galaxy-clustering and
+galaxy-galaxy-lensing sections); the cosmolike core compiled here
+scales the padding with the grid
+(`external_modules/code/cosmolike/cosmo2D.c`), and the boost scan
+above is monotone through 5.
 
 When several knobs move the chi2, settle them in cost order: raise the
 cosmolike `accuracyboost` first (cheap), then camb `k_per_logint`, and
@@ -461,14 +467,12 @@ sides, so move them together.
 
 The advisory checks A1-A6 in `tests/test_accuracy.py` re-evaluate the
 three probes with both intrinsic-alignment models with every knob
-raised at once
-(`accuracyboost` 3 inside the all-knobs set: the highest healthy
-value, still below the breakdown).
+raised at once (`accuracyboost` 3 inside the all-knobs set).
 Measured on this install, the delta chi2 values are:
 
-    A1 cosmic shear, NLA    +0.000790
-    A2 cosmic shear, TATT   +0.000778
-    A3 2x2pt, NLA           +0.013248
-    A4 2x2pt, TATT          +0.013033
-    A5 6x2pt, NLA           +0.017496
-    A6 6x2pt, TATT          +0.017266
+    A1 cosmic shear, NLA    +0.000265
+    A2 cosmic shear, TATT   +0.000259
+    A3 2x2pt, NLA           +0.012928
+    A4 2x2pt, TATT          +0.012721
+    A5 6x2pt, NLA           +0.025710
+    A6 6x2pt, TATT          +0.025494
