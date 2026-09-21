@@ -415,13 +415,13 @@ boost fit (Eq. 11 of [arXiv:2402.17492](https://arxiv.org/abs/2402.17492)).
 
 The folder `tests/` holds 12 pass/fail tests: for each of cosmic shear,
 6x2pt, and 2x2pt, in both the NLA and TATT intrinsic-alignment models,
-a chi2 comparison against a frozen reference and a race check that
+a $\chi^2$ comparison against a frozen reference and a race check that
 evaluates 10 cosmologies in a row and requires the 10th to match a
 fresh evaluation of the same point (the tests force
 `OMP_NUM_THREADS=4`; with one thread an OpenMP race could never show
 up). The file `tests/test_accuracy.py` adds advisory accuracy checks
 that report, with no pass/fail, how much the default numerical
-settings move the chi2.
+settings move the $\chi^2$.
 
 The tests read nothing from the live project: they evaluate a frozen
 copy of the configurations, data, and reference values, pinned by a
@@ -437,9 +437,9 @@ re-freeze procedure for maintainers.
 # Minimum accuracy parameters <a name="desy1xplanck_minimum_accuracy"></a>
 
 The default `accuracyboost: 1.0` in the likelihood configuration is
-converged. Raising the boost alone moves the 6x2pt chi2 by:
+converged. Raising the boost alone moves the 6x2pt $\chi^2$ by:
 
-| cosmolike `accuracyboost` | delta chi2 |
+| cosmolike `accuracyboost` | $\Delta\chi^2$ |
 |---------------------------|-----------:|
 | 1.25                      |     +0.008 |
 | 3                         |     +0.012 |
@@ -456,14 +456,14 @@ moving the nodes (the construction is commented in
 `likelihood/_cosmolike_prototype_base.py`). The `accuracyboost <= 3`
 warnings next to the `accuracyboost` lines in this project's yaml
 files describe cosmolike builds whose FFTLog zero-padding stays
-constant while the boost densifies the chi grid (chi2 +0.256 at
+constant while the boost densifies the chi grid ($\chi^2$ +0.256 at
 boost 4 and +27.06 at 5, in the galaxy-clustering and
 galaxy-galaxy-lensing sections); the cosmolike core compiled here
 scales the padding with the grid
 (`external_modules/code/cosmolike/cosmo2D.c`), and the boost scan
 above is monotone through 5.
 
-When several knobs move the chi2, settle them in cost order: raise the
+When several knobs move the $\chi^2$, settle them in cost order: raise the
 cosmolike `accuracyboost` first (cheap), then camb `k_per_logint`, and
 camb `AccuracyBoost` last (expensive at run time, and it can masquerade
 for the cheap knobs: an apparent CAMB sensitivity can really be
@@ -476,7 +476,7 @@ three probes with both intrinsic-alignment models with every knob
 raised at once (`accuracyboost` 3 inside the all-knobs set).
 Measured on this install:
 
-| check | configuration      | delta chi2 |
+| check | configuration      | $\Delta\chi^2$ |
 |-------|--------------------|-----------:|
 | A1    | cosmic shear, NLA  |  +0.000265 |
 | A2    | cosmic shear, TATT |  +0.000259 |
