@@ -75,9 +75,9 @@ class _cosmolike_prototype_base(DataSetLikelihood):
     # shaped O(dz^2) residual that vanishes at the nodes, so two grids
     # that do not share nodes disagree by the FULL residual amplitude.
     # The previous count, min(120 + 20*boost, 250), re-phased that
-    # sawtooth at every boost value: measured on this project, order-
-    # unity chi2 jitter in the clustering vector instead of
-    # convergence. The dyadic factor m = 2^ceil(log2(boost)) below
+    # sawtooth at every boost value: measured in roman_kl, order-unity
+    # chi2 jitter in its clustering vector, and smaller but equally
+    # non-convergent re-phasing shifts in this project. The dyadic factor m = 2^ceil(log2(boost)) below
     # refines each uniform block by an integer factor with the same
     # endpoints, so (a) every block stays uniform (cosmolike keeps its
     # two-segment direct indexing, no search), (b) every coarser
