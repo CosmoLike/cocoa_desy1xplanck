@@ -47,6 +47,8 @@ import unittest
 
 # The tests folder is not a package; put it on the import path so the
 # shared harness resolves no matter where pytest was launched from.
+# insert(0, ...) puts the folder FIRST in the search order, ahead of
+# every other place a same-named module could hide.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import cocoa_test_utils as u
 
@@ -60,6 +62,9 @@ class TestAccuracyAdvisory(unittest.TestCase):
     reference chi2 values.
     """
 
+    # the classmethod decorator hands the method the class itself
+    # (cls), not an instance; unittest calls setUpClass once before
+    # the first test of the class
     @classmethod
     def setUpClass(cls):
         u.require_cocoa_environment()
@@ -78,6 +83,8 @@ class TestAccuracyAdvisory(unittest.TestCase):
           label   = one line naming the probe and IA model.
         """
         chi2_high = u.single_model_chi2(example, tatt, high_accuracy=True)
+        # ternary: the reference key ends in "tatt" or "nla", the
+        # naming the frozen reference file uses
         suffix = "tatt" if tatt else "nla"
         default_ref = self.reference[f"{example}_{suffix}"]
         u.report_accuracy(f"{name}: {label}", chi2_high, default_ref)
@@ -93,6 +100,9 @@ class TestAccuracyAdvisory(unittest.TestCase):
         """
         default_ref = self.reference["example2_nla"]
         print("", flush=True)
+        # each knob entry is (label, likelihood overrides, camb
+        # overrides); the two _ discard the override tables here,
+        # single_model_chi2 looks them up again by label
         for label, _, _ in u.ACCURACY_KNOBS:
             chi2 = u.single_model_chi2("example2", False, knob=label)
             u.report_knob(label, chi2, default_ref)
@@ -128,5 +138,8 @@ class TestAccuracyAdvisory(unittest.TestCase):
                              "example2 (6x2pt, TATT)")
 
 
+# __name__ is "__main__" only when this file runs directly as a
+# script; pytest imports the module instead, so this block stays
+# idle under pytest
 if __name__ == "__main__":
     unittest.main(verbosity=2)
