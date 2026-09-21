@@ -5,6 +5,13 @@ because code or data changed by accident, and a race condition (a bug
 where evaluating several points in a row corrupts a later result
 through leftover internal state or colliding OpenMP threads).
 
+Every model build runs in its own worker subprocess. In this project
+both examples share one data set, so the isolation is preventive: it
+keeps the suite immune to the process abort that different data-set
+dimensions trigger inside cosmolike (desy1xplanck has that layout), and
+every project keeps one architecture. The commands below stay the
+same.
+
 ## Running the tests
 
 From the `Cocoa/` folder, with the cocoa conda environment active and
@@ -39,6 +46,23 @@ so run the command with nothing piped after it.
    `DES_A2_2=-1.51541`.
 4. `test_4`: same as test 2 with the TATT model.
 5. -8. the same four tests for the 6x2pt likelihood.
+9. -14. `test_example2_2x2pt.py` (numbered 11-14): the four standard
+   tests on `desy1xplanck.combo_2x2pt` (example2 with the probe selection
+   reduced to galaxy clustering plus galaxy-galaxy lensing).
+
+Accuracy checks (`test_accuracy.py`, A1-A6): the three probes with
+both IA models re-evaluated with the numerical settings pushed far
+beyond the defaults (cosmolike accuracyboost 5, integration_accuracy
+10, lmax 200000, kmax_boltzmann 40; CAMB AccuracyBoost 2,
+k_per_logint 50, kmax 50). Each check
+reports delta chi2 = chi2(high accuracy) - chi2(default, frozen), no
+pass/fail. High-accuracy evaluations take minutes; skip the file with
+`--ignore ./projects/desy1xplanck/tests/test_accuracy.py`.
+
+All TATT variants evaluate against `frozen/data/tatt_desy1xplanck.dataset`,
+a data vector generated with TATT at the fiducial point during the
+freeze: at its own minimum the TATT chi2 responds quadratically to
+numerical changes instead of linearly on the side of a hill.
 
 ## Why the tests keep their own copy of everything
 

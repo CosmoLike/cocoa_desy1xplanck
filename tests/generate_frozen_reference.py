@@ -106,10 +106,18 @@ def freeze_example(example, stamp):
     live.pop("output", None)
     live["debug"] = 30
     live["timing"] = False
-    likelihood_block = live["likelihood"][cfg["likelihood"]]
+    # the 2x2pt configuration reuses example2's yaml with the
+    # likelihood renamed (combo_6x2pt -> combo_2x2pt: same options,
+    # same data, different probe selection inside cosmolike)
+    source_name = cfg.get("source_likelihood", cfg["likelihood"])
+    likelihood_block = live["likelihood"].pop(source_name)
+    live["likelihood"][cfg["likelihood"]] = likelihood_block
     likelihood_block["path"] = FROZEN_DATA_RELPATH
     likelihood_block["IA_model"] = 0
 
+    # make_model builds the evaluable cobaya Model; building it is
+    # what forces cobaya to merge the live likelihood defaults into
+    # the configuration
     model = u.make_model(live)
     # model.info() returns the configuration with every default
     # resolved: the complete likelihood option set and the complete
@@ -150,7 +158,110 @@ def freeze_example(example, stamp):
           f"({len(live['params'])} in the live example yaml)", flush=True)
 
 
+def generate_tatt_datavector(dataset_name):
+    """Write one TATT-generated data vector and its dataset descriptor.
+
+    The vector comes from the generating example named in
+    u.TATT_GENERATORS, evaluated at the TATT point with datavector
+    printing enabled. It must be generated against the ORIGINAL frozen
+    dataset (the TATT descriptor written here does not exist yet; the
+    printed theory vector does not depend on which data vector it is
+    compared against). Runs inside a --tatt-one worker subprocess: it
+    builds a model, and two different-dimension builds in one process
+    abort (see cocoa_test_utils).
+
+    Arguments:
+      dataset_name = a key of u.TATT_GENERATORS, which is also the
+                     file name of the descriptor to write.
+
+    Returns:
+      nothing; frozen/data/ gains the .modelvector and .dataset files.
+
+    Raises:
+      RuntimeError when the generated vector's length differs from
+      the original data vector (a masking or probe mismatch), or when
+      the dataset descriptor does not contain exactly one data_file
+      line to replace.
+    """
+    from cobaya.yaml import yaml_load
+
+    example = u.TATT_GENERATORS[dataset_name]
+    cfg = u.EXAMPLES[example]
+    # the original dataset name comes from the frozen configuration
+    # itself (load_frozen_info would already point at the TATT dataset)
+    frozen_info = yaml_load(u._frozen_module(example).yaml_string)
+    original_dataset = frozen_info["likelihood"][cfg["likelihood"]]["data_file"]
+
+    vector_name = dataset_name.replace(".dataset", ".modelvector")
+    info = u.load_frozen_info(example, tatt=True)
+    likelihood_block = info["likelihood"][cfg["likelihood"]]
+    likelihood_block["data_file"] = original_dataset
+    likelihood_block["print_datavector"] = True
+    likelihood_block["print_datavector_file"] = (
+        FROZEN_DATA_RELPATH + "/" + vector_name)
+
+    print(f"generating {vector_name} ({example}, TATT point) ...",
+          flush=True)
+    model = u.make_model(info)
+    point = u.build_point(model, example, tatt=True)
+    u.evaluate_chi2(model, point)
+
+    # sanity: the generated vector must have the same length as the
+    # original one, or the masks would select the wrong entries
+    data_dir = os.path.join(u.FROZEN_DIR, "data")
+    with open(os.path.join(data_dir, vector_name)) as f:
+        generated_lines = sum(1 for _ in f)
+    descriptor_path = os.path.join(data_dir, original_dataset)
+    with open(descriptor_path) as f:
+        descriptor = f.read()
+    original_vector = None
+    for line in descriptor.splitlines():
+        if line.strip().startswith("data_file"):
+            original_vector = line.split("=", 1)[1].strip()
+    with open(os.path.join(data_dir, original_vector)) as f:
+        original_lines = sum(1 for _ in f)
+    if generated_lines != original_lines:
+        raise RuntimeError(
+            f"TATT data vector has {generated_lines} lines; the "
+            f"original {original_vector} has {original_lines}")
+
+    # the TATT dataset descriptor: the original with only the
+    # data_file line replaced
+    replaced = 0
+    out_lines = []
+    for line in descriptor.splitlines(keepends=True):
+        if line.strip().startswith("data_file"):
+            out_lines.append(f"data_file = {vector_name}\n")
+            replaced += 1
+        else:
+            out_lines.append(line)
+    if replaced != 1:
+        raise RuntimeError(
+            f"{original_dataset}: expected exactly one data_file "
+            f"line, found {replaced}")
+    with open(os.path.join(data_dir, dataset_name), "w") as f:
+        f.write("".join(out_lines))
+    print(f"TATT data vector: {vector_name} ({generated_lines} lines); "
+          f"descriptor: {dataset_name}", flush=True)
+
+
 def main():
+    # worker modes first: --freeze-one X and --tatt-one D each run a
+    # single model-building step and exit. The parent below spawns one
+    # subprocess per step: a process that initializes configurations
+    # with different data-set dimensions aborts inside cosmolike (see
+    # cocoa_test_utils), and one architecture serves every project.
+    if "--freeze-one" in sys.argv:
+        u.require_cocoa_environment()
+        example = sys.argv[sys.argv.index("--freeze-one") + 1]
+        stamp = sys.argv[sys.argv.index("--stamp") + 1]
+        freeze_example(example, stamp)
+        return 0
+    if "--tatt-one" in sys.argv:
+        u.require_cocoa_environment()
+        dataset_name = sys.argv[sys.argv.index("--tatt-one") + 1]
+        generate_tatt_datavector(dataset_name)
+        return 0
     """Rebuild tests/frozen/ and the manifest from the current project.
 
     The steps, in order: refuse without --overwrite; delete and
@@ -178,6 +289,9 @@ def main():
     os.makedirs(u.FROZEN_DIR)
 
     print("freezing ../data ...", flush=True)
+    # the data copy is what lets users change ../data later without
+    # touching the tests; .DS_Store (macOS Finder metadata) would only
+    # pollute the manifest
     shutil.copytree(os.path.join(PROJECT_DIR, "data"),
                     os.path.join(u.FROZEN_DIR, "data"),
                     ignore=shutil.ignore_patterns(".DS_Store"))
@@ -185,8 +299,22 @@ def main():
         shutil.copy2(os.path.join(PROJECT_DIR, cfg["provenance"]),
                      os.path.join(u.FROZEN_DIR, cfg["provenance"]))
 
+    # one worker subprocess per model-building step (see main's note)
+    import subprocess
+    self_path = os.path.abspath(__file__)
     for example in u.EXAMPLES:
-        freeze_example(example, stamp)
+        completed = subprocess.run(
+            [sys.executable, self_path, "--freeze-one", example,
+             "--stamp", stamp])
+        if completed.returncode != 0:
+            raise RuntimeError(f"freeze worker for {example} failed")
+    # the TATT-generated data vectors must exist before the reference
+    # loop below: every TATT reference evaluates against them
+    for dataset_name in u.TATT_GENERATORS:
+        completed = subprocess.run(
+            [sys.executable, self_path, "--tatt-one", dataset_name])
+        if completed.returncode != 0:
+            raise RuntimeError(f"TATT worker for {dataset_name} failed")
 
     reference = {
         "_meta": {
@@ -208,6 +336,9 @@ def main():
         json.dump(reference, f, indent=2, sort_keys=True)
         f.write("\n")
 
+    # compute_manifest returns {relative path: sha256} for every file
+    # now under frozen/; writing it LAST means it covers every file
+    # the steps above produced
     manifest = {
         "_comment": "SHA-256 of every file under tests/frozen/; verified by "
                     "every test before evaluating anything.",

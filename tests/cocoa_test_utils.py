@@ -34,6 +34,16 @@ tests. The frozen state has three parts:
     files at freeze time, kept only so a human can diff how the live
     examples drifted; no test reads them.
 
+Every model build runs in its own worker subprocess: the public
+single_model_chi2 and ten_in_a_row_chi2 spawn a fresh python that
+imports this module, evaluates, and hands the numbers back through a
+temporary json file, while its progress lines stream to the same
+terminal. In this project both examples share one data set, so the
+isolation is preventive rather than required: in a project whose
+examples use different data-set dimensions (desy1xplanck), the cosmolike
+C layer aborts a process that initializes both, and every project
+keeps one architecture so they all behave identically.
+
 Every test first verifies the manifest and refuses to run when any
 frozen file changed. Refreshing the frozen state is a deliberate
 maintainer action: generate_frozen_reference.py --overwrite.
@@ -83,16 +93,54 @@ TATT_POINT = {
 # The two frozen configurations. "likelihood" is the cobaya component
 # name, needed to reach that block inside the loaded info dictionary;
 # "provenance" names the human-readable snapshot (never loaded).
+# The TATT variants evaluate against a data vector GENERATED WITH
+# TATT at the fiducial point. Reason: against an NLA-based vector the
+# TATT chi2 sits away from its minimum, where it responds linearly
+# (not quadratically) to tiny numerical changes, making drift bounds
+# twitchy. Both examples share one data set, so a single full-length
+# vector generated from the example2 TATT model serves every
+# configuration (the other probes' masks select their sections).
+TATT_GENERATORS = {
+    "tatt_desy1xplanck.dataset": "example2",
+}
+
+# High-accuracy settings for the accuracy advisory checks
+# (test_accuracy.py): the same physics evaluated with the numerical
+# knobs pushed far beyond the defaults.
+HIGH_ACCURACY_LIKELIHOOD = {
+    "accuracyboost": 5.0,       # default 1.0
+    "integration_accuracy": 10,  # default 0
+    "lmax": 200000,             # default 50000-75000
+    "kmax_boltzmann": 40.0,     # default 5.0-7.5
+}
+HIGH_ACCURACY_CAMB_EXTRA_ARGS = {
+    "halofit_version": "takahashi",
+    "AccuracyBoost": 2.0,       # default 1.05
+    "dark_energy_model": "ppf",
+    "accurate_massive_neutrino_transfers": False,
+    "k_per_logint": 50,         # default 10
+    "kmax": 50.0,               # default 5.0-7.5
+}
+
 EXAMPLES = {
     "example1": {
         "frozen_module": "frozen_config_example1.py",
         "provenance": "EXAMPLE_EVALUATE1.yaml",
         "likelihood": "desy1xplanck.cosmic_shear",
+        "tatt_dataset": "tatt_desy1xplanck.dataset",
     },
     "example2": {
         "frozen_module": "frozen_config_example2.py",
         "provenance": "EXAMPLE_EVALUATE2.yaml",
         "likelihood": "desy1xplanck.combo_6x2pt",
+        "tatt_dataset": "tatt_desy1xplanck.dataset",
+    },
+    "example2_2x2pt": {
+        "frozen_module": "frozen_config_example2_2x2pt.py",
+        "provenance": "EXAMPLE_EVALUATE2.yaml",
+        "source_likelihood": "desy1xplanck.combo_6x2pt",
+        "likelihood": "desy1xplanck.combo_2x2pt",
+        "tatt_dataset": "tatt_desy1xplanck.dataset",
     },
 }
 
@@ -239,15 +287,25 @@ def verify_frozen():
             "generate_frozen_reference.py --overwrite to create the frozen "
             "test state."
         )
+    # expected = the {relative path: sha256 digest} table written at
+    # freeze time; it is the definition of "untouched"
     with open(MANIFEST_FILE) as f:
         expected = json.load(f)["files"]
+    # actual = the same table computed from the files on disk right now
+    # (compute_manifest walks frozen/ and fingerprints each file)
     actual = compute_manifest()
+    # collect every discrepancy before raising: a report naming all
+    # problem files at once beats failing on the first one
     problems = []
     for rel, digest in expected.items():
         if rel not in actual:
+            # the manifest lists it but the file is gone from disk
             problems.append(f"MISSING  {rel}")
         elif actual[rel] != digest:
+            # the file exists but at least one byte differs
             problems.append(f"CHANGED  {rel}")
+    # both directions matter: a file ADDED to frozen/ is as suspicious
+    # as an edited one, so the reverse scan runs too
     for rel in actual:
         if rel not in expected:
             problems.append(f"EXTRA    {rel}")
@@ -335,6 +393,34 @@ TEST {number}: {label}
     return delta
 
 
+def report_accuracy(label, chi2_high, default_ref):
+    """Print one default-vs-high-accuracy check. Advisory only.
+
+    The default-settings chi2 is the frozen reference (recorded at
+    freeze time); the high-accuracy chi2 is computed in this run. The
+    difference is the numerical error of the default settings at this
+    point: there is no pass/fail because how much numerical error an
+    analysis tolerates is a judgment call, not a fixed bound.
+
+    Arguments:
+      label       = one line naming the probe and IA model.
+      chi2_high   = chi2 with HIGH_ACCURACY settings, this run.
+      default_ref = the frozen default-settings reference chi2.
+
+    Returns:
+      chi2_high - default_ref, the printed difference.
+    """
+    delta = chi2_high - default_ref
+    print(f"""
+{'-' * 66}
+ACCURACY: {label}
+  chi2 (high accuracy)      = {chi2_high:.6f}
+  chi2 (default, frozen)    = {default_ref:.6f}
+  delta chi2 (high-default) = {delta:+.6f}
+{'-' * 66}""", flush=True)
+    return delta
+
+
 # -----------------------------------------------------------------------------
 # Model construction and evaluation
 # -----------------------------------------------------------------------------
@@ -369,7 +455,7 @@ def _frozen_module(example):
     return module
 
 
-def load_frozen_info(example, tatt):
+def load_frozen_info(example, tatt, high_accuracy=False):
     """Build the cobaya input dictionary for one frozen configuration.
 
     Starts from the frozen module's yaml string and applies the only
@@ -385,8 +471,13 @@ def load_frozen_info(example, tatt):
         component-loading chatter does not bury the test reports.
 
     Arguments:
-      example = "example1" or "example2" (a key of EXAMPLES).
-      tatt    = True selects the TATT IA model, False keeps NLA.
+      example = a key of EXAMPLES.
+      tatt    = True selects the TATT IA model, False keeps NLA; the
+                data_file then switches to the configuration's
+                TATT-generated dataset (see TATT_GENERATORS).
+      high_accuracy = True applies HIGH_ACCURACY_LIKELIHOOD and
+                HIGH_ACCURACY_CAMB_EXTRA_ARGS on top of the frozen
+                configuration (accuracy advisory checks only).
 
     Returns:
       the input dictionary ready for cobaya's get_model.
@@ -394,14 +485,51 @@ def load_frozen_info(example, tatt):
     from cobaya.yaml import yaml_load
 
     cfg = EXAMPLES[example]
+    # _frozen_module loads frozen/<frozen_module>.py by path and hands
+    # back its yaml_string attribute: the complete configuration with
+    # every option and parameter written out at freeze time
     info = yaml_load(_frozen_module(example).yaml_string)
+    # the tests drive the model directly, so a sampler or output block
+    # left in the info would only confuse cobaya
     info.pop("sampler", None)
     info.pop("output", None)
+    # log level WARNING (30): component-loading chatter would bury the
+    # test reports
     info["debug"] = 30
     info["timing"] = False
     likelihood_block = info["likelihood"][cfg["likelihood"]]
+    # the frozen string stores the ROOTDIR-relative data path; the
+    # absolute path is independent of the working directory
     likelihood_block["path"] = os.path.join(FROZEN_DIR, "data")
+    # tests must not write files as a side effect: this project's
+    # example1 ships print_datavector: True aimed at chains/, which
+    # does not exist in a fresh clone (the TATT-vector generator
+    # re-enables printing deliberately, into frozen/data)
+    likelihood_block["print_datavector"] = False
+    # intrinsic-alignment model selection: 0 = NLA, 1 = TATT
     likelihood_block["IA_model"] = 1 if tatt else 0
+    if tatt:
+        # TATT evaluates against its own generated data vector so the
+        # chi2 sits at a minimum (see the TATT_GENERATORS comment)
+        likelihood_block["data_file"] = cfg["tatt_dataset"]
+    if high_accuracy:
+        likelihood_block.update(HIGH_ACCURACY_LIKELIHOOD)
+        info["theory"]["camb"]["extra_args"].update(
+            HIGH_ACCURACY_CAMB_EXTRA_ARGS)
+    if tatt:
+        # a TATT parameter can be SAMPLED in the frozen configuration
+        # (it has a prior; build_point then sets its value in the
+        # evaluation point) or FIXED (a plain value; it must be
+        # replaced here, before the model is built, because a fixed
+        # parameter cannot change per evaluation)
+        for name, value in TATT_POINT.items():
+            block = info["params"].get(name)
+            if block is None:
+                raise ValueError(
+                    f"TATT parameter {name} is not in the frozen "
+                    "configuration")
+            if isinstance(block, dict) and "prior" not in block:
+                block["value"] = value
     return info
 
 
@@ -458,7 +586,11 @@ def build_point(model, example, tatt):
       when the model's sampled set differs from the frozen point;
       ValueError when a TATT parameter is not sampled by the model.
     """
+    # load_frozen_point returns a copy of the frozen module's point:
+    # the exact {parameter: value} table the references were computed at
     point = load_frozen_point(example)
+    # sampled = the parameters THIS model, built from today's code,
+    # expects to receive; the frozen point must cover them exactly
     sampled = set(model.parameterization.sampled_params())
     if sampled != set(point):
         raise AssertionError(
@@ -468,10 +600,12 @@ def build_point(model, example, tatt):
             f"  gone since freeze: {sorted(set(point) - sampled)}"
         )
     if tatt:
+        # only SAMPLED TATT parameters appear in the point; the fixed
+        # ones were already replaced inside the configuration by
+        # load_frozen_info (which also catches unknown names)
         for name, value in TATT_POINT.items():
-            if name not in point:
-                raise ValueError(f"TATT parameter {name} is not sampled")
-            point[name] = value
+            if name in point:
+                point[name] = value
     return point
 
 
@@ -497,7 +631,10 @@ def evaluate_chi2(model, point):
     """
     import numpy as np
 
+    # logposterior runs the full pipeline (theory + likelihood) at the
+    # point; cached=False forces recomputation (see docstring)
     posterior = model.logposterior(point, cached=False)
+    # loglikes = one ln L per likelihood component, in model order
     if len(posterior.loglikes) != 1:
         raise RuntimeError(
             f"expected exactly one likelihood: {posterior.loglikes}")
@@ -507,31 +644,42 @@ def evaluate_chi2(model, point):
     return float(chi2)
 
 
-def single_model_chi2(example, tatt):
-    """chi2 of the frozen fiducial point on a freshly built model.
+def _single_model_chi2_impl(example, tatt, high_accuracy=False):
+    """In-process body of single_model_chi2 (worker side).
 
-    This is the quantity tests 1, 3, 5, and 7 compare against the
-    frozen reference, and the quantity the generator stores as that
-    reference.
+    Runs inside the worker subprocess only: building a model here,
+    next to a model of different dimensions, would abort the process
+    (see the module docstring).
 
     Arguments:
-      example = "example1" or "example2" (a key of EXAMPLES).
+      example = a key of EXAMPLES.
       tatt    = True evaluates the TATT variant, False the NLA one.
+      high_accuracy = True evaluates with the pushed numerical
+                settings (see load_frozen_info).
 
     Returns:
       the chi2 as a float.
     """
     ia_label = "TATT" if tatt else "NLA"
+    if high_accuracy:
+        ia_label += ", high accuracy"
     print(f"  building model ({example}, {ia_label}) ...", flush=True)
-    info = load_frozen_info(example, tatt)
+    # load_frozen_info returns the frozen configuration dictionary with
+    # the run-time adjustments applied; make_model turns it into an
+    # evaluable cobaya Model (loads CAMB and the cosmolike interface)
+    info = load_frozen_info(example, tatt, high_accuracy=high_accuracy)
     model = make_model(info)
+    # build_point returns the frozen evaluation point, cross-checked
+    # against the model's sampled-parameter set (drift fails loudly)
     point = build_point(model, example, tatt)
     print("  evaluating the fiducial point ...", flush=True)
     return evaluate_chi2(model, point)
 
 
-def ten_in_a_row_chi2(example, tatt):
-    """Race check: the fiducial evaluated fresh and as 10th of a row.
+def _ten_in_a_row_impl(example, tatt):
+    """In-process body of ten_in_a_row_chi2 (worker side).
+
+    Race check: the fiducial evaluated fresh and as 10th of a row.
 
     On ONE model instance, in order: the fiducial point (the fresh
     value), then the nine RACE_PERTURBATIONS cosmologies, then the
@@ -551,9 +699,13 @@ def ten_in_a_row_chi2(example, tatt):
     """
     ia_label = "TATT" if tatt else "NLA"
     print(f"  building model ({example}, {ia_label}) ...", flush=True)
+    # one model instance for the whole sequence: sharing the instance
+    # is the point, since leaked state lives inside it
     info = load_frozen_info(example, tatt)
     model = make_model(info)
     point = build_point(model, example, tatt)
+    # the fresh value: the fiducial evaluated before anything else
+    # touched this model instance
     fresh = evaluate_chi2(model, point)
     print(f"  fresh model, fiducial point:  chi2 = {fresh:.8f}", flush=True)
     for i, perturbation in enumerate(RACE_PERTURBATIONS, start=1):
@@ -563,3 +715,153 @@ def ten_in_a_row_chi2(example, tatt):
     tenth = evaluate_chi2(model, point)
     print(f"  row 10/10 (fiducial again):  chi2 = {tenth:.8f}", flush=True)
     return fresh, tenth
+
+
+# -----------------------------------------------------------------------------
+# Worker-subprocess isolation
+# -----------------------------------------------------------------------------
+# The absolute path of this file: the worker driver imports the module
+# by path, so the child executes exactly the code the parent runs.
+_THIS_FILE = os.path.abspath(__file__)
+
+# One flag separates the two roles: the parent process (pytest or the
+# generator) spawns workers; a process carrying this environment
+# variable IS a worker and runs the physics in-process.
+_WORKER_FLAG = "COCOA_TESTS_WORKER"
+
+# The driver handed to `python -c` inside the worker: load this module
+# from its file path and call _worker with the six command-line
+# arguments (function name, example, two booleans, a reserved slot,
+# and the result path).
+_WORKER_DRIVER = (
+    "import importlib.util, sys\n"
+    "spec = importlib.util.spec_from_file_location("
+    "'cocoa_test_utils_worker', sys.argv[1])\n"
+    "module = importlib.util.module_from_spec(spec)\n"
+    "spec.loader.exec_module(module)\n"
+    "module._worker(*sys.argv[2:8])\n"
+)
+
+
+def _worker(function, example, tatt, high_accuracy, unused, result_path):
+    """Worker-side entry: run one evaluation and save the numbers.
+
+    Arguments:
+      function      = "single" (one chi2) or "race" (fresh, tenth).
+      example       = a key of EXAMPLES.
+      tatt          = "1" for the TATT variant, "0" for NLA.
+      high_accuracy = "1" for the pushed numerical settings, "0" not.
+      unused        = reserved argument slot (keeps the driver stable
+                      if an option is added later).
+      result_path   = file the result is written into as json; the
+                      parent reads it back. Progress prints go to the
+                      inherited stdout, so the terminal streams them.
+
+    Returns:
+      nothing; the result lands in result_path.
+    """
+    require_cocoa_environment()
+    tatt = tatt == "1"
+    high_accuracy = high_accuracy == "1"
+    if function == "single":
+        value = _single_model_chi2_impl(example, tatt,
+                                        high_accuracy=high_accuracy)
+    else:
+        value = list(_ten_in_a_row_impl(example, tatt))
+    with open(result_path, "w") as f:
+        json.dump(value, f)
+
+
+def _run_isolated(function, example, tatt, high_accuracy=False):
+    """Spawn one worker subprocess and hand back its result.
+
+    Arguments:
+      function      = "single" or "race" (see _worker).
+      example       = a key of EXAMPLES.
+      tatt          = True for the TATT variant.
+      high_accuracy = True for the pushed numerical settings.
+
+    Returns:
+      the json value the worker wrote: a float for "single", a
+      two-element list [fresh, tenth] for "race".
+
+    Raises:
+      RuntimeError naming the configuration when the worker dies
+      without writing a result (the cosmolike C layer aborts the
+      process on an internal inconsistency instead of raising).
+    """
+    import subprocess
+    import sys
+    import tempfile
+
+    with tempfile.NamedTemporaryFile("w", suffix=".json",
+                                     delete=False) as tmp:
+        result_path = tmp.name
+    environment = dict(os.environ)
+    environment[_WORKER_FLAG] = "1"
+    # OpenMP reads this at library load inside the fresh worker, so
+    # the requirement holds for every spawned evaluation
+    environment["OMP_NUM_THREADS"] = REQUIRED_OMP_THREADS
+    completed = subprocess.run(
+        [sys.executable, "-c", _WORKER_DRIVER, _THIS_FILE, function,
+         example, "1" if tatt else "0", "1" if high_accuracy else "0",
+         "0", result_path],
+        env=environment)
+    try:
+        if completed.returncode != 0:
+            raise RuntimeError(
+                f"worker for ({function}, {example}, tatt={tatt}) "
+                f"exited with code {completed.returncode} before "
+                "writing a result; a cosmolike-level abort prints its "
+                "reason (e.g. IP::set_mask) just above")
+        with open(result_path) as f:
+            return json.load(f)
+    finally:
+        if os.path.exists(result_path):
+            os.unlink(result_path)
+
+
+def single_model_chi2(example, tatt, high_accuracy=False):
+    """chi2 of the frozen fiducial point, evaluated in a fresh worker.
+
+    This is the quantity the reference tests compare against the
+    frozen reference and the quantity the generator stores as that
+    reference. The evaluation runs in a subprocess (see the module
+    docstring for why isolation is mandatory in this project).
+
+    Arguments:
+      example = a key of EXAMPLES.
+      tatt    = True evaluates the TATT variant, False the NLA one.
+      high_accuracy = True evaluates with the pushed numerical
+                settings; expect minutes instead of seconds.
+
+    Returns:
+      the chi2 as a float.
+    """
+    if os.environ.get(_WORKER_FLAG) == "1":
+        return _single_model_chi2_impl(example, tatt,
+                                       high_accuracy=high_accuracy)
+    return float(_run_isolated("single", example, tatt,
+                               high_accuracy=high_accuracy))
+
+
+def ten_in_a_row_chi2(example, tatt):
+    """Race check, evaluated in one fresh worker subprocess.
+
+    The whole 11-evaluation sequence runs inside ONE worker: the race
+    check needs the evaluations to share a model instance, and the
+    worker boundary only isolates this configuration from the other
+    configurations' dimensions.
+
+    Arguments:
+      example = a key of EXAMPLES.
+      tatt    = True runs the TATT variant, False the NLA one.
+
+    Returns:
+      (fresh, tenth): chi2 of the first fiducial evaluation and chi2
+      of the fiducial as the 10th point of the row, both floats.
+    """
+    if os.environ.get(_WORKER_FLAG) == "1":
+        return _ten_in_a_row_impl(example, tatt)
+    fresh, tenth = _run_isolated("race", example, tatt)
+    return float(fresh), float(tenth)

@@ -1,21 +1,21 @@
-"""Unit tests 5-8: the 6x2pt likelihood on the frozen test data.
+"""Unit tests 11-14: the 2x2pt likelihood on the frozen test data.
 
-6x2pt combines three two-point correlations: cosmic shear, galaxy
-clustering, and galaxy-galaxy lensing; here it is the
-desy1xplanck.combo_6x2pt likelihood, evaluated on the frozen copy of
-example2's configuration (see cocoa_test_utils for what "frozen"
-means and why). The four tests:
+2x2pt combines two of example2's three two-point correlations: galaxy
+clustering and galaxy-galaxy lensing (cosmic shear is dropped). The
+frozen configuration is example2's with the likelihood renamed to
+desy1xplanck.combo_2x2pt: same options, same data files, same evaluation
+point; only the probe selection inside cosmolike changes. The four
+tests mirror tests 5-8 (see cocoa_test_utils for what "frozen" means):
 
-  5. chi2 at the frozen fiducial point, within CHI2_TOLERANCE (0.2) of
+ 11. chi2 at the frozen fiducial point, within CHI2_TOLERANCE (0.2) of
      the frozen reference value.
-  6. race check: on one model, the fiducial evaluated fresh and again
+ 12. race check: on one model, the fiducial evaluated fresh and again
      as the 10th of 10 cosmologies in a row must agree to
-     RACE_TOLERANCE (1e-4). A disagreement means state leaked between
-     evaluations or OpenMP threads raced.
-  7. the same comparison as test 5 with the TATT intrinsic-alignment
+     RACE_TOLERANCE (1e-4).
+ 13. the same comparison as test 11 with the TATT intrinsic-alignment
      model (IA_model: 1) and DES_A2_1 = 0.05, DES_BTA_1 = 0.05,
-     DES_A2_2 = -1.51541 replacing the NLA point's zeros.
-  8. the same race check as test 6 with the TATT model.
+     DES_A2_2 = -1.51541.
+ 14. the same race check as test 12 with the TATT model.
 
 To run (from the Cocoa/ folder, cocoa environment active,
 start_cocoa.sh sourced):
@@ -37,11 +37,11 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import cocoa_test_utils as u
 
-EXAMPLE = "example2"
+EXAMPLE = "example2_2x2pt"
 
 
-class TestExample2ThreeXTwo(unittest.TestCase):
-    """Tests 5-8, sharing one frozen-state verification.
+class TestExample2TwoXTwo(unittest.TestCase):
+    """Tests 11-14, sharing one frozen-state verification.
 
     setUpClass runs once before the tests: it moves to ROOTDIR,
     verifies every frozen file against the SHA-256 manifest (an edited
@@ -55,47 +55,52 @@ class TestExample2ThreeXTwo(unittest.TestCase):
         u.verify_frozen()
         cls.reference = u.load_reference()
 
-    def test_5_chi2_matches_frozen_reference(self):
-        """chi2 at the frozen NLA point stays within 0.2 of the reference."""
+    def test_x11_chi2_matches_frozen_reference(self):
+        """chi2 at the frozen NLA point stays within 0.2 of the reference.
+
+        The x prefix on tests 11-14 only keeps unittest's alphabetical
+        ordering aligned with the numbering (test_11 would sort before
+        test_2).
+        """
         chi2 = u.single_model_chi2(EXAMPLE, tatt=False)
         ref = self.reference[f"{EXAMPLE}_nla"]
         u.report_chi2_test(
-            5, "example2 (6x2pt, NLA) chi2 vs frozen reference",
+            11, "example2 (2x2pt, NLA) chi2 vs frozen reference",
             chi2, ref, u.CHI2_TOLERANCE)
         self.assertLess(
             abs(chi2 - ref), u.CHI2_TOLERANCE,
             msg=f"chi2 = {chi2:.6f} vs frozen reference {ref:.6f} "
                 f"(|delta| >= {u.CHI2_TOLERANCE})")
 
-    def test_6_no_race_condition_ten_in_a_row(self):
+    def test_x12_no_race_condition_ten_in_a_row(self):
         """The fiducial as 10th of 10 cosmologies matches a fresh run."""
         u.assert_omp_threads()
         fresh, tenth = u.ten_in_a_row_chi2(EXAMPLE, tatt=False)
         u.report_race_test(
-            6, "example2 (6x2pt, NLA) race check: 10 cosmologies in a row",
+            12, "example2 (2x2pt, NLA) race check: 10 cosmologies in a row",
             fresh, tenth, u.RACE_TOLERANCE)
         self.assertLess(
             abs(tenth - fresh), u.RACE_TOLERANCE,
             msg=f"10th-in-a-row chi2 = {tenth:.8f} vs fresh {fresh:.8f}")
 
-    def test_7_chi2_matches_frozen_reference_tatt(self):
-        """Test 5 repeated with the TATT IA model and nonzero A2/BTA."""
+    def test_x13_chi2_matches_frozen_reference_tatt(self):
+        """Test 11 repeated with the TATT IA model and nonzero A2/BTA."""
         chi2 = u.single_model_chi2(EXAMPLE, tatt=True)
         ref = self.reference[f"{EXAMPLE}_tatt"]
         u.report_chi2_test(
-            7, "example2 (6x2pt, TATT) chi2 vs frozen reference",
+            13, "example2 (2x2pt, TATT) chi2 vs frozen reference",
             chi2, ref, u.CHI2_TOLERANCE)
         self.assertLess(
             abs(chi2 - ref), u.CHI2_TOLERANCE,
             msg=f"TATT chi2 = {chi2:.6f} vs frozen reference {ref:.6f} "
                 f"(|delta| >= {u.CHI2_TOLERANCE})")
 
-    def test_8_no_race_condition_ten_in_a_row_tatt(self):
-        """Test 6 repeated with the TATT IA model."""
+    def test_x14_no_race_condition_ten_in_a_row_tatt(self):
+        """Test 12 repeated with the TATT IA model."""
         u.assert_omp_threads()
         fresh, tenth = u.ten_in_a_row_chi2(EXAMPLE, tatt=True)
         u.report_race_test(
-            8, "example2 (6x2pt, TATT) race check: 10 cosmologies in a row",
+            14, "example2 (2x2pt, TATT) race check: 10 cosmologies in a row",
             fresh, tenth, u.RACE_TOLERANCE)
         self.assertLess(
             abs(tenth - fresh), u.RACE_TOLERANCE,
