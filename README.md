@@ -434,7 +434,7 @@ the script `start_cocoa.sh`
 
     python -m pytest ./projects/desy1xplanck/tests
 
-# Minimum accuracy parameters <a name="desy1xplanck_minimum_accuracy"></a>
+## Minimum accuracy parameters <a name="desy1xplanck_minimum_accuracy"></a>
 
 The advisory checks in `tests/test_accuracy.py` measure the
 numerical error of the default accuracy settings: each setting is
