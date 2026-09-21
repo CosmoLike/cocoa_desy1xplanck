@@ -49,12 +49,6 @@ limit.
 A full run performs about 50 likelihood evaluations and takes a
 few minutes. The test files force `OMP_NUM_THREADS=4` internally.
 
-> [!NOTE]
-> The tests never stop to ask for input. If the terminal pauses
-> until space or enter is pressed, something sent the output through
-> `less` (a program that stops after each full screen): run the
-> commands exactly as written above, with nothing added after them.
-
 ## The tests <a name="the_tests"></a>
 
 The standard configurations get four tests each: a $\chi^2$ drift check
