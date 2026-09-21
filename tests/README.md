@@ -32,7 +32,7 @@ The suite never waits for a keypress: a space/enter prompt between
 tests means the output is being piped through a pager such as `less`,
 so run the command with nothing piped after it.
 
-## The eight tests
+## The tests
 
 1. `test_1`: chi2 of the cosmic-shear likelihood at a fixed reference
    point must stay within 0.2 of the value stored in
