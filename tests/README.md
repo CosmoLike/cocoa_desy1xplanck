@@ -69,14 +69,20 @@ The two checks and their pass limits:
 
 The test files and the configurations they cover:
 
-| tests | file | configuration |
-|-------|------|---------------|
-| 1-2 | `test_example1.py` | cosmic shear; IA modeling: NLA |
-| 3-4 | `test_example1.py` | cosmic shear; IA modeling: TATT |
-| 5-6 | `test_example2.py` | 6x2pt; IA modeling: NLA |
-| 7-8 | `test_example2.py` | 6x2pt; IA modeling: TATT |
-| 11-12 | `test_example2_2x2pt.py` | 2x2pt (`desy1xplanck.combo_2x2pt`: the 6x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: NLA |
-| 13-14 | `test_example2_2x2pt.py` | 2x2pt (`desy1xplanck.combo_2x2pt`: the 6x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: TATT |
+| test | file | configuration | what it checks |
+|---|---|---|---|
+| 1 | `test_example1.py` | cosmic shear; IA modeling: NLA | $\chi^2$ at the frozen fiducial point vs the stored reference |
+| 2 | `test_example1.py` | cosmic shear; IA modeling: NLA | race condition (OpenMP threading): fresh vs 10th-of-10 evaluation |
+| 3 | `test_example1.py` | cosmic shear; IA modeling: TATT | $\chi^2$ at the frozen fiducial point vs the stored reference |
+| 4 | `test_example1.py` | cosmic shear; IA modeling: TATT | race condition (OpenMP threading): fresh vs 10th-of-10 evaluation |
+| 5 | `test_example2.py` | 6x2pt; IA modeling: NLA | $\chi^2$ at the frozen fiducial point vs the stored reference |
+| 6 | `test_example2.py` | 6x2pt; IA modeling: NLA | race condition (OpenMP threading): fresh vs 10th-of-10 evaluation |
+| 7 | `test_example2.py` | 6x2pt; IA modeling: TATT | $\chi^2$ at the frozen fiducial point vs the stored reference |
+| 8 | `test_example2.py` | 6x2pt; IA modeling: TATT | race condition (OpenMP threading): fresh vs 10th-of-10 evaluation |
+| 11 | `test_example2_2x2pt.py` | 2x2pt (`desy1xplanck.combo_2x2pt`: the 6x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: NLA | $\chi^2$ at the frozen fiducial point vs the stored reference |
+| 12 | `test_example2_2x2pt.py` | 2x2pt (`desy1xplanck.combo_2x2pt`: the 6x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: NLA | race condition (OpenMP threading): fresh vs 10th-of-10 evaluation |
+| 13 | `test_example2_2x2pt.py` | 2x2pt (`desy1xplanck.combo_2x2pt`: the 6x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: TATT | $\chi^2$ at the frozen fiducial point vs the stored reference |
+| 14 | `test_example2_2x2pt.py` | 2x2pt (`desy1xplanck.combo_2x2pt`: the 6x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: TATT | race condition (OpenMP threading): fresh vs 10th-of-10 evaluation |
 
 ### Running Accuracy checks (`test_accuracy.py`, A1-A6) <a name="accuracy_checks"></a>
 
@@ -91,7 +97,7 @@ it breaks the 6x2pt integration tables and shifts the $\chi^2$ by
 |---------|-----------|------------------|
 | `accuracyboost` (cosmolike) | 2 | sizes of cosmolike's internal lookup tables, including the dyadic z grid of the power-spectrum tables |
 | `integration_accuracy` (cosmolike) | 10 | extra refinement passes of cosmolike's numerical integrals |
-| `lmax` (cosmolike) | 200000 | highest multipole in cosmolike's angular power-spectrum tables |
+| `lmax` (cosmolike) | 200000 | highest multipole of the internal harmonic-space $C_\ell$ tables that cosmolike transforms into the real-space correlation functions; arcminute scales need very high $\ell$ |
 | `kmax_boltzmann` (cosmolike) | 40 | the k cutoff of the power spectrum the likelihood requests from CAMB |
 | `AccuracyBoost` (CAMB) | 2 | CAMB's overall accuracy multiplier: denser sampling in every internal CAMB grid, the most expensive knob |
 | `k_per_logint` (CAMB) | 50 | k samples CAMB computes per logarithmic interval of the transfer functions |
@@ -101,8 +107,16 @@ Each check reports $\Delta\chi^2 = \chi^2(\text{high accuracy}) -
 \chi^2(\text{default})$: the numerical error of the default
 settings. No pass/fail; high-accuracy evaluations take minutes.
 
-**Step :one:**: with the environment of
-[Running the tests](#run_tests), run the accuracy checks on their own
+We assume users are in the Conda cocoa environment from a previous
+`conda activate cocoa` command, that the shell is bash, and that the
+current folder is the cocoa main folder `cocoa/Cocoa`.
+
+**Step :one:**: activate the private Python environment by sourcing
+the script `start_cocoa.sh`
+
+    source start_cocoa.sh
+
+**Step :two:**: run the accuracy checks on their own
 
     python -m pytest ./projects/desy1xplanck/tests/test_accuracy.py
 
@@ -155,8 +169,14 @@ either.
 A deliberate change to the data vectors, n(z), covariance, examples,
 or likelihood defaults requires a re-freeze.
 
-**Step :one:**: set up the environment as in
-[Running the tests](#run_tests).
+We assume users are in the Conda cocoa environment from a previous
+`conda activate cocoa` command, that the shell is bash, and that the
+current folder is the cocoa main folder `cocoa/Cocoa`.
+
+**Step :one:**: activate the private Python environment by sourcing
+the script `start_cocoa.sh`
+
+    source start_cocoa.sh
 
 **Step :two:**: rebuild the frozen state
 
