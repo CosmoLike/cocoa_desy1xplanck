@@ -413,26 +413,26 @@ boost fit (Eq. 11 of [arXiv:2402.17492](https://arxiv.org/abs/2402.17492)).
 
 # Unit tests <a name="desy1xplanck_unit_tests"></a>
 
-The folder `tests/` holds 12 pass/fail tests: for each of cosmic shear,
-6x2pt, and 2x2pt, in both the NLA and TATT intrinsic-alignment models,
-a $\chi^2$ comparison against a stored reference and a race check that
-evaluates 10 cosmologies in a row and requires the 10th to match
-the same point evaluated on its own (the tests force
-`OMP_NUM_THREADS=4`; with one thread an OpenMP race could never show
-up). The file `tests/test_accuracy.py` adds advisory accuracy checks
-that report, with no pass/fail, how much the default numerical
-settings move the $\chi^2$.
+The `tests/` folder holds unit tests for the likelihoods of this
+project: they compare each likelihood against stored reference
+values, check for race conditions from OpenMP threading, and measure
+the numerical error of the default accuracy settings. The
+tests read nothing from the live project;
+[tests/README.md](tests/README.md) describes every test, the tests'
+own data snapshot, and how to refresh it.
 
-The tests read nothing from the live project: they evaluate the tests' own
-snapshot of the configurations, data, and reference values, pinned by a
-SHA-256 manifest that every test verifies first, and every model build
-runs in its own worker subprocess. Run them from the `Cocoa/` folder
-with the environment active:
+We assume users are in the Conda cocoa environment from a previous
+`conda activate cocoa` command, that the shell is bash, and that the
+current folder is the cocoa main folder `cocoa/Cocoa`.
+
+**Step :one:**: activate the private Python environment by sourcing
+the script `start_cocoa.sh`
+
+    source start_cocoa.sh
+
+**Step :two:**: run the tests of this project
 
     python -m pytest ./projects/desy1xplanck/tests
-
-`tests/README.md` describes each test, the snapshot, and the
-refresh procedure for maintainers.
 
 # Minimum accuracy parameters <a name="desy1xplanck_minimum_accuracy"></a>
 
