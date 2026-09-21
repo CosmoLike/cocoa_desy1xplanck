@@ -436,52 +436,34 @@ refresh procedure for maintainers.
 
 # Minimum accuracy parameters <a name="desy1xplanck_minimum_accuracy"></a>
 
-The default `accuracyboost: 1.0` in the likelihood configuration is
-converged. Raising the boost alone moves the 6x2pt $\chi^2$ by:
-
-| cosmolike `accuracyboost` | $\Delta\chi^2$ |
-|---------------------------|-----------:|
-| 1.25                      |     +0.008 |
-| 3                         |     +0.012 |
-| 5 (stress)                |     +0.013 |
-
-Each of the other numerical settings (`integration_accuracy`, `lmax`,
-`kmax_boltzmann` with camb `kmax`, camb `AccuracyBoost`, camb
-`k_per_logint`) moves it by 0.015 or less on its own.
+The advisory checks in `tests/test_accuracy.py` measure the
+numerical error of the default accuracy settings: each setting is
+raised one at a time on the 6x2pt configuration, so a large
+$\Delta\chi^2$ can be attributed to the setting causing it, and
+then every setting at once. Each check prints the $\Delta\chi^2$
+between the high-accuracy and the default evaluations. The measured
+values sit far below the 0.2 band the reference tests allow, so the
+shipped defaults are adequate. The values are not quoted here: rerun
+the checks to measure them on the current code, and see
+[tests/README.md](tests/README.md) for each check, the settings
+raised, and what each setting controls.
 
 `accuracyboost` refines a nested z grid in the power-spectrum
 tables: every coarser grid's nodes are a subset of every finer
 grid's, so a higher boost tightens the same interpolation instead of
 moving the nodes (the construction is commented in
-`likelihood/_cosmolike_prototype_base.py`). The `accuracyboost <= 3`
-warnings next to the `accuracyboost` lines in this project's yaml
-files describe cosmolike builds whose FFTLog zero-padding stays
-constant while the boost densifies the chi grid ($\chi^2$ +0.256 at
-boost 4 and +27.06 at 5, in the galaxy-clustering and
-galaxy-galaxy-lensing sections); the cosmolike core compiled here
-scales the padding with the grid
-(`external_modules/code/cosmolike/cosmo2D.c`), and the boost scan
-above is monotone through 5.
+`likelihood/_cosmolike_prototype_base.py`).
 
-When several settings move the $\chi^2$, settle them in cost order: raise the
-cosmolike `accuracyboost` first (cheap), then camb `k_per_logint`, and
-camb `AccuracyBoost` last (expensive at run time, and it can masquerade
-for the cheap settings: an apparent CAMB sensitivity can really be
-unresolved cosmolike-side resolution). `kmax_boltzmann` and camb
-`kmax` are one physical cutoff seen from the likelihood and Boltzmann
-sides, so move them together.
+When several settings move the $\chi^2$, settle them in cost order:
+raise cosmolike `accuracyboost` first (cheap), then CAMB
+`k_per_logint`, and CAMB `AccuracyBoost` last (expensive at run
+time, and able to masquerade for the cheap settings).
+`kmax_boltzmann` and CAMB `kmax` are one physical cutoff seen from
+two sides; move them together.
 
-The advisory checks A1-A6 in `tests/test_accuracy.py` re-evaluate
-cosmic shear, 6x2pt, and 2x2pt, with NLA and TATT, with every
-setting raised at once (`accuracyboost` 3 inside the raised-at-once
-set).
-Measured on this install:
-
-| check | configuration      | $\Delta\chi^2$ |
-|-------|--------------------|-----------:|
-| A1    | cosmic shear, NLA  |  +0.000265 |
-| A2    | cosmic shear, TATT |  +0.000259 |
-| A3    | 2x2pt, NLA         |  +0.012928 |
-| A4    | 2x2pt, TATT        |  +0.012721 |
-| A5    | 6x2pt, NLA         |  +0.025710 |
-| A6    | 6x2pt, TATT        |  +0.025494 |
+The `accuracyboost <= 3` warnings next to the `accuracyboost` lines
+in this project's yaml files describe cosmolike builds whose FFTLog
+zero-padding stays constant while the boost densifies the chi grid;
+the cosmolike core compiled here scales the padding with the grid
+(`external_modules/code/cosmolike/cosmo2D.c`), and the boost scan is
+monotone.
