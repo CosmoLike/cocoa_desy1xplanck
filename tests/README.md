@@ -70,6 +70,8 @@ model. The TATT variants set
 | $\chi^2$  | within 0.2 of `frozen/reference_chi2.json`        | code or data changed the numbers   |
 | race  | fresh vs 10th of 10 cosmologies in a row, to $10^{-4}$ | leftover state or an OpenMP race   |
 
+The test files and the configurations they cover:
+
 | tests | file | configuration |
 |-------|------|---------------|
 | 1-4   | `test_example1.py` | cosmic shear (example1) |
