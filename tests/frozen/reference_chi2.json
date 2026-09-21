@@ -1,0 +1,11 @@
+{
+  "_meta": {
+    "chi2_tolerance": 0.2,
+    "generated_utc": "2026-09-21T01:02:10Z",
+    "omp_num_threads": "4"
+  },
+  "example1_nla": 748.7646998337162,
+  "example1_tatt": 752.0579466272103,
+  "example2_nla": 2280.015250086069,
+  "example2_tatt": 2275.485643637825
+}

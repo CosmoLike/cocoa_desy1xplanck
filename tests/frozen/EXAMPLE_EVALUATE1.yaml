@@ -1,0 +1,574 @@
+timing: True
+debug: False
+stop_at_error: True
+
+likelihood:
+  desy1xplanck.cosmic_shear:
+  #desy1xplanck.combo_2x2pt_ss_sk:
+  #desy1xplanck.combo_3x2pt_ss_sk_sk:
+    path: ./external_modules/data/desy1xplanck
+    data_file: Y3xPlanckPR4.dataset
+    print_datavector: False
+    print_datavector_file: "./projects/desy1xplanck/chains/theory.modelvector"
+    accuracyboost: 1.0
+    integration_accuracy: 0
+    lmax: 75000 # lmax computed for real space correlation function
+    kmax_boltzmann: 7.5
+    # 1 EE2, 2 Halofit
+    non_linear_emul: 2
+    IA_model: 0 # NLA (0) or TATT (1)
+    IA_code: 0  # CFASTPT (0) or FASTPT (1) (only works if not NLA)
+    IA_redshift_evolution: 3
+    debug: false
+    use_baryon_pca: false
+    create_baryon_pca: false
+    baryon_pca_select_sims: "antilles-2-99/antilles-101-378/antilles-380-400"
+    filename_baryon_pca: "./projects/desy1xplanck/chains/pca.txt"
+    external_baryon_suppression: False
+
+params:
+  As_1e9:
+    prior:
+      min: 0.5
+      max: 5
+    ref:
+      dist: norm
+      loc: 2.1
+      scale: 0.2
+    proposal: 0.2
+    latex: 10^9 A_\mathrm{s}
+    drop: true
+    renames: A
+  ns:
+    prior:
+      min: 0.87
+      max: 1.07
+    ref:
+      dist: norm
+      loc: 0.96605
+      scale: 0.01
+    proposal: 0.01
+    latex: n_\mathrm{s}
+  H0:
+    prior:
+      min: 55
+      max: 91
+    ref:
+      dist: norm
+      loc: 67.32
+      scale: 3
+    proposal: 3
+    latex: H_0
+  omegab:
+    prior:
+      min: 0.03
+      max: 0.07
+    ref:
+      dist: norm
+      loc: 0.0495
+      scale: 0.004
+    proposal: 0.004
+    latex: \Omega_\mathrm{b}
+    drop: true
+  omegam:
+    prior:
+      min: 0.1
+      max: 0.9
+    ref:
+      dist: norm
+      loc: 0.316
+      scale: 0.015
+    proposal: 0.015
+    latex: \Omega_\mathrm{m}
+    drop: true
+  w:
+    prior:
+      min: -3
+      max: -0.01
+    ref:
+      dist: norm
+      loc: -0.99
+      scale: 0.05
+    proposal: 0.05
+    latex: w_{0,\mathrm{DE}}
+  w0pwa:
+    prior:
+      min: -5 
+      max: -0.01
+    ref:
+      dist: norm
+      loc: -0.99
+      scale: 0.05
+    proposal: 0.05
+    latex: w_{0,\mathrm{DE}}+w_{a,\mathrm{DE}}
+    drop: true
+  wa:
+    value: 'lambda w0pwa, w: w0pwa - w'
+    latex: w_{a,\mathrm{DE}}
+  mnu:
+    prior:
+      min: 0.06
+      max: 0.6
+    ref:
+      dist: norm
+      loc: 0.25
+      scale: 0.1
+    proposal: 0.05
+  tau:
+    value: 0.0697186
+    latex: \tau_\mathrm{reio}
+  # ---------------------------------------------------------------------------------------
+  # ------------------------------------- DERIVED PARAMETERS ------------------------------
+  # ---------------------------------------------------------------------------------------
+  # WARNING: DO NOT REMOVE omegabh2/omegach2/omegamh2/wa/As/ FROM DERIVED PARAMETERS
+  # SEE: github.com/CosmoLike/cocoa#warning-warning-warning-weak-lensing-yaml-files-in-cobaya-
+  # --------------------------------------------------------------------------------------- 
+  As:
+    value: 'lambda As_1e9: 1e-9 * As_1e9'
+    latex: A_\mathrm{s}
+  omegabh2:
+    value: 'lambda omegab, H0: omegab*(H0/100)**2'
+    latex: \Omega_\mathrm{b} h^2
+  omegach2:
+    value: 'lambda omegam, omegab, mnu, H0: (omegam-omegab)*(H0/100)**2-(mnu*(3.046/3)**0.75)/94.0708'
+    latex: \Omega_\mathrm{c} h^2
+  omegal:
+    latex: \Omega_\Lambda
+  omegamh2:
+    derived: 'lambda omegam, H0: omegam*(H0/100)**2'
+    latex: \Omega_\mathrm{m} h^2
+  sigma8:
+    latex: \sigma_8
+  s8h5:
+    derived: 'lambda sigma8, H0: sigma8*(H0*1e-2)**(-0.5)'
+    latex: \sigma_8/h^{0.5}
+  s8omegamp5:
+    derived: 'lambda sigma8, omegam: sigma8*omegam**0.5'
+    latex: \sigma_8 \Omega_\mathrm{m}^{0.5}
+  s8omegamp25:
+    derived: 'lambda sigma8, omegam: sigma8*omegam**0.25'
+    latex: \sigma_8 \Omega_\mathrm{m}^{0.25}
+  s8:
+    derived: 'lambda sigma8, omegam: sigma8*(omegam/0.3)**0.5'
+    latex: S_8
+  age:
+    latex: '{\rm{Age}}/\mathrm{Gyr}'
+  rdrag:
+    latex: r_\mathrm{drag}
+  yheused:
+    latex: Y_P^\mathrm{BBN}
+  omegan2:
+    latex: \Omega_\mathrm{\\nu} h^2
+  omegan:
+    derived: 'lambda omegan2, H0: omegan2/((H0/100)**2)'
+    latex: \Omega_\mathrm{\nu}
+  # ----------------------------------------------------------------------------
+  # DES-Y3 nuisance parameters begins
+  # ----------------------------------------------------------------------------
+  # baryon effects: the first two PCs
+  # Q1 informative: [0, 7]
+  # Q1 wide: [-6, 20]
+  # Q2: [-4, 4] 
+  DES_BARYON_Q1:
+    prior:
+      min: 0.0
+      max: 7.0
+    ref:
+      dist: norm
+      loc: 2.0
+      scale: 0.5
+    proposal: 0.5
+    latex: Q_\mathrm{DES}^1
+  DES_BARYON_Q2:
+    prior:
+      min: -4.0
+      max: 4.0
+    ref:
+      dist: norm
+      loc: 2.0
+      scale: 0.5
+    proposal: 0.5
+    latex: Q_\mathrm{DES}^2
+  # ----------------------------------------------------------------------------
+  # DES-Y3 nuisance parameters ends
+  # ----------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# BARYON FEEDBACK SPK PARAMS
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+  # alpha_spk:
+  #   prior:
+  #     min: 3.8
+  #     max: 4.6
+  #   ref:
+  #     dist: norm
+  #     loc: 4.189
+  #     scale: 0.12
+  #   proposal: 0.12
+  #   latex: alpha_SPk
+  # beta_spk:
+  #   prior:
+  #     min: 1.0
+  #     max: 1.6
+  #   ref:
+  #     dist: norm
+  #     loc: 1.273
+  #     scale: 0.08
+  #   proposal: 0.08
+  #   latex: beta_SPk
+  # gamma_spk:
+  #   prior:
+  #     min: 0.1
+  #     max: 0.75
+  #   ref:
+  #     dist: norm
+  #     loc: 0.298
+  #     scale: 0.10
+  #   proposal: 0.10
+  #   latex: gamma_SPk
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# BARYON FEEDBACK BCE EMU PARAMS
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+  # log10Mc_bcemu:
+  #   prior:
+  #     min: 11
+  #     max: 15
+  #   ref:
+  #     dist: norm
+  #     loc: 13.32
+  #     scale: 0.4
+  #   proposal: 0.4
+  #   latex: \log_{10}(M_c)
+  # mu_bcemu:
+  #   prior:
+  #     min: 0
+  #     max: 2
+  #   ref:
+  #     dist: norm
+  #     loc: 0.93
+  #     scale: 0.2
+  #   proposal: 0.2
+  #   latex: \mu
+  # thej_bcemu:
+  #   prior:
+  #     min: 2
+  #     max: 8
+  #   ref:
+  #     dist: norm
+  #     loc: 4.235
+  #     scale: 0.5
+  #   proposal: 0.5
+  #   latex: \theta_\mathrm{ej}
+  # gamma_bcemu:
+  #   prior:
+  #     min: 1
+  #     max: 4
+  #   ref:
+  #     dist: norm
+  #     loc: 2.25
+  #     scale: 0.4
+  #   proposal: 0.4
+  #   latex: \gamma
+  # delta_bcemu:
+  #   prior:
+  #     min: 3.0
+  #     max: 11.0
+  #   ref:
+  #     dist: norm
+  #     loc: 6.40
+  #     scale: 0.3
+  #   proposal: 0.3
+  #   latex: \delta
+  # eta_bcemu:
+  #   prior:
+  #     min: 0.05
+  #     max: 4.0
+  #   ref:
+  #     dist: norm
+  #     loc: 0.15
+  #     scale: 0.03
+  #   proposal: 0.03
+  #   latex: \eta
+  # deta_bcemu:
+  #   prior:
+  #     min: 0.05
+  #     max: 4.0
+  #   ref:
+  #     dist: norm
+  #     loc: 0.14
+  #     scale: 0.04
+  #   proposal: 0.04
+  #   latex: \eta_\delta
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# BARYON FEEDBACK FLAMINGO PARAMS
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+  # fgas_sigma_flamingo:
+  #   prior:
+  #     min: -10
+  #     max: 4.0
+  #   ref:
+  #     dist: norm
+  #     loc: 0
+  #     scale: 1
+  #   proposal: 1
+  #   latex: f_\mathrm{gas}^{\pm\sigma}
+  # mstar_sigma_flamingo:
+  #   prior:
+  #     min: -3.0
+  #     max: 2.0
+  #   ref:
+  #     dist: norm
+  #     loc: 0
+  #     scale: 0.5
+  #   proposal: 0.5
+  #   latex: M_*^{\pm\sigma}
+  # jet_frac_flamingo:
+  #   prior:
+  #     min: 0
+  #     max: 1
+  #   proposal: 0.1
+  #   latex: f_\mathrm{jet}
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# BARYON FEEDBACK BACCO EMU PARAMS
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+  # M_c_baccoemu:
+  #   prior:
+  #     min: 10
+  #     max: 16
+  #   ref:
+  #     dist: norm
+  #     loc: 14
+  #     scale: 1
+  #   proposal: 1
+  #   latex: \log_{10}[M_c/(M_\odot/h)]
+  # eta_baccoemu:
+  #   prior:
+  #     min: -0.7
+  #     max: 0.2
+  #   ref:
+  #     dist: norm
+  #     loc: -0.3
+  #     scale: 0.08
+  #   proposal: 0.08
+  #   latex: \log_{10}(\eta)
+  # beta_baccoemu:
+  #   prior:
+  #     min: -1
+  #     max: 0.7
+  #   ref:
+  #     dist: norm
+  #     loc: -0.22
+  #     scale: 0.2
+  #   proposal: 0.2
+  #   latex: \log_{10}(\beta)
+  # M1_z0_cen_baccoemu:
+  #   prior:
+  #     min: 9
+  #     max: 13
+  #   ref:
+  #     dist: norm
+  #     loc: 10.5
+  #     scale: 0.5
+  #   proposal: 0.5
+  #   latex: \log_{10}[M_{z_0,\mathrm{cen}}/(M_\odot/h)]
+  # theta_inn_baccoemu:
+  #   prior:
+  #     min: -2
+  #     max: 0
+  #   ref:
+  #     dist: norm
+  #     loc: -0.86
+  #     scale: 0.3
+  #   proposal: 0.3
+  #   latex: \log_{10}(\theta_\mathrm{inn})
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# BARYON FEEDBACK BCEMU2025 PARAMS
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+# ------------------------------------------------------------------------
+  # Theta_co_bcemu25:
+  #   prior:
+  #     min: 0.0
+  #     max: 0.8
+  #   ref:
+  #     dist: norm
+  #     loc: 0.3
+  #     scale: 0.08
+  #   proposal: 0.08
+  #   latex: \Theta_\mathrm{co}
+  # log10Mc_bcemu25:
+  #   prior:
+  #     min: 11.0
+  #     max: 15.0
+  #   ref:
+  #     dist: norm
+  #     loc: 13.1
+  #     scale: 0.4
+  #   proposal: 0.4
+  #   latex: \log_{10}[M_c/(M_\odot/h)]
+  # mu_bcemu25:
+  #   prior:
+  #     min: 0.0
+  #     max: 3.0
+  #   ref:
+  #     dist: norm
+  #     loc: 1.0
+  #     scale: 0.3
+  #   proposal: 0.3
+  #   latex: \mu
+  # delta_bcemu25:
+  #   prior:
+  #     min: 2.0
+  #     max: 12.0
+  #   ref:
+  #     dist: norm
+  #     loc: 6.0
+  #     scale: 1.0
+  #   proposal: 1.0
+  #   latex: \delta
+  # eta_bcemu25:
+  #   prior:
+  #     min: -0.2
+  #     max: 0.2
+  #   ref:
+  #     dist: norm
+  #     loc: 0.10
+  #     scale: 0.04
+  #   proposal: 0.04
+  #   latex: \eta
+  # deta_bcemu25:
+  #   prior:
+  #     min: 0.0
+  #     max: 0.4
+  #   ref:
+  #     dist: norm
+  #     loc: 0.22
+  #     scale: 0.04
+  #   proposal: 0.04
+  #   latex: \delta_\eta
+  # Nstar_bcemu25:
+  #   prior:
+  #     min: 0.0
+  #     max: 0.05
+  #   ref:
+  #     dist: norm
+  #     loc: 0.028
+  #     scale: 0.005
+  #   proposal: 0.005
+  #   latex: N_\star
+
+
+theory:
+  camb:
+    path: ./external_modules/code/CAMB
+    stop_at_error: False
+    use_renames: True
+    extra_args:
+      halofit_version: takahashi
+      AccuracyBoost: 1.0
+      lens_potential_accuracy: 1.0
+      num_massive_neutrinos: 1
+      nnu: 3.046
+      dark_energy_model: ppf
+      accurate_massive_neutrino_transfers: false
+      k_per_logint: 12
+      kmax: 10
+#  fastpt:
+#    path: ./external_modules/code/FAST-PT
+#    #extra_args:
+#      #accuracyboost: 5
+#      #kmax_boltzmann: 7.5
+#      #extrap_kmax: 250.0
+  # bfmt:
+  #   baryon_model: 2 # 1 = SP(k), 2 = BCEmu, 3 = FlamingoEmulator, 4 = BACCOemu, 5 = BCemu2025
+  #   nz: 20  # internal (z, k) computation grid; the result is 2D-splined
+  #   nk: 100 # onto the grid the likelihood requests
+  #   above_zmax: unity # S(k,z) above the model range: unity (default) or constant
+  #   q2_bcemu25: 0.70 # BCemu2025 only: q2 coordinate (native grid: 0.5, 0.7, 1.0)
+
+sampler:
+  evaluate:
+    N: 1
+    override:
+      As_1e9: 2.1
+      ns: 0.96605
+      H0: 67.32
+      omegab: 0.04
+      omegam: 0.3
+      mnu: 0.06
+      w0pwa: -1.0
+      w: -1.0
+      DES_DZ_S1: 0.0
+      DES_DZ_S2: 0.0
+      DES_DZ_S3: 0.0
+      DES_DZ_S4: 0.0
+      DES_M1: -0.0063
+      DES_M2: -0.0198
+      DES_M3: -0.0241
+      DES_M4: -0.0369
+      DES_BARYON_Q1: 0.0
+      DES_BARYON_Q2: 0.0
+      # TATT PARAMETERS
+      DES_A1_1: -0.7
+      DES_A1_2: -1.7
+      DES_A2_1: 0.0
+      DES_BTA_1: 0.0
+#      DES_A2_1: 0.6
+#      DES_BTA_1: 1.01257
+      DES_A2_2: -1.51541
+      # ----  SPK EMU PARAMS -----
+      # alpha_spk: 4.189
+      # beta_spk: 1.273
+      # gamma_spk: 0.298
+      # ---- BCE EMULATOR PARAMS -----
+      # log10Mc_bcemu: 13.32
+      # mu_bcemu: 0.93
+      # thej_bcemu: 4.235
+      # gamma_bcemu: 2.25
+      # delta_bcemu: 6.40
+      # eta_bcemu: 0.15
+      # deta_bcemu: 0.14
+      # ----  FLAMINGO PARAMS -----
+      # fgas_sigma_flamingo: 0.0
+      # mstar_sigma_flamingo: 0.0
+      # jet_frac_flamingo: 0.0
+      # ----  BACCO EMU PARAMS -----
+      # M_c_baccoemu: 14
+      # eta_baccoemu: -0.3
+      # beta_baccoemu: -0.22
+      # M1_z0_cen_baccoemu: 10.5
+      # theta_inn_baccoemu: -0.86
+      # Theta_co_bcemu25: 0.3
+      # log10Mc_bcemu25: 13.1
+      # mu_bcemu25: 1.0
+      # delta_bcemu25: 6.0
+      # eta_bcemu25: 0.10
+      # deta_bcemu25: 0.22
+      # Nstar_bcemu25: 0.028
+output: ./projects/desy1xplanck/chains/EXAMPLE_EVALUATE1
