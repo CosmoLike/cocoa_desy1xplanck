@@ -55,8 +55,9 @@ model. The TATT variants set
 | 5-8   | `test_example2.py` | 6x2pt (example2) |
 | 11-14 | `test_example2_2x2pt.py` | 2x2pt (`desy1xplanck.combo_2x2pt`: example2 reduced to galaxy clustering plus galaxy-galaxy lensing) |
 
-Accuracy checks (`test_accuracy.py`): first a one-knob-at-a-time scan
-on the 6x2pt NLA configuration, then six all-knobs checks (A1-A6):
+### Accuracy checks (`test_accuracy.py`, A1-A6)
+
+First a one-knob-at-a-time scan on the 6x2pt NLA configuration, then six all-knobs checks (A1-A6):
 the three probes with both IA models re-evaluated with every setting
 pushed far beyond the defaults at once. The scan keeps an
 `accuracyboost: 5` entry as a deliberate stress knob: in this project
@@ -80,6 +81,8 @@ the file on its own, or skip it with
 
     python -m pytest ./projects/desy1xplanck/tests --ignore ./projects/desy1xplanck/tests/test_accuracy.py
 
+### Synthetic data vectors
+
 This project's shipped data vector is REAL data, and the example
 cosmology is not its best fit, so the $\chi^2$ there sits far from the
 minimum, where it responds linearly to tiny numerical changes. Every
@@ -91,7 +94,7 @@ Both come from the example2 (6x2pt) model, whose full-length vector
 serves every probe; at its own minimum the $\chi^2$ response is quadratic
 and the drift and accuracy numbers stay meaningful.
 
-## Why the tests keep their own copy of everything
+## Tests keep their own copy of configurations and data
 
 The tests read nothing from the live project: not `../data`, not the
 `EXAMPLE_EVALUATE` yaml files, and not the likelihood default yaml
