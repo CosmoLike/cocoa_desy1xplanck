@@ -462,12 +462,13 @@ sides, so move them together.
 The advisory checks A1-A6 in `tests/test_accuracy.py` re-evaluate the
 three probes with both intrinsic-alignment models with every knob
 raised at once
-(`accuracyboost` 2 inside the all-knobs set, below the breakdown).
+(`accuracyboost` 3 inside the all-knobs set: the highest healthy
+value, still below the breakdown).
 Measured on this install, the delta chi2 values are:
 
-    A1 cosmic shear, NLA    +0.000424
-    A2 cosmic shear, TATT   +0.000421
-    A3 2x2pt, NLA           +0.011987
-    A4 2x2pt, TATT          +0.011782
-    A5 6x2pt, NLA           +0.014677
-    A6 6x2pt, TATT          +0.014464
+    A1 cosmic shear, NLA    +0.000790
+    A2 cosmic shear, TATT   +0.000778
+    A3 2x2pt, NLA           +0.013248
+    A4 2x2pt, TATT          +0.013033
+    A5 6x2pt, NLA           +0.017496
+    A6 6x2pt, TATT          +0.017266

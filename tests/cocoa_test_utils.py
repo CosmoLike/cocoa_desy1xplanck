@@ -128,11 +128,11 @@ SYNTHETIC_VECTORS = {
 # (test_accuracy.py): the same physics evaluated with the numerical
 # knobs pushed far beyond the defaults.
 HIGH_ACCURACY_LIKELIHOOD = {
-    # boost 2 is converged in every project scanned; 5 triggers a
-    # breakdown inside some cosmolike interfaces (desy1xplanck: +27 in
-    # chi2 from this knob alone), so the all-knobs check uses 2 and
-    # the one-at-a-time scan keeps 5 as a deliberate stress knob
-    "accuracyboost": 2.0,       # default 1.0
+    # boost 3 is the highest value that stays healthy in every project
+    # scanned (desy1xplanck breaks down above it), so the all-knobs
+    # check compares the default against 3; the one-at-a-time scan
+    # keeps 5 as a deliberate stress knob
+    "accuracyboost": 3.0,       # default 1.0
     "integration_accuracy": 10,  # default 0
     "lmax": 200000,             # default 50000-75000
     "kmax_boltzmann": 40.0,     # default 5.0-7.5
@@ -161,7 +161,7 @@ HIGH_ACCURACY_CAMB_EXTRA_ARGS = {
 # one is blamed. kmax_boltzmann and camb kmax are one physical cutoff
 # seen from the two sides, so the scan moves them together.
 ACCURACY_KNOBS = [
-    ("accuracyboost -> 2", {"accuracyboost": 2.0}, {}),
+    ("accuracyboost -> 3", {"accuracyboost": 3.0}, {}),
     ("accuracyboost -> 5 (stress)", {"accuracyboost": 5.0}, {}),
     ("integration_accuracy -> 10", {"integration_accuracy": 10}, {}),
     ("lmax -> 200000", {"lmax": 200000}, {}),
