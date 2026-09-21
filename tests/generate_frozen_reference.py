@@ -158,20 +158,22 @@ def freeze_example(example, stamp):
           f"({len(live['params'])} in the live example yaml)", flush=True)
 
 
-def generate_tatt_datavector(dataset_name):
-    """Write one TATT-generated data vector and its dataset descriptor.
+def generate_datavector(dataset_name):
+    """Write one generated data vector and its dataset descriptor.
 
-    The vector comes from the generating example named in
-    u.TATT_GENERATORS, evaluated at the TATT point with datavector
-    printing enabled. It must be generated against the ORIGINAL frozen
-    dataset (the TATT descriptor written here does not exist yet; the
+    u.SYNTHETIC_VECTORS names the source example and the IA model:
+    the NLA vector puts the fiducial point at the chi2 minimum for
+    the NLA tests (the shipped data_file is real data), the TATT
+    vector does the same for the TATT tests. The vector is evaluated
+    with datavector printing enabled against the ORIGINAL frozen
+    dataset (the descriptor written here does not exist yet; the
     printed theory vector does not depend on which data vector it is
-    compared against). Runs inside a --tatt-one worker subprocess: it
-    builds a model, and two different-dimension builds in one process
-    abort (see cocoa_test_utils).
+    compared against). Runs inside a --vector-one worker subprocess:
+    it builds a model, and two different-dimension builds in one
+    process abort (see cocoa_test_utils).
 
     Arguments:
-      dataset_name = a key of u.TATT_GENERATORS, which is also the
+      dataset_name = a key of u.SYNTHETIC_VECTORS, which is also the
                      file name of the descriptor to write.
 
     Returns:
@@ -185,7 +187,7 @@ def generate_tatt_datavector(dataset_name):
     """
     from cobaya.yaml import yaml_load
 
-    example = u.TATT_GENERATORS[dataset_name]
+    example, use_tatt = u.SYNTHETIC_VECTORS[dataset_name]
     cfg = u.EXAMPLES[example]
     # the original dataset name comes from the frozen configuration
     # itself (load_frozen_info would already point at the TATT dataset)
@@ -193,17 +195,18 @@ def generate_tatt_datavector(dataset_name):
     original_dataset = frozen_info["likelihood"][cfg["likelihood"]]["data_file"]
 
     vector_name = dataset_name.replace(".dataset", ".modelvector")
-    info = u.load_frozen_info(example, tatt=True)
+    info = u.load_frozen_info(example, tatt=use_tatt)
     likelihood_block = info["likelihood"][cfg["likelihood"]]
     likelihood_block["data_file"] = original_dataset
     likelihood_block["print_datavector"] = True
     likelihood_block["print_datavector_file"] = (
         FROZEN_DATA_RELPATH + "/" + vector_name)
 
-    print(f"generating {vector_name} ({example}, TATT point) ...",
+    ia_label = "TATT" if use_tatt else "NLA"
+    print(f"generating {vector_name} ({example}, {ia_label} point) ...",
           flush=True)
     model = u.make_model(info)
-    point = u.build_point(model, example, tatt=True)
+    point = u.build_point(model, example, tatt=use_tatt)
     u.evaluate_chi2(model, point)
 
     # sanity: the generated vector must have the same length as the
@@ -241,7 +244,7 @@ def generate_tatt_datavector(dataset_name):
             f"line, found {replaced}")
     with open(os.path.join(data_dir, dataset_name), "w") as f:
         f.write("".join(out_lines))
-    print(f"TATT data vector: {vector_name} ({generated_lines} lines); "
+    print(f"generated data vector: {vector_name} ({generated_lines} lines); "
           f"descriptor: {dataset_name}", flush=True)
 
 
@@ -257,10 +260,10 @@ def main():
         stamp = sys.argv[sys.argv.index("--stamp") + 1]
         freeze_example(example, stamp)
         return 0
-    if "--tatt-one" in sys.argv:
+    if "--vector-one" in sys.argv:
         u.require_cocoa_environment()
-        dataset_name = sys.argv[sys.argv.index("--tatt-one") + 1]
-        generate_tatt_datavector(dataset_name)
+        dataset_name = sys.argv[sys.argv.index("--vector-one") + 1]
+        generate_datavector(dataset_name)
         return 0
     """Rebuild tests/frozen/ and the manifest from the current project.
 
@@ -308,13 +311,13 @@ def main():
              "--stamp", stamp])
         if completed.returncode != 0:
             raise RuntimeError(f"freeze worker for {example} failed")
-    # the TATT-generated data vectors must exist before the reference
-    # loop below: every TATT reference evaluates against them
-    for dataset_name in u.TATT_GENERATORS:
+    # the generated data vectors must exist before the reference loop
+    # below: every reference evaluates against them
+    for dataset_name in u.SYNTHETIC_VECTORS:
         completed = subprocess.run(
-            [sys.executable, self_path, "--tatt-one", dataset_name])
+            [sys.executable, self_path, "--vector-one", dataset_name])
         if completed.returncode != 0:
-            raise RuntimeError(f"TATT worker for {dataset_name} failed")
+            raise RuntimeError(f"vector worker for {dataset_name} failed")
 
     reference = {
         "_meta": {

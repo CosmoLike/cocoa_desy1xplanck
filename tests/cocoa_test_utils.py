@@ -104,6 +104,26 @@ TATT_GENERATORS = {
     "tatt_desy1xplanck.dataset": "example2",
 }
 
+# This project's shipped data_file is REAL data, and the example
+# cosmology is not its best fit: the chi2 sits far from the minimum
+# (hundreds to thousands), where it responds LINEARLY to tiny theory
+# changes. A drift or accuracy check evaluated there reports alarming
+# shifts that say nothing about the numerics near a fit. The NLA
+# variants therefore evaluate against a SYNTHETIC data vector,
+# generated with the default (NLA) model at the fiducial point from
+# the example2 model during the freeze, exactly like the TATT vector:
+# at its own minimum the chi2 response is quadratic and stable.
+NLA_DATASET = "synthetic_desy1xplanck.dataset"
+
+# Every generated vector: {descriptor name: (source example, TATT?)}.
+# One full-length vector per IA model, generated from the example2
+# model, serves every configuration (the other probes' masks select
+# their sections).
+SYNTHETIC_VECTORS = {
+    NLA_DATASET: ("example2", False),
+    "tatt_desy1xplanck.dataset": ("example2", True),
+}
+
 # High-accuracy settings for the accuracy advisory checks
 # (test_accuracy.py): the same physics evaluated with the numerical
 # knobs pushed far beyond the defaults.
@@ -512,6 +532,11 @@ def load_frozen_info(example, tatt, high_accuracy=False):
         # TATT evaluates against its own generated data vector so the
         # chi2 sits at a minimum (see the TATT_GENERATORS comment)
         likelihood_block["data_file"] = cfg["tatt_dataset"]
+    else:
+        # NLA does the same against the synthetic NLA vector: the
+        # shipped data_file is real data and the fiducial point is far
+        # from its minimum (see the NLA_DATASET comment)
+        likelihood_block["data_file"] = NLA_DATASET
     if high_accuracy:
         likelihood_block.update(HIGH_ACCURACY_LIKELIHOOD)
         info["theory"]["camb"]["extra_args"].update(

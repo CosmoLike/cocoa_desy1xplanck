@@ -59,10 +59,16 @@ reports delta chi2 = chi2(high accuracy) - chi2(default, frozen), no
 pass/fail. High-accuracy evaluations take minutes; skip the file with
 `--ignore ./projects/desy1xplanck/tests/test_accuracy.py`.
 
-All TATT variants evaluate against `frozen/data/tatt_desy1xplanck.dataset`,
-a data vector generated with TATT at the fiducial point during the
-freeze: at its own minimum the TATT chi2 responds quadratically to
-numerical changes instead of linearly on the side of a hill.
+This project's shipped data vector is REAL data, and the example
+cosmology is not its best fit, so the chi2 there sits far from the
+minimum, where it responds linearly to tiny numerical changes. Every
+variant therefore evaluates against a data vector generated at the
+fiducial point during the freeze: `frozen/data/synthetic_desy1xplanck.dataset`
+(default NLA model) for the NLA tests and
+`frozen/data/tatt_desy1xplanck.dataset` (TATT model) for the TATT tests.
+Both come from the example2 (6x2pt) model, whose full-length vector
+serves every probe; at its own minimum the chi2 response is quadratic
+and the drift and accuracy numbers stay meaningful.
 
 ## Why the tests keep their own copy of everything
 

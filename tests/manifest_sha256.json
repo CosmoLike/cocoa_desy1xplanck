@@ -44,11 +44,13 @@
     "frozen/data/nz_maglim_Y3_unblinded_02_26_21.txt": "6981a3679c4f223c94d679146cbb4ec8987b11c3505f10ed5dc93ff78daeb862",
     "frozen/data/nz_redmagic_Y3_unblinded_02_24_21.txt": "b21e6d69c75dea383f96094b602c8d8ce680c19bc6424b5fd6dc66be52b298d2",
     "frozen/data/nz_source_Y3_unblinded_02_26_21.txt": "c0dc83ea8dc125b2c8c6a9a852fda37fddff6c49ed41322119d7f7cb98880abb",
+    "frozen/data/synthetic_desy1xplanck.dataset": "67223b5c069e862535e529d41c650e3cb6cb695663f8568034384f32ad8a006c",
+    "frozen/data/synthetic_desy1xplanck.modelvector": "0e7d0cf4b37718e2471904537be94f33b0d6d37061b4e44c7e491099ed4e00f3",
     "frozen/data/tatt_desy1xplanck.dataset": "09b9b9682adc8ba3cb777684473c472563dd906aa727f1a6739c85a8612010f9",
     "frozen/data/tatt_desy1xplanck.modelvector": "e5143ee9dfe750d6877b70f5025abfcac78117574574a03ce47926093f8c13bf",
-    "frozen/frozen_config_example1.py": "3b0322f0aa4f7f99450fb559b90bb3270d1c5530f7f4876188e5579fdceb009b",
-    "frozen/frozen_config_example2.py": "648e9f47bb0556ce9065a051b72fb5b095f8671fdfab7c19fbf4b13668a6ff97",
-    "frozen/frozen_config_example2_2x2pt.py": "d002c94056a7f084cd427c43182059acfdf30b75a8afdbde57e07d2dcf7870bd",
-    "frozen/reference_chi2.json": "e7688079fa5be12b85fd06ddbf27dc972af74b887290ce2885ee34f84c82b700"
+    "frozen/frozen_config_example1.py": "bf39d53b3ecc85a6a8997014e7206f9810a6a3fd3455ce3e7ae561f4614dae80",
+    "frozen/frozen_config_example2.py": "8ce57ddb45a315e1f1129c9ace0852a3c1beda43eabb065e8968c651bd4073c5",
+    "frozen/frozen_config_example2_2x2pt.py": "59c0d8c6cf895eece86f9344b3bda8cae971f9d2cd15a30792eeb3cabd078e5f",
+    "frozen/reference_chi2.json": "7547400fbc0d9b78461aff932b9f3a176bd4051053e84fd3a4f4214437300ec4"
   }
 }
