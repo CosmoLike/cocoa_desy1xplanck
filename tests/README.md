@@ -16,7 +16,7 @@ Contents:
 
 1. [Running the tests](#run_tests)
 2. [The tests](#the_tests)
-    1. [Accuracy checks](#accuracy_checks)
+    1. [Running Accuracy checks](#accuracy_checks)
     2. [Synthetic data vectors](#synthetic_vectors)
 3. [Tests keep their own copy of configurations and data](#frozen_copy)
 4. [Refreshing the frozen state (maintainers only)](#refreeze)
@@ -78,7 +78,7 @@ The test files and the configurations they cover:
 | 5-8   | `test_example2.py` | 6x2pt (example2) |
 | 11-14 | `test_example2_2x2pt.py` | 2x2pt (`desy1xplanck.combo_2x2pt`: example2 reduced to galaxy clustering plus galaxy-galaxy lensing) |
 
-### Accuracy checks (`test_accuracy.py`, A1-A6) <a name="accuracy_checks"></a>
+### Running Accuracy checks (`test_accuracy.py`, A1-A6) <a name="accuracy_checks"></a>
 
 First a one-knob-at-a-time scan on the 6x2pt NLA configuration, then six all-knobs checks (A1-A6):
 the three probes with both IA models re-evaluated with every setting
@@ -99,8 +99,14 @@ it breaks the 6x2pt integration tables and shifts the $\chi^2$ by
 
 Each check reports $\Delta\chi^2 = \chi^2(\text{high accuracy}) -
 \chi^2(\text{default})$: the numerical error of the default
-settings. No pass/fail. High-accuracy evaluations take minutes; run
-the file on its own, or skip it with
+settings. No pass/fail; high-accuracy evaluations take minutes.
+
+**Step :one:**: with the environment of
+[Running the tests](#run_tests), run the accuracy checks on their own
+
+    python -m pytest ./projects/desy1xplanck/tests/test_accuracy.py
+
+To run every other test while skipping these:
 
     python -m pytest ./projects/desy1xplanck/tests --ignore ./projects/desy1xplanck/tests/test_accuracy.py
 
