@@ -36,8 +36,12 @@ so run the command with nothing piped after it.
 
 The standard configurations get four tests each: a $\chi^2$ drift check
 and a race check, both in the NLA and in the TATT intrinsic-alignment
-model (TATT: `IA_model: 1` with `DES_A2_1=0.05`, `DES_BTA_1=0.05`,
-`DES_A2_2=-1.51541`).
+model. The TATT variants set
+
+    IA_model: 1
+    DES_A2_1: 0.05
+    DES_BTA_1: 0.05
+    DES_A2_2: -1.51541
 
 | check | pass limit                                        | a failure means                    |
 |-------|---------------------------------------------------|------------------------------------|
@@ -52,16 +56,28 @@ model (TATT: `IA_model: 1` with `DES_A2_1=0.05`, `DES_BTA_1=0.05`,
 
 Accuracy checks (`test_accuracy.py`): first a one-knob-at-a-time scan
 on the 6x2pt NLA configuration, then six all-knobs checks (A1-A6):
-the three probes with both IA models re-evaluated with the numerical
-settings pushed far beyond the defaults (cosmolike `accuracyboost: 2`,
-`integration_accuracy: 10`, `lmax: 200000`, `kmax_boltzmann: 40`; CAMB
-`AccuracyBoost: 2`, `k_per_logint: 50`, `kmax: 50`). The scan keeps an
-`accuracyboost: 5` entry as a deliberate stress knob: in this project it
-breaks the 6x2pt integration tables and shifts the $\chi^2$ by +27, so it
-stays out of the all-knobs set. Each check reports
-$\Delta\chi^2 = \chi^2(\text{high accuracy}) - \chi^2(\text{default})$, no
-pass/fail. High-accuracy evaluations take minutes; skip the file with
-`--ignore ./projects/desy1xplanck/tests/test_accuracy.py`.
+the three probes with both IA models re-evaluated with every setting
+pushed far beyond the defaults at once. The scan keeps an
+`accuracyboost: 5` entry as a deliberate stress knob: in this project
+it breaks the 6x2pt integration tables and shifts the $\chi^2$ by
++27, so it stays out of the all-knobs set below.
+
+    # cosmolike likelihood settings
+    accuracyboost: 2
+    integration_accuracy: 10
+    lmax: 200000
+    kmax_boltzmann: 40
+    # CAMB extra_args (kmax moves with kmax_boltzmann: one physical cutoff)
+    AccuracyBoost: 2
+    k_per_logint: 50
+    kmax: 50
+
+Each check reports $\Delta\chi^2 = \chi^2(\text{high accuracy}) -
+\chi^2(\text{default})$: the numerical error of the default
+settings. No pass/fail. High-accuracy evaluations take minutes; run
+the file on its own, or skip it with
+
+    python -m pytest ./projects/desy1xplanck/tests --ignore ./projects/desy1xplanck/tests/test_accuracy.py
 
 This project's shipped data vector is REAL data, and the example
 cosmology is not its best fit, so the $\chi^2$ there sits far from the
