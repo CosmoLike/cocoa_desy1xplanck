@@ -411,7 +411,7 @@ to new models, extended ranges, or higher precision.
 Similarly, we use networks to generalize the *syren-Halofit* LCDM nonlinear 
 boost fit (Eq. 11 of [arXiv:2402.17492](https://arxiv.org/abs/2402.17492)).
 
-## Unit tests <a name="desy1xplanck_unit_tests"></a>
+# Unit tests <a name="desy1xplanck_unit_tests"></a>
 
 The folder `tests/` holds 12 pass/fail tests: for each of cosmic shear,
 6x2pt, and 2x2pt, in both the NLA and TATT intrinsic-alignment models,
@@ -434,7 +434,7 @@ with the environment active:
 `tests/README.md` describes each test, the frozen state, and the
 re-freeze procedure for maintainers.
 
-## Minimum accuracy parameters <a name="desy1xplanck_minimum_accuracy"></a>
+# Minimum accuracy parameters <a name="desy1xplanck_minimum_accuracy"></a>
 
 The default `accuracyboost: 1.0` in the likelihood configuration is
 converged: raising the boost moves the 6x2pt chi2 by +0.008 at boost
