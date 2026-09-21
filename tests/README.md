@@ -7,7 +7,7 @@ through leftover internal state or colliding OpenMP threads).
 
 Every model build runs in its own worker subprocess. In this project
 both examples share one data set, so the isolation is preventive: it
-keeps the suite immune to the process abort that different data-set
+keeps the tests immune to the process abort that different data-set
 dimensions trigger inside cosmolike (desy1xplanck has that layout), and
 every project keeps one architecture. The commands below stay the
 same.
@@ -23,14 +23,15 @@ Without pytest:
 
     python -m unittest discover -s ./projects/desy1xplanck/tests -v
 
-The suite changes no project files. Each test streams a progress line
+The tests change no project files. Each test streams a progress line
 per model build and per evaluation, then a report block with the
 computed $\chi^2$, the stored reference, the difference, and the pass
 limit. A full run performs about 50 likelihood evaluations and takes a
 few minutes. The test modules force `OMP_NUM_THREADS=4` internally.
-The suite never waits for a keypress: a space/enter prompt between
-tests means the output is being piped through a pager such as `less`,
-so run the command with nothing piped after it.
+The tests never stop to ask for input. If the terminal pauses until
+space or enter is pressed, something sent the output through `less`
+(a program that stops after each full screen): run the commands
+exactly as written above, with nothing added after them.
 
 ## The tests
 
