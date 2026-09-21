@@ -60,6 +60,8 @@ model. The TATT variants set
     DES_BTA_1: 0.05
     DES_A2_2: -1.51541
 
+The two checks and their pass limits:
+
 | check | pass limit                                        | a failure means                    |
 |-------|---------------------------------------------------|------------------------------------|
 | $\chi^2$  | within 0.2 of `frozen/reference_chi2.json`        | code or data changed the numbers   |
