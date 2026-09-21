@@ -52,7 +52,7 @@ few minutes. The test files force `OMP_NUM_THREADS=4` internally.
 ## The tests <a name="the_tests"></a>
 
 The standard configurations get four tests each: a $\chi^2$ drift check
-and a race check, both in the NLA and in the TATT intrinsic-alignment
+and a race-condition check, both in the NLA and in the TATT intrinsic-alignment
 model. The TATT variants set
 
     IA_model: 1
@@ -65,7 +65,7 @@ The two checks and their pass limits:
 | check | pass limit                                        | a failure means                    |
 |-------|---------------------------------------------------|------------------------------------|
 | $\chi^2$  | within 0.2 of `frozen/reference_chi2.json`        | code or data changed the numbers   |
-| race  | fresh vs 10th of 10 cosmologies in a row, to $10^{-4}$ | leftover state or an OpenMP race   |
+| race condition | fresh vs 10th of 10 cosmologies in a row, to $10^{-4}$ | leftover state or an OpenMP race   |
 
 The test files and the configurations they cover:
 
