@@ -447,19 +447,6 @@ are quoted here: rerun the checks to measure them on the current
 code, and see [tests/README.md](tests/README.md) for each check,
 the settings raised, and what each setting controls.
 
-`accuracyboost` refines a nested z grid in the power-spectrum
-tables: every coarser grid's nodes are a subset of every finer
-grid's, so a higher boost tightens the same interpolation instead of
-moving the nodes (the construction is commented in
-`likelihood/_cosmolike_prototype_base.py`).
-
-When several settings move the $\chi^2$, settle them in cost order:
-raise cosmolike `accuracyboost` first (cheap), then CAMB
-`k_per_logint`, and CAMB `AccuracyBoost` last (expensive at run
-time, and able to masquerade for the cheap settings).
-`kmax_boltzmann` and CAMB `kmax` are one physical cutoff seen from
-two sides; move them together.
-
 The `accuracyboost <= 3` warnings next to the `accuracyboost` lines
 in this project's yaml files describe cosmolike builds whose FFTLog
 zero-padding stays constant while the boost densifies the chi grid;
