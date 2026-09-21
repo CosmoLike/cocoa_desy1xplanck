@@ -12,10 +12,27 @@ dimensions trigger inside cosmolike (desy1xplanck has that layout), and
 every project keeps one architecture. The commands below stay the
 same.
 
-## Running the tests
+Contents:
 
-From the `Cocoa/` folder, with the cocoa conda environment active and
-`start_cocoa.sh` sourced:
+1. [Running the tests](#run_tests)
+2. [The tests](#the_tests)
+    1. [Accuracy checks](#accuracy_checks)
+    2. [Synthetic data vectors](#synthetic_vectors)
+3. [Tests keep their own copy of configurations and data](#frozen_copy)
+4. [Refreshing the frozen state (maintainers only)](#refreeze)
+
+## Running the tests <a name="run_tests"></a>
+
+We assume users are in the Conda cocoa environment from a previous
+`conda activate cocoa` command, that the shell is bash, and that the
+current folder is the cocoa main folder `cocoa/Cocoa`.
+
+**Step :one:**: activate the private Python environment by sourcing
+the script `start_cocoa.sh`
+
+    source start_cocoa.sh
+
+**Step :two:**: run the tests of this project
 
     python -m pytest ./projects/desy1xplanck/tests
 
@@ -37,7 +54,7 @@ few minutes. The test files force `OMP_NUM_THREADS=4` internally.
 > `less` (a program that stops after each full screen): run the
 > commands exactly as written above, with nothing added after them.
 
-## The tests
+## The tests <a name="the_tests"></a>
 
 The standard configurations get four tests each: a $\chi^2$ drift check
 and a race check, both in the NLA and in the TATT intrinsic-alignment
@@ -59,7 +76,7 @@ model. The TATT variants set
 | 5-8   | `test_example2.py` | 6x2pt (example2) |
 | 11-14 | `test_example2_2x2pt.py` | 2x2pt (`desy1xplanck.combo_2x2pt`: example2 reduced to galaxy clustering plus galaxy-galaxy lensing) |
 
-### Accuracy checks (`test_accuracy.py`, A1-A6)
+### Accuracy checks (`test_accuracy.py`, A1-A6) <a name="accuracy_checks"></a>
 
 First a one-knob-at-a-time scan on the 6x2pt NLA configuration, then six all-knobs checks (A1-A6):
 the three probes with both IA models re-evaluated with every setting
@@ -85,7 +102,7 @@ the file on its own, or skip it with
 
     python -m pytest ./projects/desy1xplanck/tests --ignore ./projects/desy1xplanck/tests/test_accuracy.py
 
-### Synthetic data vectors
+### Synthetic data vectors <a name="synthetic_vectors"></a>
 
 This project's shipped data vector is REAL data, and the example
 cosmology is not its best fit, so the $\chi^2$ there sits far from the
@@ -98,7 +115,7 @@ Both come from the example2 (6x2pt) model, whose full-length vector
 serves every probe; at its own minimum the $\chi^2$ response is quadratic
 and the drift and accuracy numbers stay meaningful.
 
-## Tests keep their own copy of configurations and data
+## Tests keep their own copy of configurations and data <a name="frozen_copy"></a>
 
 The tests read nothing from the live project: not `../data`, not the
 `EXAMPLE_EVALUATE` yaml files, and not the likelihood default yaml
@@ -123,14 +140,18 @@ edited, naming the file. The result: users may change the live data
 and examples freely, and nobody can quietly edit the frozen state
 either.
 
-## Refreshing the frozen state (maintainers only)
+## Refreshing the frozen state (maintainers only) <a name="refreeze"></a>
 
 A deliberate change to the data vectors, n(z), covariance, examples,
-or likelihood defaults requires a re-freeze:
+or likelihood defaults requires a re-freeze.
+
+**Step :one:**: set up the environment as in
+[Running the tests](#run_tests).
+
+**Step :two:**: rebuild the frozen state
 
     python ./projects/desy1xplanck/tests/generate_frozen_reference.py --overwrite
 
-Run it from the `Cocoa/` folder with the environment set up as above.
 It rebuilds `frozen/` from the current project, prints the four new
 reference $\chi^2$ values, and rewrites the manifest. Review the printed
 $\chi^2$ values against the old references before committing: they define
