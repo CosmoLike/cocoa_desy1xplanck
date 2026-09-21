@@ -23,15 +23,19 @@ Without pytest:
 
     python -m unittest discover -s ./projects/desy1xplanck/tests -v
 
-The tests change no project files. Each test streams a progress line
-per model build and per evaluation, then a report block with the
+The tests change no project files. Each test prints a progress line
+per model build and per evaluation, then a report with the
 computed $\chi^2$, the stored reference, the difference, and the pass
-limit. A full run performs about 50 likelihood evaluations and takes a
-few minutes. The test modules force `OMP_NUM_THREADS=4` internally.
-The tests never stop to ask for input. If the terminal pauses until
-space or enter is pressed, something sent the output through `less`
-(a program that stops after each full screen): run the commands
-exactly as written above, with nothing added after them.
+limit.
+
+A full run performs about 50 likelihood evaluations and takes a
+few minutes. The test files force `OMP_NUM_THREADS=4` internally.
+
+> [!NOTE]
+> The tests never stop to ask for input. If the terminal pauses
+> until space or enter is pressed, something sent the output through
+> `less` (a program that stops after each full screen): run the
+> commands exactly as written above, with nothing added after them.
 
 ## The tests
 
