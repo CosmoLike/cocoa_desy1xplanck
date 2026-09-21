@@ -410,3 +410,64 @@ formula for the linear power spectrum (w0waCDM with a fixed neutrino mass of $0.
 to new models, extended ranges, or higher precision. 
 Similarly, we use networks to generalize the *syren-Halofit* LCDM nonlinear 
 boost fit (Eq. 11 of [arXiv:2402.17492](https://arxiv.org/abs/2402.17492)).
+
+## Unit tests <a name="desy1xplanck_unit_tests"></a>
+
+The folder `tests/` holds 12 pass/fail tests: for each of cosmic shear,
+6x2pt, and 2x2pt, in both the NLA and TATT intrinsic-alignment models,
+a chi2 comparison against a frozen reference and a race check that
+evaluates 10 cosmologies in a row and requires the 10th to match a
+fresh evaluation of the same point (the tests force
+`OMP_NUM_THREADS=4`; with one thread an OpenMP race could never show
+up). The file `tests/test_accuracy.py` adds advisory accuracy checks
+that report, with no pass/fail, how much the default numerical
+settings move the chi2.
+
+The tests read nothing from the live project: they evaluate a frozen
+copy of the configurations, data, and reference values, pinned by a
+SHA-256 manifest that every test verifies first, and every model build
+runs in its own worker subprocess. Run them from the `Cocoa/` folder
+with the environment active:
+
+    python -m pytest ./projects/desy1xplanck/tests
+
+`tests/README.md` describes each test, the frozen state, and the
+re-freeze procedure for maintainers.
+
+## Minimum accuracy parameters <a name="desy1xplanck_minimum_accuracy"></a>
+
+The default `accuracyboost: 1.0` in the likelihood configuration is
+converged: raising the boost moves the 6x2pt chi2 by at most 0.004
+through boost 3.25, and each of the other numerical knobs
+(`integration_accuracy`, `lmax`, `kmax_boltzmann` with camb `kmax`,
+camb `AccuracyBoost`, camb `k_per_logint`) moves it by 0.014 or less
+on its own.
+
+Keep `accuracyboost` at or below 3. Above that value the 6x2pt
+integration tables break down: the chi2 shifts by +0.013 at boost 3.5,
++0.049 at 3.75, +0.256 at 4, and +27.06 at 5, entirely from this one
+knob. The breakdown does not depend on the intrinsic-alignment model
+and sits in the galaxy-clustering and galaxy-galaxy-lensing sections:
+cosmic shear alone shifts by only +0.0006 at boost 5. Every yaml in
+this project repeats this warning next to its `accuracyboost` line.
+
+When several knobs move the chi2, settle them in cost order: raise the
+cosmolike `accuracyboost` first (cheap), then camb `k_per_logint`, and
+camb `AccuracyBoost` last (expensive at run time, and it can masquerade
+for the cheap knobs: an apparent CAMB sensitivity can really be
+unresolved cosmolike-side resolution). `kmax_boltzmann` and camb
+`kmax` are one physical cutoff seen from the likelihood and Boltzmann
+sides, so move them together.
+
+The advisory checks A1-A6 in `tests/test_accuracy.py` re-evaluate the
+three probes with both intrinsic-alignment models with every knob
+raised at once
+(`accuracyboost` 2 inside the all-knobs set, below the breakdown).
+Measured on this install, the delta chi2 values are:
+
+    A1 cosmic shear, NLA    +0.000424
+    A2 cosmic shear, TATT   +0.000421
+    A3 2x2pt, NLA           +0.011987
+    A4 2x2pt, TATT          +0.011782
+    A5 6x2pt, NLA           +0.014677
+    A6 6x2pt, TATT          +0.014464

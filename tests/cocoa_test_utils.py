@@ -128,7 +128,11 @@ SYNTHETIC_VECTORS = {
 # (test_accuracy.py): the same physics evaluated with the numerical
 # knobs pushed far beyond the defaults.
 HIGH_ACCURACY_LIKELIHOOD = {
-    "accuracyboost": 5.0,       # default 1.0
+    # boost 2 is converged in every project scanned; 5 triggers a
+    # breakdown inside some cosmolike interfaces (desy1xplanck: +27 in
+    # chi2 from this knob alone), so the all-knobs check uses 2 and
+    # the one-at-a-time scan keeps 5 as a deliberate stress knob
+    "accuracyboost": 2.0,       # default 1.0
     "integration_accuracy": 10,  # default 0
     "lmax": 200000,             # default 50000-75000
     "kmax_boltzmann": 40.0,     # default 5.0-7.5
@@ -141,6 +145,31 @@ HIGH_ACCURACY_CAMB_EXTRA_ARGS = {
     "k_per_logint": 50,         # default 10
     "kmax": 50.0,               # default 5.0-7.5
 }
+
+# The one-at-a-time scan of test_accuracy.py: each entry is (label,
+# likelihood overrides, camb extra_args overrides), evaluated alone on
+# the example2 NLA configuration before the all-knobs checks, so a
+# large all-knobs delta can be attributed to the knob causing it. The
+# accuracyboost=5 entry is a stress knob: it exceeds what measuring
+# the default numerics needs, and it is kept because it exposed an
+# interface breakdown (a suspected fixed-size table) in desy1xplanck.
+# Investigation order when several knobs move the chi2: raise the
+# cosmolike accuracyboost first (cheap), then camb k_per_logint, and
+# only then camb AccuracyBoost (expensive at run time): an apparent
+# CAMB sensitivity can masquerade as unresolved cosmolike-side
+# resolution, so the cheap knobs must be settled before the expensive
+# one is blamed. kmax_boltzmann and camb kmax are one physical cutoff
+# seen from the two sides, so the scan moves them together.
+ACCURACY_KNOBS = [
+    ("accuracyboost -> 2", {"accuracyboost": 2.0}, {}),
+    ("accuracyboost -> 5 (stress)", {"accuracyboost": 5.0}, {}),
+    ("integration_accuracy -> 10", {"integration_accuracy": 10}, {}),
+    ("lmax -> 200000", {"lmax": 200000}, {}),
+    ("kmax_boltzmann -> 40 + camb kmax -> 50",
+     {"kmax_boltzmann": 40.0}, {"kmax": 50.0}),
+    ("camb AccuracyBoost -> 2", {}, {"AccuracyBoost": 2.0}),
+    ("camb k_per_logint -> 50", {}, {"k_per_logint": 50}),
+]
 
 EXAMPLES = {
     "example1": {
@@ -441,6 +470,23 @@ ACCURACY: {label}
     return delta
 
 
+def report_knob(label, chi2, default_ref):
+    """Print one entry of the one-knob-at-a-time scan. Advisory only.
+
+    Arguments:
+      label       = the ACCURACY_KNOBS entry evaluated.
+      chi2        = chi2 with only that knob changed, this run.
+      default_ref = the frozen default-settings reference chi2.
+
+    Returns:
+      chi2 - default_ref, the printed difference.
+    """
+    delta = chi2 - default_ref
+    print(f"  KNOB {label:30s} chi2 = {chi2:12.6f}  "
+          f"delta = {delta:+12.6f}", flush=True)
+    return delta
+
+
 # -----------------------------------------------------------------------------
 # Model construction and evaluation
 # -----------------------------------------------------------------------------
@@ -475,7 +521,8 @@ def _frozen_module(example):
     return module
 
 
-def load_frozen_info(example, tatt, high_accuracy=False):
+def load_frozen_info(example, tatt, high_accuracy=False,
+                     overrides=None):
     """Build the cobaya input dictionary for one frozen configuration.
 
     Starts from the frozen module's yaml string and applies the only
@@ -541,6 +588,12 @@ def load_frozen_info(example, tatt, high_accuracy=False):
         likelihood_block.update(HIGH_ACCURACY_LIKELIHOOD)
         info["theory"]["camb"]["extra_args"].update(
             HIGH_ACCURACY_CAMB_EXTRA_ARGS)
+    if overrides is not None:
+        # one knob at a time (an ACCURACY_KNOBS entry): the same
+        # mechanism as high_accuracy, restricted to a single setting
+        like_over, camb_over = overrides
+        likelihood_block.update(like_over)
+        info["theory"]["camb"]["extra_args"].update(camb_over)
     if tatt:
         # a TATT parameter can be SAMPLED in the frozen configuration
         # (it has a prior; build_point then sets its value in the
@@ -669,7 +722,8 @@ def evaluate_chi2(model, point):
     return float(chi2)
 
 
-def _single_model_chi2_impl(example, tatt, high_accuracy=False):
+def _single_model_chi2_impl(example, tatt, high_accuracy=False,
+                            knob=None):
     """In-process body of single_model_chi2 (worker side).
 
     Runs inside the worker subprocess only: building a model here,
@@ -688,11 +742,20 @@ def _single_model_chi2_impl(example, tatt, high_accuracy=False):
     ia_label = "TATT" if tatt else "NLA"
     if high_accuracy:
         ia_label += ", high accuracy"
+    overrides = None
+    if knob is not None:
+        # knob = a label from ACCURACY_KNOBS; look up its overrides
+        matches = [k for k in ACCURACY_KNOBS if k[0] == knob]
+        if len(matches) != 1:
+            raise ValueError(f"unknown accuracy knob {knob!r}")
+        overrides = (matches[0][1], matches[0][2])
+        ia_label += f", knob: {knob}"
     print(f"  building model ({example}, {ia_label}) ...", flush=True)
     # load_frozen_info returns the frozen configuration dictionary with
     # the run-time adjustments applied; make_model turns it into an
     # evaluable cobaya Model (loads CAMB and the cosmolike interface)
-    info = load_frozen_info(example, tatt, high_accuracy=high_accuracy)
+    info = load_frozen_info(example, tatt, high_accuracy=high_accuracy,
+                            overrides=overrides)
     model = make_model(info)
     # build_point returns the frozen evaluation point, cross-checked
     # against the model's sampled-parameter set (drift fails loudly)
@@ -768,7 +831,7 @@ _WORKER_DRIVER = (
 )
 
 
-def _worker(function, example, tatt, high_accuracy, unused, result_path):
+def _worker(function, example, tatt, high_accuracy, knob, result_path):
     """Worker-side entry: run one evaluation and save the numbers.
 
     Arguments:
@@ -776,8 +839,8 @@ def _worker(function, example, tatt, high_accuracy, unused, result_path):
       example       = a key of EXAMPLES.
       tatt          = "1" for the TATT variant, "0" for NLA.
       high_accuracy = "1" for the pushed numerical settings, "0" not.
-      unused        = reserved argument slot (keeps the driver stable
-                      if an option is added later).
+      knob          = an ACCURACY_KNOBS label evaluated alone, or the
+                      empty string for none.
       result_path   = file the result is written into as json; the
                       parent reads it back. Progress prints go to the
                       inherited stdout, so the terminal streams them.
@@ -790,14 +853,15 @@ def _worker(function, example, tatt, high_accuracy, unused, result_path):
     high_accuracy = high_accuracy == "1"
     if function == "single":
         value = _single_model_chi2_impl(example, tatt,
-                                        high_accuracy=high_accuracy)
+                                        high_accuracy=high_accuracy,
+                                        knob=knob or None)
     else:
         value = list(_ten_in_a_row_impl(example, tatt))
     with open(result_path, "w") as f:
         json.dump(value, f)
 
 
-def _run_isolated(function, example, tatt, high_accuracy=False):
+def _run_isolated(function, example, tatt, high_accuracy=False, knob=None):
     """Spawn one worker subprocess and hand back its result.
 
     Arguments:
@@ -830,7 +894,7 @@ def _run_isolated(function, example, tatt, high_accuracy=False):
     completed = subprocess.run(
         [sys.executable, "-c", _WORKER_DRIVER, _THIS_FILE, function,
          example, "1" if tatt else "0", "1" if high_accuracy else "0",
-         "0", result_path],
+         knob or "", result_path],
         env=environment)
     try:
         if completed.returncode != 0:
@@ -846,7 +910,7 @@ def _run_isolated(function, example, tatt, high_accuracy=False):
             os.unlink(result_path)
 
 
-def single_model_chi2(example, tatt, high_accuracy=False):
+def single_model_chi2(example, tatt, high_accuracy=False, knob=None):
     """chi2 of the frozen fiducial point, evaluated in a fresh worker.
 
     This is the quantity the reference tests compare against the
@@ -865,9 +929,10 @@ def single_model_chi2(example, tatt, high_accuracy=False):
     """
     if os.environ.get(_WORKER_FLAG) == "1":
         return _single_model_chi2_impl(example, tatt,
-                                       high_accuracy=high_accuracy)
+                                       high_accuracy=high_accuracy,
+                                       knob=knob)
     return float(_run_isolated("single", example, tatt,
-                               high_accuracy=high_accuracy))
+                               high_accuracy=high_accuracy, knob=knob))
 
 
 def ten_in_a_row_chi2(example, tatt):

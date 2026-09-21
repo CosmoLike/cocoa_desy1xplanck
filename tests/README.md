@@ -50,12 +50,16 @@ so run the command with nothing piped after it.
    tests on `desy1xplanck.combo_2x2pt` (example2 with the probe selection
    reduced to galaxy clustering plus galaxy-galaxy lensing).
 
-Accuracy checks (`test_accuracy.py`, A1-A6): the three probes with
-both IA models re-evaluated with the numerical settings pushed far
-beyond the defaults (cosmolike accuracyboost 5, integration_accuracy
-10, lmax 200000, kmax_boltzmann 40; CAMB AccuracyBoost 2,
-k_per_logint 50, kmax 50). Each check
-reports delta chi2 = chi2(high accuracy) - chi2(default, frozen), no
+Accuracy checks (`test_accuracy.py`): first a one-knob-at-a-time scan
+on the 6x2pt NLA configuration, then six all-knobs checks (A1-A6):
+the three probes with both IA models re-evaluated with the numerical
+settings pushed far beyond the defaults (cosmolike accuracyboost 2,
+integration_accuracy 10, lmax 200000, kmax_boltzmann 40; CAMB
+AccuracyBoost 2, k_per_logint 50, kmax 50). The scan keeps an
+accuracyboost 5 entry as a deliberate stress knob: in this project it
+breaks the 6x2pt integration tables and shifts the chi2 by +27, so it
+stays out of the all-knobs set. Each check reports
+delta chi2 = chi2(high accuracy) - chi2(default, frozen), no
 pass/fail. High-accuracy evaluations take minutes; skip the file with
 `--ignore ./projects/desy1xplanck/tests/test_accuracy.py`.
 
