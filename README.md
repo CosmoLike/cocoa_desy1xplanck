@@ -441,12 +441,11 @@ numerical error of the default accuracy settings: each setting is
 raised one at a time on the 6x2pt configuration, so a large
 $\Delta\chi^2$ can be attributed to the setting causing it, and
 then every setting at once. Each check prints the $\Delta\chi^2$
-between the high-accuracy and the default evaluations. The measured
-values sit far below the 0.2 band the reference tests allow, so the
-shipped defaults are adequate. The values are not quoted here: rerun
-the checks to measure them on the current code, and see
-[tests/README.md](tests/README.md) for each check, the settings
-raised, and what each setting controls.
+between the high-accuracy and the default evaluations, to compare
+against the 0.2 band the reference tests allow. No measured values
+are quoted here: rerun the checks to measure them on the current
+code, and see [tests/README.md](tests/README.md) for each check,
+the settings raised, and what each setting controls.
 
 `accuracyboost` refines a nested z grid in the power-spectrum
 tables: every coarser grid's nodes are a subset of every finer
@@ -465,5 +464,4 @@ The `accuracyboost <= 3` warnings next to the `accuracyboost` lines
 in this project's yaml files describe cosmolike builds whose FFTLog
 zero-padding stays constant while the boost densifies the chi grid;
 the cosmolike core compiled here scales the padding with the grid
-(`external_modules/code/cosmolike/cosmo2D.c`), and the boost scan is
-monotone.
+(`external_modules/code/cosmolike/cosmo2D.c`).
