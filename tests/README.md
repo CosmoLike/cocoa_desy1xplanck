@@ -71,9 +71,12 @@ The test files and the configurations they cover:
 
 | tests | file | configuration |
 |-------|------|---------------|
-| 1-4   | `test_example1.py` | cosmic shear |
-| 5-8   | `test_example2.py` | 6x2pt |
-| 11-14 | `test_example2_2x2pt.py` | 2x2pt (`desy1xplanck.combo_2x2pt`: the 6x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing) |
+| 1-2 | `test_example1.py` | cosmic shear; IA modeling: NLA |
+| 3-4 | `test_example1.py` | cosmic shear; IA modeling: TATT |
+| 5-6 | `test_example2.py` | 6x2pt; IA modeling: NLA |
+| 7-8 | `test_example2.py` | 6x2pt; IA modeling: TATT |
+| 11-12 | `test_example2_2x2pt.py` | 2x2pt (`desy1xplanck.combo_2x2pt`: the 6x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: NLA |
+| 13-14 | `test_example2_2x2pt.py` | 2x2pt (`desy1xplanck.combo_2x2pt`: the 6x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: TATT |
 
 ### Running Accuracy checks (`test_accuracy.py`, A1-A6) <a name="accuracy_checks"></a>
 
