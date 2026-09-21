@@ -34,21 +34,21 @@ so run the command with nothing piped after it.
 
 ## The tests
 
-1. `test_1`: chi2 of the cosmic-shear likelihood at a fixed reference
-   point must stay within 0.2 of the value stored in
-   `frozen/reference_chi2.json`.
-2. `test_2`: on one model, that point is evaluated fresh and then
-   again as the 10th of 10 cosmologies in a row; the two chi2 values
-   must agree to 1e-4. Leftover state or an OpenMP race breaks the
-   agreement.
-3. `test_3`: same as test 1 with the TATT intrinsic-alignment model
-   (`IA_model: 1`) and `DES_A2_1=0.05`, `DES_BTA_1=0.05`,
-   `DES_A2_2=-1.51541`.
-4. `test_4`: same as test 2 with the TATT model.
-5. -8. the same four tests for the 6x2pt likelihood.
-9. -14. `test_example2_2x2pt.py` (numbered 11-14): the four standard
-   tests on `desy1xplanck.combo_2x2pt` (example2 with the probe selection
-   reduced to galaxy clustering plus galaxy-galaxy lensing).
+The standard configurations get four tests each: a chi2 drift check
+and a race check, both in the NLA and in the TATT intrinsic-alignment
+model (TATT: `IA_model: 1` with `DES_A2_1=0.05`, `DES_BTA_1=0.05`,
+`DES_A2_2=-1.51541`).
+
+| check | pass limit                                        | a failure means                    |
+|-------|---------------------------------------------------|------------------------------------|
+| chi2  | within 0.2 of `frozen/reference_chi2.json`        | code or data changed the numbers   |
+| race  | fresh vs 10th of 10 cosmologies in a row, to 1e-4 | leftover state or an OpenMP race   |
+
+| tests | file | configuration |
+|-------|------|---------------|
+| 1-4   | `test_example1.py` | cosmic shear (example1) |
+| 5-8   | `test_example2.py` | 6x2pt (example2) |
+| 11-14 | `test_example2_2x2pt.py` | 2x2pt (`desy1xplanck.combo_2x2pt`: example2 reduced to galaxy clustering plus galaxy-galaxy lensing) |
 
 Accuracy checks (`test_accuracy.py`): first a one-knob-at-a-time scan
 on the 6x2pt NLA configuration, then six all-knobs checks (A1-A6):
@@ -80,15 +80,17 @@ The tests read nothing from the live project: not `../data`, not the
 `EXAMPLE_EVALUATE` yaml files, and not the likelihood default yaml
 files. Instead, `frozen/` holds:
 
-- `frozen_config_example{1,2}.py`: the complete cobaya configuration
-  as a yaml string plus the exact evaluation point. Every option and
-  every parameter is written out, including the ones that normally
-  come from `params_source.yaml` and the other default files, so
-  editing those files cannot change what the tests evaluate.
-- `data/`: the tests' own copy of the data vectors, covariance, n(z),
-  and masks.
-- `EXAMPLE_EVALUATE{1,2}.yaml`: snapshots kept only so a human can
-  diff how the live examples drifted since the freeze.
+| `frozen/` entry | holds |
+|---|---|
+| `frozen_config_example{1,2}.py` | the complete cobaya configuration as a yaml string, plus the exact evaluation point |
+| `data/` | the tests' own copy of the data vectors, covariance, n(z), and masks |
+| `EXAMPLE_EVALUATE{1,2}.yaml` | snapshots kept only so a human can diff how the live examples drifted since the freeze |
+
+In the configuration modules every option and every parameter is
+written out, including the ones that normally come from
+`params_source.yaml` and the other default files, so editing those
+files cannot change what the tests evaluate.
+
 
 `manifest_sha256.json` stores a SHA-256 hash (a fingerprint that
 changes when any byte changes) of every frozen file. Each test

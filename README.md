@@ -437,9 +437,15 @@ re-freeze procedure for maintainers.
 # Minimum accuracy parameters <a name="desy1xplanck_minimum_accuracy"></a>
 
 The default `accuracyboost: 1.0` in the likelihood configuration is
-converged: raising the boost moves the 6x2pt chi2 by +0.008 at boost
-1.25, +0.012 at 3, and +0.013 at the stress value 5, and each of the
-other numerical knobs (`integration_accuracy`, `lmax`,
+converged. Raising the boost alone moves the 6x2pt chi2 by:
+
+| cosmolike `accuracyboost` | delta chi2 |
+|---------------------------|-----------:|
+| 1.25                      |     +0.008 |
+| 3                         |     +0.012 |
+| 5 (stress)                |     +0.013 |
+
+Each of the other numerical knobs (`integration_accuracy`, `lmax`,
 `kmax_boltzmann` with camb `kmax`, camb `AccuracyBoost`, camb
 `k_per_logint`) moves it by 0.015 or less on its own.
 
@@ -468,11 +474,13 @@ sides, so move them together.
 The advisory checks A1-A6 in `tests/test_accuracy.py` re-evaluate the
 three probes with both intrinsic-alignment models with every knob
 raised at once (`accuracyboost` 3 inside the all-knobs set).
-Measured on this install, the delta chi2 values are:
+Measured on this install:
 
-    A1 cosmic shear, NLA    +0.000265
-    A2 cosmic shear, TATT   +0.000259
-    A3 2x2pt, NLA           +0.012928
-    A4 2x2pt, TATT          +0.012721
-    A5 6x2pt, NLA           +0.025710
-    A6 6x2pt, TATT          +0.025494
+| check | configuration      | delta chi2 |
+|-------|--------------------|-----------:|
+| A1    | cosmic shear, NLA  |  +0.000265 |
+| A2    | cosmic shear, TATT |  +0.000259 |
+| A3    | 2x2pt, NLA         |  +0.012928 |
+| A4    | 2x2pt, TATT        |  +0.012721 |
+| A5    | 6x2pt, NLA         |  +0.025710 |
+| A6    | 6x2pt, TATT        |  +0.025494 |
