@@ -11,6 +11,9 @@ likelihood:
     data_file: Y3xPlanckPR4.dataset
     print_datavector: False
     print_datavector_file: "./projects/desy1xplanck/chains/theory.modelvector"
+    # WARNING: keep accuracyboost <= 3. The chi2 is converged at the default 1.0
+    # (differences <= 0.004 through boost 3.25), and above that the 6x2pt integration
+    # tables break down: chi2 shifts by +0.05 at 3.75, +0.26 at 4, +27 at 5.
     accuracyboost: 1.0
     integration_accuracy: 0
     lmax: 75000 # lmax computed for real space correlation function

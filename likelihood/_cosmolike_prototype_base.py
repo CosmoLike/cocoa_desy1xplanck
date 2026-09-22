@@ -68,11 +68,41 @@ class _cosmolike_prototype_base(DataSetLikelihood):
                                        np.linspace(1070,1100,max(50,int(0.10*tmp)))),axis=0)
     self.len_z_interp_1D = len(self.z_interp_1D)
 
-    tmp=int(min(120 + 20*self.accuracyboost,250))
+    # The z nodes of the 2D power-spectrum tables handed to cosmolike,
+    # which interpolates LINEARLY in z between exactly these nodes (its
+    # piecewise-uniform direct indexing uses the handed grid; there is
+    # no internal regridding). Linear interpolation leaves a sawtooth-
+    # shaped O(dz^2) residual that vanishes at the nodes, so two grids
+    # that do not share nodes disagree by the FULL residual amplitude.
+    # The previous count, min(120 + 20*boost, 250), re-phased that
+    # sawtooth at every boost value: measured in roman_kl, order-unity
+    # chi2 jitter in its clustering vector, and smaller but equally
+    # non-convergent re-phasing shifts in this project. The dyadic factor m = 2^ceil(log2(boost)) below
+    # refines each uniform block by an integer factor with the same
+    # endpoints, so (a) every block stays uniform (cosmolike keeps its
+    # two-segment direct indexing, no search), (b) every coarser
+    # grid's nodes are a subset of every finer grid's nodes, making a
+    # boost increase a true refinement (error falls like 1/m^2, no
+    # re-phasing), and (c) boost 1 reproduces the previous 140-node
+    # grid exactly, so results at the default accuracy are unchanged.
+    # The low block multiplies its node count (endpoint=False, spacing
+    # 3/n); the high block multiplies its INTERVAL count
+    # (endpoint=True: 35 nodes = 34 intervals -> 34*m + 1 nodes).
     # zmax of the hybrid emulator is 50 (why 50? Only relevant if CMB lensing included)
-    self.z_interp_2D = np.concatenate((np.linspace(0,3.0,max(50,int(0.75*tmp)),endpoint=False), 
-                                       np.linspace(3.0,49.99,max(30,int(0.25*tmp)))),axis=0)
+    m = int(min(2**np.ceil(np.log2(max(1.0, self.accuracyboost))), 16))
+    self.z_interp_2D = np.concatenate((np.linspace(0,3.0,105*m,endpoint=False), 
+                                       np.linspace(3.0,49.99,34*m + 1)),axis=0)
     self.len_z_interp_2D = len(self.z_interp_2D)
+    # CAMB's transfer module caps the number of requested redshifts at
+    # 256, so the list handed to CAMB through the Pk_interpolator
+    # requirement stays at this boost-independent 140-node grid (the
+    # m = 1 grid above). The denser nested nodes only re-evaluate the
+    # smooth z-spline CAMB builds from these transfer redshifts when
+    # the cosmolike tables are filled, so raising the boost refines
+    # exactly the table resampling that produced the jitter, and the
+    # CAMB side never exceeds its cap.
+    self.z_interp_2D_camb = np.concatenate((np.linspace(0,3.0,105,endpoint=False), 
+                                            np.linspace(3.0,49.99,35)),axis=0)
     
     self.log10k_interp_2D = np.linspace(-4.99,2.0,int(1250+250*self.accuracyboost))
     self.len_log10k_interp_2D = len(self.log10k_interp_2D)
@@ -228,7 +258,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
         "H0": None,
         "omegam": None,
         "Pk_interpolator": {
-          "z": self.z_interp_2D,
+          "z": self.z_interp_2D_camb,
           "k_max": self.kmax_boltzmann * self.accuracyboost,
           "nonlinear": (True,False),
           "vars_pairs": ([("delta_tot", "delta_tot")])
@@ -253,7 +283,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
         "H0": None,
         "omegam": None,
         "Pk_interpolator": {
-          "z": self.z_interp_2D,
+          "z": self.z_interp_2D_camb,
           "k_max": self.kmax_boltzmann * self.accuracyboost,
           "nonlinear": (True,False),
           "vars_pairs": ([("delta_tot", "delta_tot")])

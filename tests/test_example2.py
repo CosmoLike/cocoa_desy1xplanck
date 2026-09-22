@@ -1,0 +1,118 @@
+"""Unit tests 5-8: the 6x2pt likelihood on the frozen test data.
+
+6x2pt combines three two-point correlations: cosmic shear, galaxy
+clustering, and galaxy-galaxy lensing; here it is the
+desy1xplanck.combo_6x2pt likelihood, evaluated on the frozen copy of
+example2's configuration (see cocoa_test_utils for what "frozen"
+means and why). The four tests:
+
+  5. chi2 at the frozen fiducial point, within CHI2_TOLERANCE (0.2) of
+     the frozen reference value.
+  6. race check: on one model, the fiducial evaluated fresh and again
+     as the 10th of 10 cosmologies in a row must agree to
+     RACE_TOLERANCE (1e-4). A disagreement means state leaked between
+     evaluations or OpenMP threads raced.
+  7. the same comparison as test 5 with the TATT intrinsic-alignment
+     model (IA_model: 1) and DES_A2_1 = 0.05, DES_BTA_1 = 0.05,
+     DES_A2_2 = -1.51541 replacing the NLA point's zeros.
+  8. the same race check as test 6 with the TATT model.
+
+To run (from the Cocoa/ folder, cocoa environment active,
+start_cocoa.sh sourced):
+
+    python -m pytest ./projects/desy1xplanck/tests
+"""
+
+import os
+
+# OpenMP reads OMP_NUM_THREADS when the compiled libraries load, so
+# this must run before ANY cobaya/cosmolike import in the process.
+os.environ["OMP_NUM_THREADS"] = "4"
+
+import sys
+import unittest
+
+# The tests folder is not a package; put it on the import path so the
+# shared harness resolves no matter where pytest was launched from.
+# insert(0, ...) puts the folder FIRST in the search order, ahead of
+# every other place a same-named module could hide.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import cocoa_test_utils as u
+
+EXAMPLE = "example2"
+
+
+class TestExample2ThreeXTwo(unittest.TestCase):
+    """Tests 5-8, sharing one frozen-state verification.
+
+    setUpClass runs once before the tests: it moves to ROOTDIR,
+    verifies every frozen file against the SHA-256 manifest (an edited
+    frozen state must fail loudly before any physics runs), and loads
+    the frozen reference chi2 values.
+    """
+
+    # the classmethod decorator hands the method the class itself
+    # (cls), not an instance; unittest calls setUpClass once before
+    # the first test of the class
+    @classmethod
+    def setUpClass(cls):
+        u.require_cocoa_environment()
+        u.verify_frozen()
+        cls.reference = u.load_reference()
+
+    def test_5_chi2_matches_frozen_reference(self):
+        """chi2 at the frozen NLA point stays within 0.2 of the reference."""
+        chi2 = u.single_model_chi2(EXAMPLE, tatt=False)
+        ref = self.reference[f"{EXAMPLE}_nla"]
+        u.report_chi2_test(
+            5, "example2 (6x2pt, NLA) chi2 vs frozen reference",
+            chi2, ref, u.CHI2_TOLERANCE)
+        # assertLess(a, b) passes when a < b and fails with msg
+        # otherwise; in that message, :.6f prints fixed six decimals
+        self.assertLess(
+            abs(chi2 - ref), u.CHI2_TOLERANCE,
+            msg=f"chi2 = {chi2:.6f} vs frozen reference {ref:.6f} "
+                f"(|delta| >= {u.CHI2_TOLERANCE})")
+
+    def test_6_no_race_condition_ten_in_a_row(self):
+        """The fiducial as 10th of 10 cosmologies matches a fresh run."""
+        u.assert_omp_threads()
+        # the function returns a (fresh, tenth) pair; the assignment
+        # unpacks it into the two names
+        fresh, tenth = u.ten_in_a_row_chi2(EXAMPLE, tatt=False)
+        u.report_race_test(
+            6, "example2 (6x2pt, NLA) race check: 10 cosmologies in a row",
+            fresh, tenth, u.RACE_TOLERANCE)
+        self.assertLess(
+            abs(tenth - fresh), u.RACE_TOLERANCE,
+            msg=f"10th-in-a-row chi2 = {tenth:.8f} vs fresh {fresh:.8f}")
+
+    def test_7_chi2_matches_frozen_reference_tatt(self):
+        """Test 5 repeated with the TATT IA model and nonzero A2/BTA."""
+        chi2 = u.single_model_chi2(EXAMPLE, tatt=True)
+        ref = self.reference[f"{EXAMPLE}_tatt"]
+        u.report_chi2_test(
+            7, "example2 (6x2pt, TATT) chi2 vs frozen reference",
+            chi2, ref, u.CHI2_TOLERANCE)
+        self.assertLess(
+            abs(chi2 - ref), u.CHI2_TOLERANCE,
+            msg=f"TATT chi2 = {chi2:.6f} vs frozen reference {ref:.6f} "
+                f"(|delta| >= {u.CHI2_TOLERANCE})")
+
+    def test_8_no_race_condition_ten_in_a_row_tatt(self):
+        """Test 6 repeated with the TATT IA model."""
+        u.assert_omp_threads()
+        fresh, tenth = u.ten_in_a_row_chi2(EXAMPLE, tatt=True)
+        u.report_race_test(
+            8, "example2 (6x2pt, TATT) race check: 10 cosmologies in a row",
+            fresh, tenth, u.RACE_TOLERANCE)
+        self.assertLess(
+            abs(tenth - fresh), u.RACE_TOLERANCE,
+            msg=f"TATT 10th-in-a-row chi2 = {tenth:.8f} vs fresh {fresh:.8f}")
+
+
+# __name__ is "__main__" only when this file runs directly as a
+# script; pytest imports the module instead, so this block stays
+# idle under pytest
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
