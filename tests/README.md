@@ -149,7 +149,7 @@ To run every other test while skipping these:
 
     python -m pytest ./projects/desy1xplanck/tests --ignore ./projects/desy1xplanck/tests/test_accuracy.py
 
-### Baryonic feedback accuracy checks (`test_accuracy_baryons.py`, B1-B7) <a name="baryon_accuracy_checks"></a>
+### Baryonic feedback accuracy checks (`test_accuracy_baryons.py`, BF1-BF7) <a name="baryon_accuracy_checks"></a>
 
 The file `test_accuracy_baryons.py` repeats the default-versus-high
 accuracy comparison with the `bfmt` theory block switched on: one

@@ -1,4 +1,4 @@
-"""Baryonic feedback accuracy checks B1-B7: default vs high accuracy.
+"""Baryonic feedback accuracy checks BF1-BF7: default vs high accuracy.
 
 Each check evaluates the example1 configuration (NLA) with the bfmt
 theory block switched on for one of its feedback methods, at the
@@ -17,10 +17,10 @@ spectrum carries a baryonic suppression.
 The seven checks cover every method the bfmt theory block
 implements:
 
-  B1. SP(k), power-law fb relation      B2. SP(k), Akino et al. 2022
-  B3. SP(k), double power-law relation  B4. BCEmu
-  B5. FlamingoBaryonResponseEmulator    B6. BACCOemu
-  B7. BCemu2025
+  BF1. SP(k), power-law fb relation      BF2. SP(k), Akino et al. 2022
+  BF3. SP(k), double power-law relation  BF4. BCEmu
+  BF5. FlamingoBaryonResponseEmulator    BF6. BACCOemu
+  BF7. BCemu2025
 
 Each parameter point is fixed (the SP(k) points are pyspk's
 documented examples; the emulator points are the fiducial values
@@ -61,7 +61,7 @@ import cocoa_test_utils as u
 
 
 class TestBaryonAccuracyAdvisory(unittest.TestCase):
-    """Advisory checks B1-B7: accuracy with baryonic feedback on.
+    """Advisory checks BF1-BF7: accuracy with baryonic feedback on.
 
     setUpClass runs once: it moves to ROOTDIR and verifies every
     frozen file against the SHA-256 manifest before any physics runs.
@@ -76,7 +76,7 @@ class TestBaryonAccuracyAdvisory(unittest.TestCase):
         """Default vs high accuracy with one feedback method on.
 
         Arguments:
-          name   = the advisory label (B1-B7) for the report.
+          name   = the advisory label (BF1-BF7) for the report.
           baryon = a label of cocoa_test_utils.BARYON_METHODS.
           label  = one line naming the feedback method.
         """
@@ -100,37 +100,37 @@ ACCURACY: {name}: {label}
         u.report_accuracy(f"{name}: {label}", chi2_high, chi2_default,
                           default_name="default, this run")
 
-    def test_b1_spk_power_law(self):
-        """B1: SP(k) with the power-law fb relation."""
-        self._baryon_accuracy_check("B1", "spk power law",
+    def test_bf1_spk_power_law(self):
+        """BF1: SP(k) with the power-law fb relation."""
+        self._baryon_accuracy_check("BF1", "spk power law",
                                     "SP(k), power-law fb relation")
 
-    def test_b2_spk_akino(self):
-        """B2: SP(k) with the Akino et al. 2022 fb relation."""
-        self._baryon_accuracy_check("B2", "spk akino",
+    def test_bf2_spk_akino(self):
+        """BF2: SP(k) with the Akino et al. 2022 fb relation."""
+        self._baryon_accuracy_check("BF2", "spk akino",
                                     "SP(k), Akino et al. 2022")
 
-    def test_b3_spk_double_power_law(self):
-        """B3: SP(k) with the double power-law fb relation."""
-        self._baryon_accuracy_check("B3", "spk double power law",
+    def test_bf3_spk_double_power_law(self):
+        """BF3: SP(k) with the double power-law fb relation."""
+        self._baryon_accuracy_check("BF3", "spk double power law",
                                     "SP(k), double power-law fb relation")
 
-    def test_b4_bcemu(self):
-        """B4: BCEmu."""
-        self._baryon_accuracy_check("B4", "bcemu", "BCEmu")
+    def test_bf4_bcemu(self):
+        """BF4: BCEmu."""
+        self._baryon_accuracy_check("BF4", "bcemu", "BCEmu")
 
-    def test_b5_flamingo(self):
-        """B5: FlamingoBaryonResponseEmulator."""
-        self._baryon_accuracy_check("B5", "flamingo",
+    def test_bf5_flamingo(self):
+        """BF5: FlamingoBaryonResponseEmulator."""
+        self._baryon_accuracy_check("BF5", "flamingo",
                                     "FlamingoBaryonResponseEmulator")
 
-    def test_b6_baccoemu(self):
-        """B6: BACCOemu."""
-        self._baryon_accuracy_check("B6", "baccoemu", "BACCOemu")
+    def test_bf6_baccoemu(self):
+        """BF6: BACCOemu."""
+        self._baryon_accuracy_check("BF6", "baccoemu", "BACCOemu")
 
-    def test_b7_bcemu2025(self):
-        """B7: BCemu2025."""
-        self._baryon_accuracy_check("B7", "bcemu2025", "BCemu2025")
+    def test_bf7_bcemu2025(self):
+        """BF7: BCemu2025."""
+        self._baryon_accuracy_check("BF7", "bcemu2025", "BCemu2025")
 
 
 if __name__ == "__main__":
