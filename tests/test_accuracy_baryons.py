@@ -1,18 +1,22 @@
 """Baryonic feedback accuracy checks BF1-BF7: default vs high accuracy.
 
 Each check evaluates the example1 configuration (NLA) with the bfmt
-theory block switched on for one of its feedback methods, at the
-default numerical settings and again with every accuracy knob pushed
-(cocoa_test_utils.HIGH_ACCURACY_*), and reports
+theory block switched on for one of its feedback methods, using the
+mechanism of the N-random-models check: the default-settings model
+writes its own theory vector during evaluation, that vector becomes
+the data of a temporary dataset (so the default chi2 against it is
+zero by construction, and nothing is stored in frozen/), and the
+pushed-settings model evaluates at the same point against it. Its
+chi2 IS the reported quantity,
 
     delta chi2 = chi2(high accuracy) - chi2(default)
 
-Both values are computed in this run: switching the feedback on
-changes the data-vector prediction, so the frozen no-feedback
-reference does not apply here. Advisory like test_accuracy.py, with
-NO pass/fail: the question answered is whether the numerical error
-of the default settings stays harmless when the nonlinear power
-spectrum carries a baryonic suppression.
+a pure numerics (curvature) response at the minimum. The delta is
+advisory like test_accuracy.py: the question answered is whether the
+numerical error of the default settings stays harmless when the
+nonlinear power spectrum carries a baryonic suppression. BF0
+additionally runs the one-knob-at-a-time scan with the Akino SP(k)
+method on, so a large delta names the knob causing it.
 
 The seven checks cover every method the bfmt theory block
 implements:
@@ -27,15 +31,14 @@ documented examples; the emulator points are the fiducial values
 quoted in the example yamls); the exact values live in
 cocoa_test_utils.BARYON_METHODS.
 
-Two readings to keep in mind. First, the frozen data vector carries
-no feedback, so switching a method on moves the chi2 far from its
-minimum, and the delta rides a steep slope: expect larger values
-than the at-minimum checks of test_accuracy.py report, and compare
-the methods against each other rather than against the band. Second,
-a method may REJECT the frozen fiducial when it violates the
-method's own training box (BACCOemu's omega_baryon boundary sits at
-omegab = 0.04001, for example); the check then reports the rejection
-as documented behavior instead of a number.
+Every configuration here is measurable by construction: BACCOemu's
+check evaluates at omegab = 0.049, inside its omega_baryon training
+box (the floor, 0.04001, sits exactly above the fiducial
+omegab = 0.04), and the double-power-law point keeps the baryon
+fraction inside SP(k)'s calibrated band over the full redshift grid
+(pyspk's documented example exits it at z >~ 1.4). The exact points
+live in cocoa_test_utils.BARYON_METHODS and
+BARYON_POINT_OVERRIDES.
 
 This file adds to test_accuracy.py and does not replace or modify
 it. Two evaluations per check, one of them at high accuracy: expect
@@ -80,25 +83,35 @@ class TestBaryonAccuracyAdvisory(unittest.TestCase):
           baryon = a label of cocoa_test_utils.BARYON_METHODS.
           label  = one line naming the feedback method.
         """
-        chi2_default = u.single_model_chi2("example1", False,
-                                           baryon=baryon)
-        if chi2_default is None:
-            # the method rejected the frozen fiducial: a training-box
-            # violation, reported by the warning above naming the
-            # parameter; the rejection path working IS the result
-            print(f"""
+        # the default chi2 is zero by construction (the default
+        # model produced the very vector it is compared with), so the
+        # pushed evaluation's chi2 IS the delta; only that is printed
+        delta = u.baryon_accuracy_delta(baryon)
+        self.assertTrue(
+            delta == delta and abs(delta) != float("inf"),
+            f"{name}: non-finite delta")
+        print(f"""
 {'-' * 66}
 ACCURACY: {name}: {label}
-  the method rejected the frozen fiducial (training-box violation;
-  the warning above names the parameter). The rejection path works
-  as documented; no delta is measured for this method.
+  delta chi2 (high-default) = {delta:+.6f}
 {'-' * 66}""", flush=True)
-            return
-        chi2_high = u.single_model_chi2("example1", False,
-                                        high_accuracy=True,
-                                        baryon=baryon)
-        u.report_accuracy(f"{name}: {label}", chi2_high, chi2_default,
-                          default_name="default, this run")
+
+    def test_bf0_one_knob_at_a_time(self):
+        """BF0: each accuracy knob alone, Akino SP(k) feedback on.
+
+        Advisory: the same K-scan as test_accuracy.py, with the bfmt
+        block computing the Akino SP(k) suppression and the chi2
+        measured against that method's own generated vector. A knob
+        whose delta rivals the all-knobs delta of BF2 is the driver
+        of the numerical error under feedback.
+        """
+        print("", flush=True)
+        for label, _, _ in u.ACCURACY_KNOBS:
+            # each knob's chi2 against the on-the-fly vector IS its
+            # delta (the default against that vector is zero)
+            delta = u.baryon_accuracy_delta("spk akino", knob=label)
+            print(f"  KNOB {label:30s} delta chi2 = {delta:+12.6f}",
+                  flush=True)
 
     def test_bf1_spk_power_law(self):
         """BF1: SP(k) with the power-law fb relation."""

@@ -177,9 +177,16 @@ BARYON_METHODS = [
      {"fb_a_spk": 0.4, "fb_pow_spk": 0.3}),
     ("spk akino", {"baryon_model": 1, "spk_fb_model": 2},
      {"alpha_spk": 4.189, "beta_spk": 1.273, "gamma_spk": 0.298}),
+    # pyspk's documented double-power-law example (epsilon 0.3,
+    # alpha 1.1, beta 0.2, gamma 0.5) pushes fb outside SP(k)'s
+    # calibrated band at z >~ 1.4 (pyspk then returns NaN and the
+    # block falls back to unity per redshift): a check with that
+    # point would test the fallback, not the method. This point
+    # matches the Akino relation's amplitude and mass slope at the
+    # pivot and stays inside the band over the full z grid.
     ("spk double power law", {"baryon_model": 1, "spk_fb_model": 3},
-     {"epsilon_spk": 0.3, "alpha_spk": 1.1, "beta_spk": 0.2,
-      "gamma_spk": 0.5}),
+     {"epsilon_spk": 0.66, "alpha_spk": 0.35, "beta_spk": 0.2,
+      "gamma_spk": 0.3}),
     ("bcemu", {"baryon_model": 2},
      {"log10Mc_bcemu": 13.32, "mu_bcemu": 0.93, "thej_bcemu": 4.235,
       "gamma_bcemu": 2.25, "delta_bcemu": 6.40, "eta_bcemu": 0.15,
@@ -214,6 +221,264 @@ def _baryon_method(label):
     if len(matches) != 1:
         raise ValueError(f"unknown baryon method {label!r}")
     return matches[0]
+
+
+# Cosmology shifts a method needs so its OWN training box contains
+# the evaluation point. BACCOemu's omega_baryon floor is 0.04001,
+# exactly above the fiducial omegab = 0.04, so its checks (and its
+# generated data vector) evaluate at omegab = 0.049 - inside the box
+# and inside the yaml prior. Generator and checks apply the SAME
+# override, so the chi2 still sits at the minimum by construction.
+BARYON_POINT_OVERRIDES = {
+    "baccoemu": {"omegab": 0.049},
+}
+
+
+def _baryon_dataset(label):
+    """Dataset descriptor name for one feedback method's own vector.
+
+    Arguments:
+      label = a BARYON_METHODS label.
+
+    Returns:
+      the frozen/data descriptor file name, e.g.
+      baryon_spk_akino.dataset for "spk akino".
+    """
+    return "baryon_" + label.replace(" ", "_") + ".dataset"
+
+
+# =============================================================================
+# SECTION 2: ENVIRONMENT CHECKS
+# =============================================================================
+def require_cocoa_environment():
+    """Refuse to run outside a started Cocoa shell, then move to ROOTDIR.
+
+    start_cocoa.sh exports ROOTDIR (the absolute path of the Cocoa/
+    folder) and prepares the library paths the compiled cosmolike
+    interface needs. Without it, importing the likelihood would fail
+    with a confusing linker error, so this check turns that failure
+    into an instruction. The chdir matters because component paths in
+    the frozen configuration (for example CAMB's
+    ./external_modules/code/CAMB) are relative to ROOTDIR.
+
+    Returns:
+      nothing; on success the process working directory is ROOTDIR.
+
+    Raises:
+      RuntimeError telling the user to activate the cocoa environment
+      and source start_cocoa.sh when ROOTDIR is not exported.
+    """
+    if "ROOTDIR" not in os.environ:
+        raise RuntimeError(
+            "ROOTDIR is not set. Activate the cocoa conda environment and run "
+            "`source start_cocoa.sh` from the Cocoa/ folder before running "
+            "these tests."
+        )
+    os.chdir(os.environ["ROOTDIR"])
+
+
+def assert_omp_threads():
+    """Refuse a race test that would not actually run multi-threaded.
+
+    OpenMP reads OMP_NUM_THREADS once, when the compiled library is
+    first loaded, so the value must be in the environment before any
+    cobaya or cosmolike import. The test modules set it at their first
+    line; this check catches a run that imported the stack some other
+    way first (for example from an interactive session).
+
+    Returns:
+      nothing when OMP_NUM_THREADS equals REQUIRED_OMP_THREADS.
+
+    Raises:
+      RuntimeError naming the observed value and the required one.
+    """
+    # .get returns None when the variable is unset, so the error can
+    # show "None" rather than crash on a missing key
+    observed = os.environ.get("OMP_NUM_THREADS")
+    if observed != REQUIRED_OMP_THREADS:
+        # !r prints the value in its python literal form: None and
+        # the text '4' stay distinguishable in the message
+        raise RuntimeError(
+            f"OMP_NUM_THREADS={observed!r}; the race-condition tests require "
+            f"OMP_NUM_THREADS={REQUIRED_OMP_THREADS} and it must be set "
+            "before cobaya/cosmolike are imported."
+        )
+
+
+# =============================================================================
+# SECTION 3: FROZEN-STATE INTEGRITY
+# =============================================================================
+def sha256_of(path):
+    """Fingerprint one file with SHA-256.
+
+    Arguments:
+      path = absolute path of the file to hash.
+
+    Returns:
+      the 64-character lowercase hexadecimal SHA-256 digest of the
+      file's bytes. Reading happens in 1 MiB blocks so the 80 MB
+      covariance never sits in memory at once.
+    """
+    hasher = hashlib.sha256()
+    # "rb" reads raw bytes (hashing is byte-level); the with block
+    # closes the file on every exit, an exception included
+    with open(path, "rb") as f:
+        # the lambda is an unnamed one-line function wrapping f.read;
+        # two-argument iter calls it again and again until it returns
+        # b"" (end of file); 1 << 20 is 2**20 bytes = 1 MiB per read
+        for block in iter(lambda: f.read(1 << 20), b""):
+            hasher.update(block)
+    return hasher.hexdigest()
+
+
+def compute_manifest():
+    """Hash every file currently under tests/frozen/.
+
+    __pycache__ folders and .pyc files are skipped: Python writes them
+    as a side effect of importing the frozen modules, so hashing them
+    would make the manifest fail after the first run. .DS_Store files
+    (macOS Finder metadata) are skipped for the same reason.
+
+    Returns:
+      a dictionary {relative path: sha256 digest}, with paths relative
+      to the tests/ folder using "/" separators, sorted by path so the
+      manifest file is stable across platforms.
+    """
+    files = {}
+    # os.walk visits every folder under frozen/, handing back the
+    # folder path, its subfolder names, and its file names
+    for base, dirs, names in os.walk(FROZEN_DIR):
+        # the comprehension keeps every subfolder name except
+        # __pycache__; assigning through dirs[:] rewrites os.walk's
+        # own list in place, which stops the walk from entering the
+        # dropped folders (a plain dirs = ... would not)
+        dirs[:] = [d for d in dirs if d != "__pycache__"]
+        for name in sorted(names):
+            if name == ".DS_Store" or name.endswith(".pyc"):
+                continue
+            full = os.path.join(base, name)
+            rel = os.path.relpath(full, TESTS_DIR).replace(os.sep, "/")
+            files[rel] = sha256_of(full)
+    # sorted(files.items()) orders the (path, digest) pairs by path;
+    # dict() rebuilds the table in that order, so the manifest json
+    # written from it never reshuffles between runs
+    return dict(sorted(files.items()))
+
+
+def verify_frozen():
+    """Fail every test up front when the frozen state was edited.
+
+    Compares the stored manifest with a fresh hash of tests/frozen/ in
+    both directions, so an edited file (CHANGED), a deleted file
+    (MISSING), and a new file (EXTRA) are all reported. This runs
+    before any model is built: a tampered frozen state must not
+    produce a plausible-looking chi2.
+
+    Returns:
+      nothing when every frozen file matches the manifest.
+
+    Raises:
+      AssertionError listing every mismatched path and pointing to
+      generate_frozen_reference.py --overwrite for a deliberate
+      refresh; AssertionError also when the manifest file itself is
+      absent (the frozen state was never generated).
+    """
+    if not os.path.isfile(MANIFEST_FILE):
+        raise AssertionError(
+            "tests/manifest_sha256.json is missing; run "
+            "generate_frozen_reference.py --overwrite to create the frozen "
+            "test state."
+        )
+    # expected = the {relative path: sha256 digest} table written at
+    # freeze time; it is the definition of "untouched" (json.load
+    # parses the file into nested dictionaries and lists)
+    with open(MANIFEST_FILE) as f:
+        expected = json.load(f)["files"]
+    # actual = the same table computed from the files on disk right now
+    # (compute_manifest walks frozen/ and fingerprints each file)
+    actual = compute_manifest()
+    # collect every discrepancy before raising: a report naming all
+    # problem files at once beats failing on the first one
+    problems = []
+    # .items() hands back each (path, digest) pair, and the loop
+    # unpacks the pair into the two names
+    for rel, digest in expected.items():
+        if rel not in actual:
+            # the manifest lists it but the file is gone from disk
+            problems.append(f"MISSING  {rel}")
+        elif actual[rel] != digest:
+            # the file exists but at least one byte differs
+            problems.append(f"CHANGED  {rel}")
+    # both directions matter: a file ADDED to frozen/ is as suspicious
+    # as an edited one, so the reverse scan runs too (iterating a
+    # dictionary yields its keys: here, the paths)
+    for rel in actual:
+        if rel not in expected:
+            problems.append(f"EXTRA    {rel}")
+    if problems:
+        # "\n  ".join(problems) glues the collected lines into one
+        # indented list, one problem file per line
+        raise AssertionError(
+            "Frozen test data does not match tests/manifest_sha256.json "
+            "(someone edited the frozen copies; the tests refuse to run):\n  "
+            + "\n  ".join(problems)
+            + "\nIf the change is deliberate, regenerate with "
+            "generate_frozen_reference.py --overwrite."
+        )
+
+
+def load_reference():
+    """Read the frozen reference chi2 values.
+
+    Returns:
+      the dictionary stored in frozen/reference_chi2.json: one entry
+      per configuration ("example1_nla", "example1_tatt",
+      "example2_nla", "example2_tatt") plus a "_meta" entry recording
+      when and how the references were generated. The file sits inside
+      frozen/, so verify_frozen() also protects it from editing.
+    """
+    # json.load turns the file's json text back into the dictionary
+    # json.dump wrote; the with block closes the file either way
+    with open(REFERENCE_FILE) as f:
+        return json.load(f)
+
+
+# =============================================================================
+# SECTION 4: MODEL CONSTRUCTION AND EVALUATION (the chi2 pipeline)
+# =============================================================================
+# cobaya and numpy are imported inside the functions below, not at the
+# top of this module. The reason is OpenMP: OMP_NUM_THREADS must be in
+# the environment before the compiled libraries load, and it is the
+# TEST modules that set it, on their first line, before importing this
+# module's callers.
+def _frozen_module(example):
+    """Load one frozen configuration module from its file path.
+
+    importlib is used instead of a plain import statement because the
+    frozen modules live inside frozen/, which is data, not a package:
+    it has no __init__.py and is never on sys.path. Loading by path
+    also guarantees the file that verify_frozen() hashed is exactly
+    the file being executed.
+
+    Arguments:
+      example = "example1" or "example2" (a key of EXAMPLES).
+
+    Returns:
+      the loaded module, carrying the attributes `yaml_string` (the
+      complete configuration) and `point` (the frozen evaluation
+      point).
+    """
+    import importlib.util
+
+    path = os.path.join(FROZEN_DIR, EXAMPLES[example]["frozen_module"])
+    # the importlib three-step: describe the file (spec), create an
+    # empty module object from the description, then run the file's
+    # code inside that object to fill in its attributes
+    spec = importlib.util.spec_from_file_location(f"frozen_{example}", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
 
 
 ACCURACY_KNOBS = [
@@ -903,6 +1168,10 @@ def _single_model_chi2_impl(example, tatt, high_accuracy=False,
     # parameter since the freeze, the mismatch is reported by name
     # instead of failing deep inside cobaya
     point = build_point(model, example, tatt)
+    if baryon is not None:
+        # dict(point) copies before the in-place update below
+        point = dict(point)
+        point.update(BARYON_POINT_OVERRIDES.get(baryon, {}))
     print("  evaluating the fiducial point ...", flush=True)
     if baryon is not None:
         # With the feedback on, a non-finite chi2 means the method
@@ -999,6 +1268,165 @@ _WORKER_DRIVER = (
 )
 
 
+def _baryon_accuracy_delta_impl(baryon, knob=None):
+    """Delta chi2 for one feedback method, against its own vector.
+
+    The N-random-models mechanism at the frozen fiducial: a
+    DEFAULT-settings model with this method's feedback on writes its
+    theory vector during evaluation (print_datavector); that vector
+    becomes the data of a temporary dataset descriptor, so the
+    default chi2 against it is zero by construction; a second model -
+    high accuracy, or one accuracy knob alone - evaluates at the SAME
+    point against that descriptor, and its chi2 IS
+
+        delta chi2 = chi2(pushed settings) - chi2(default)
+
+    a pure numerics response at the minimum. Nothing is written into
+    frozen/ (the manifest pins every byte there); the vector, the
+    descriptor, and the symlinked data folder live and die inside a
+    temporary directory. The evaluation point is the frozen fiducial
+    plus the method's cosmology override (BARYON_POINT_OVERRIDES,
+    e.g. BACCOemu's omegab shift into its training box), applied to
+    BOTH evaluations. Both models share example1's data-vector
+    dimensions, so building them one after another inside one worker
+    process is safe.
+
+    Arguments:
+      baryon = a BARYON_METHODS label.
+      knob   = None for the all-knobs high-accuracy comparison, or
+               an ACCURACY_KNOBS label evaluated alone.
+
+    Returns:
+      the delta chi2 as a float.
+    """
+    import numpy as np
+    import shutil
+    import tempfile
+
+    cfg = EXAMPLES["example1"]
+    frozen_data_dir = os.path.join(FROZEN_DIR, "data")
+    info = load_frozen_info("example1", tatt=False, baryon=baryon)
+    likelihood_block = info["likelihood"][cfg["likelihood"]]
+    workdir = tempfile.mkdtemp(prefix="cocoa_baryon_model_")
+    try:
+        # the likelihood joins path + filename for EVERY file a
+        # descriptor names, so the temporary directory must look like
+        # a complete data folder: symlink each frozen data file in
+        for name in sorted(os.listdir(frozen_data_dir)):
+            os.symlink(os.path.join(frozen_data_dir, name),
+                       os.path.join(workdir, name))
+        slug = baryon.replace(" ", "_")
+        vector_name = f"baryon_{slug}.modelvector"
+        descriptor_name = f"baryon_{slug}.dataset"
+        vector_path = os.path.join(workdir, vector_name)
+        # the default model's evaluation writes the theory vector;
+        # its chi2 (against the frozen no-feedback data) plays no role
+        likelihood_block["print_datavector"] = True
+        likelihood_block["print_datavector_file"] = vector_path
+        print(f"  building the default model ({baryon}) ...",
+              flush=True)
+        model = make_model(info)
+        point = dict(build_point(model, "example1", tatt=False))
+        point.update(BARYON_POINT_OVERRIDES.get(baryon, {}))
+        print("  evaluating (writes the synthetic vector) ...",
+              flush=True)
+        evaluate_chi2(model, point)
+        if not os.path.isfile(vector_path):
+            raise RuntimeError(
+                f"print_datavector wrote no file at {vector_path}")
+        # full-length check: the covariance and the masks select
+        # entries by position, so a short vector would misalign them
+        with open(vector_path) as f:
+            generated_lines = sum(1 for _ in f)
+        with open(os.path.join(frozen_data_dir,
+                               likelihood_block["data_file"])) as f:
+            descriptor = f.read()
+        original_vector = None
+        for line in descriptor.splitlines():
+            if line.strip().startswith("data_file"):
+                original_vector = line.split("=", 1)[1].strip()
+        with open(os.path.join(frozen_data_dir, original_vector)) as f:
+            original_lines = sum(1 for _ in f)
+        if generated_lines != original_lines:
+            raise RuntimeError(
+                f"generated vector has {generated_lines} lines; the "
+                f"original {original_vector} has {original_lines}")
+        # the temporary descriptor: the frozen text with only the
+        # data_file line renamed, so the same covariance, n(z), and
+        # masks are read but the synthetic vector is the data
+        replaced = 0
+        out_lines = []
+        for line in descriptor.splitlines(keepends=True):
+            if line.strip().startswith("data_file"):
+                out_lines.append(f"data_file = {vector_name}\n")
+                replaced += 1
+            else:
+                out_lines.append(line)
+        if replaced != 1:
+            raise RuntimeError(
+                "expected exactly one data_file line, found "
+                f"{replaced}")
+        with open(os.path.join(workdir, descriptor_name), "w") as f:
+            f.write("".join(out_lines))
+        # the pushed-settings model, at the same point, against the
+        # synthetic vector: its chi2 is the delta by construction
+        overrides = None
+        high_accuracy = knob is None
+        if knob is not None:
+            matches = [k for k in ACCURACY_KNOBS if k[0] == knob]
+            if len(matches) != 1:
+                raise ValueError(f"unknown accuracy knob {knob!r}")
+            overrides = (matches[0][1], matches[0][2])
+        info_high = load_frozen_info("example1", tatt=False,
+                                     baryon=baryon,
+                                     high_accuracy=high_accuracy,
+                                     overrides=overrides)
+        block_high = info_high["likelihood"][cfg["likelihood"]]
+        block_high["path"] = workdir
+        block_high["data_file"] = descriptor_name
+        label = knob if knob is not None else "high accuracy"
+        print(f"  building the pushed model ({label}) ...", flush=True)
+        model_high = make_model(info_high)
+        print("  evaluating against the synthetic vector ...",
+              flush=True)
+        return float(evaluate_chi2(model_high, point))
+    finally:
+        shutil.rmtree(workdir, ignore_errors=True)
+
+
+def _baryon_drift_chi2_impl(baryon):
+    """Drift chi2 of one feedback method against its FROZEN vector.
+
+    The frozen vector was written at freeze time by
+    generate_frozen_reference.py --baryons: the default-settings
+    theory prediction with this method's feedback on, at the frozen
+    fiducial plus the method's cosmology override. At freeze time
+    the chi2 against it was zero by construction, so any chi2 above
+    the tolerance today means cosmolike or the bfmt theory block
+    changed its prediction since the freeze - the same pinning idea
+    as the reference tests, applied to the feedback pipeline.
+
+    Arguments:
+      baryon = a BARYON_METHODS label.
+
+    Returns:
+      the chi2 as a float.
+    """
+    cfg = EXAMPLES["example1"]
+    info = load_frozen_info("example1", tatt=False, baryon=baryon)
+    likelihood_block = info["likelihood"][cfg["likelihood"]]
+    # the method's own frozen dataset: same covariance, n(z), and
+    # masks, but the freeze-time feedback prediction as the data
+    likelihood_block["data_file"] = _baryon_dataset(baryon)
+    print(f"  building model ({baryon}, frozen vector) ...",
+          flush=True)
+    model = make_model(info)
+    point = dict(build_point(model, "example1", tatt=False))
+    point.update(BARYON_POINT_OVERRIDES.get(baryon, {}))
+    print("  evaluating the fiducial point ...", flush=True)
+    return float(evaluate_chi2(model, point))
+
+
 def _worker(function, example, tatt, high_accuracy, knob, baryon,
             result_path):
     """Worker-side entry: run one evaluation and save the numbers.
@@ -1031,6 +1459,10 @@ def _worker(function, example, tatt, high_accuracy, knob, baryon,
                                         high_accuracy=high_accuracy,
                                         knob=knob or None,
                                         baryon=baryon or None)
+    elif function == "bdelta":
+        value = _baryon_accuracy_delta_impl(baryon, knob=knob or None)
+    elif function == "bdrift":
+        value = _baryon_drift_chi2_impl(baryon)
     else:
         # list() turns the (fresh, tenth) pair into a list, the form
         # json.dump can store
@@ -1136,6 +1568,45 @@ def single_model_chi2(example, tatt, high_accuracy=False, knob=None,
     # a None from the worker means a baryon method rejected the frozen
     # fiducial (see _single_model_chi2_impl); it travels as json null
     return None if value is None else float(value)
+
+
+def baryon_accuracy_delta(baryon, knob=None):
+    """Delta chi2 of one feedback method, in a fresh worker.
+
+    See _baryon_accuracy_delta_impl for the mechanism (the synthetic
+    on-the-fly data vector). Both models of the pair run inside ONE
+    worker subprocess.
+
+    Arguments:
+      baryon = a BARYON_METHODS label.
+      knob   = None for the all-knobs high-accuracy comparison, or
+               an ACCURACY_KNOBS label evaluated alone.
+
+    Returns:
+      the delta chi2 as a float.
+    """
+    if os.environ.get(_WORKER_FLAG) == "1":
+        return _baryon_accuracy_delta_impl(baryon, knob=knob)
+    return float(_run_isolated("bdelta", "example1", False, knob=knob,
+                               baryon=baryon))
+
+
+def baryon_drift_chi2(baryon):
+    """Drift chi2 of one feedback method, in a fresh worker.
+
+    See _baryon_drift_chi2_impl for the mechanism (the frozen
+    feedback vector written at freeze time).
+
+    Arguments:
+      baryon = a BARYON_METHODS label.
+
+    Returns:
+      the chi2 as a float.
+    """
+    if os.environ.get(_WORKER_FLAG) == "1":
+        return _baryon_drift_chi2_impl(baryon)
+    return float(_run_isolated("bdrift", "example1", False,
+                               baryon=baryon))
 
 
 def ten_in_a_row_chi2(example, tatt):

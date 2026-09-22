@@ -18,6 +18,7 @@ same.
 2. [The tests](#the_tests)
     1. [Accuracy checks](#accuracy_checks)
     2. [Baryonic feedback accuracy checks](#baryon_accuracy_checks)
+    3. [Baryonic feedback drift tests](#baryon_drift_tests)
 3. [Appendix](#appendix)
     1. [FAQ: Do the tests keep their own data?](#frozen_copy)
     2. [FAQ: Why do the tests use their own data vectors?](#synthetic_vectors)
@@ -155,16 +156,23 @@ The file `test_accuracy_baryons.py` repeats the default-versus-high
 accuracy comparison with the `bfmt` theory block switched on: one
 advisory check per feedback method (the three SP(k) fb relations,
 BCEmu, Flamingo, BACCOemu, and BCemu2025), at a fixed parameter
-point per method. Both $\chi^2$ values are computed in the run
-itself, because the stored data vector carries no feedback.
+point per method. Each check creates its data vector on the fly, by
+the same mechanism as the N-random-models check: the
+default-settings model writes its own theory vector during
+evaluation, that vector becomes the data of a temporary dataset, and
+the pushed-settings model evaluates at the same point against it.
+The fiducial $\chi^2$ is therefore zero by construction, nothing is
+stored in the snapshot, and the single reported number,
+$\Delta\chi^2$, is a pure numerics response. The check BF0
+additionally runs the one-setting-at-a-time scan with the Akino
+SP(k) feedback on, so a large delta names the setting causing it.
 
-> [!NOTE]
-> With no feedback in the stored data vector, these checks sit far
-> from the $\chi^2$ minimum and their deltas ride a steep slope:
-> compare the methods against each other rather than against the
-> $\Delta\chi^2 < 0.2$ band of the reference tests. A method whose
-> training box excludes the fiducial point reports the rejection as
-> documented behavior instead of a delta.
+Every checked configuration is measurable by construction. The
+BACCOemu check evaluates with `omegab: 0.049`, inside that
+emulator's baryon-density training box, whose floor sits exactly
+above the fiducial `omegab: 0.04`; and the double-power-law point is
+chosen to keep the baryon fraction inside SP(k)'s calibrated band
+over the full redshift grid.
 
 #### Running the baryonic feedback checks <a name="run_baryon_accuracy"></a>
 
@@ -180,6 +188,35 @@ the script `start_cocoa.sh`
 **Step :two:**: run the baryonic feedback checks of this project
 
     python -m pytest ./projects/desy1xplanck/tests/test_accuracy_baryons.py
+
+### Baryonic feedback drift tests (`test_baryons.py`, BD1-BD7) <a name="baryon_drift_tests"></a>
+
+The file `test_baryons.py` pins the feedback pipeline against change
+over time, one test per method. Each method's default-settings
+theory prediction was stored at freeze time
+(`generate_frozen_reference.py --baryons`), and the test evaluates
+today's prediction against that stored vector: zero at freeze time
+by construction, so a $\chi^2$ above the tolerance means cosmolike
+or the `bfmt` theory block changed its prediction since the freeze.
+These tests complement the accuracy checks above: the accuracy
+checks regenerate their vector on the fly per run, so they measure
+the numerical settings and can never see drift; the drift tests hold
+the frozen vector still, so they measure drift and nothing else.
+
+#### Running the baryonic feedback drift tests <a name="run_baryon_drift"></a>
+
+We assume users are in the Conda cocoa environment from a previous
+`conda activate cocoa` command, that the shell is bash, and that the
+current folder is the cocoa main folder `cocoa/Cocoa`.
+
+**Step :one:**: activate the private Python environment by sourcing
+the script `start_cocoa.sh`
+
+    source start_cocoa.sh
+
+**Step :two:**: run the drift tests of this project
+
+    python -m pytest ./projects/desy1xplanck/tests/test_baryons.py
 
 # Appendix <a name="appendix"></a>
 
