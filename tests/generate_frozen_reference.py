@@ -292,6 +292,90 @@ def generate_datavector(dataset_name):
           f"descriptor: {dataset_name}", flush=True)
 
 
+def generate_baryon_datavector(label):
+    """Write one feedback method's frozen data vector and descriptor.
+
+    The vector is the example1 theory prediction WITH the bfmt theory
+    block computing this method's suppression, at the frozen fiducial
+    point plus the method's cosmology override
+    (u.BARYON_POINT_OVERRIDES, e.g. BACCOemu's omegab shift into its
+    training box). The DRIFT tests of test_baryons.py evaluate
+    against this vector: at freeze time the chi2 is zero by
+    construction, so any later chi2 above the tolerance means
+    cosmolike or the theory block changed its prediction. (The
+    ACCURACY checks of test_accuracy_baryons.py do not use these
+    files: they regenerate their vector on the fly per run.) Runs
+    inside a --baryon-one worker subprocess for the same isolation
+    reasons as the other steps.
+
+    Arguments:
+      label = a u.BARYON_METHODS label.
+
+    Returns:
+      nothing; frozen/data/ gains the .modelvector and .dataset files.
+
+    Raises:
+      RuntimeError when the generated vector's length differs from
+      the original data vector, or when the dataset descriptor does
+      not contain exactly one data_file line.
+    """
+    from cobaya.yaml import yaml_load
+
+    example = "example1"
+    cfg = u.EXAMPLES[example]
+    frozen_info = yaml_load(u._frozen_module(example).yaml_string)
+    original_dataset = frozen_info["likelihood"][cfg["likelihood"]]["data_file"]
+
+    dataset_name = u._baryon_dataset(label)
+    vector_name = dataset_name.replace(".dataset", ".modelvector")
+    info = u.load_frozen_info(example, tatt=False, baryon=label)
+    likelihood_block = info["likelihood"][cfg["likelihood"]]
+    likelihood_block["data_file"] = original_dataset
+    likelihood_block["print_datavector"] = True
+    likelihood_block["print_datavector_file"] = (
+        FROZEN_DATA_RELPATH + "/" + vector_name)
+
+    print(f"generating {vector_name} ({label}) ...", flush=True)
+    model = u.make_model(info)
+    point = dict(u.build_point(model, example, tatt=False))
+    point.update(u.BARYON_POINT_OVERRIDES.get(label, {}))
+    u.evaluate_chi2(model, point)
+
+    data_dir = os.path.join(u.FROZEN_DIR, "data")
+    with open(os.path.join(data_dir, vector_name)) as f:
+        generated_lines = sum(1 for _ in f)
+    descriptor_path = os.path.join(data_dir, original_dataset)
+    with open(descriptor_path) as f:
+        descriptor = f.read()
+    original_vector = None
+    for line in descriptor.splitlines():
+        if line.strip().startswith("data_file"):
+            original_vector = line.split("=", 1)[1].strip()
+    with open(os.path.join(data_dir, original_vector)) as f:
+        original_lines = sum(1 for _ in f)
+    if generated_lines != original_lines:
+        raise RuntimeError(
+            f"baryon data vector has {generated_lines} lines; the "
+            f"original {original_vector} has {original_lines}")
+
+    replaced = 0
+    out_lines = []
+    for line in descriptor.splitlines(keepends=True):
+        if line.strip().startswith("data_file"):
+            out_lines.append(f"data_file = {vector_name}\n")
+            replaced += 1
+        else:
+            out_lines.append(line)
+    if replaced != 1:
+        raise RuntimeError(
+            f"{original_dataset}: expected exactly one data_file "
+            f"line, found {replaced}")
+    with open(os.path.join(data_dir, dataset_name), "w") as f:
+        f.write("".join(out_lines))
+    print(f"baryon data vector: {vector_name} ({generated_lines} "
+          f"lines); descriptor: {dataset_name}", flush=True)
+
+
 def main():
     # worker modes first: --freeze-one X and --tatt-one D each run a
     # single model-building step and exit. The parent below spawns one
@@ -307,6 +391,11 @@ def main():
         stamp = sys.argv[sys.argv.index("--stamp") + 1]
         freeze_example(example, stamp)
         return 0
+    if "--baryon-one" in sys.argv:
+        u.require_cocoa_environment()
+        label = sys.argv[sys.argv.index("--baryon-one") + 1]
+        generate_baryon_datavector(label)
+        return
     if "--vector-one" in sys.argv:
         u.require_cocoa_environment()
         dataset_name = sys.argv[sys.argv.index("--vector-one") + 1]
@@ -327,6 +416,30 @@ def main():
       and the refusal reason are printed).
     """
     # the same argument-list scan as the worker flags above
+    if "--baryons" in sys.argv:
+        # incremental: add the per-method frozen baryon vectors of the
+        # DRIFT tests to an existing frozen state and re-pin the
+        # manifest; nothing else changes
+        import subprocess
+
+        u.require_cocoa_environment()
+        self_path = os.path.abspath(__file__)
+        for label, _, _ in u.BARYON_METHODS:
+            completed = subprocess.run(
+                [sys.executable, self_path, "--baryon-one", label])
+            if completed.returncode != 0:
+                raise RuntimeError(f"baryon worker for {label!r} failed")
+        manifest = {
+            "_comment": "SHA-256 of every file under tests/frozen/; "
+                        "verified by every test before evaluating "
+                        "anything.",
+            "files": u.compute_manifest(),
+        }
+        with open(u.MANIFEST_FILE, "w") as f:
+            json.dump(manifest, f, indent=2, sort_keys=True)
+            f.write("\n")
+        print(f"manifest: {len(manifest['files'])} files pinned")
+        return
     if "--overwrite" not in sys.argv:
         print(__doc__)
         print("Refusing to run without --overwrite (this redefines the "

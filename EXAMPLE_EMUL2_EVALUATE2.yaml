@@ -178,10 +178,16 @@ theory:
       nl_metadata_file: "external_modules/data/emultrf/emulmps/w0wa_halofit/metadata.joblib"
       use_syren: False
       param_order: ["As_1e9", "ns", "H0", "omegab", "omegam", 'w', 'wa']
+#  NOTE: under TATT with IA_code: 1 the fastpt defaults are the
+#  converged two-grid configuration: accuracyboost multiplies the
+#  density of the output table cosmolike interpolates (the accuracy
+#  driver) and internal_accuracyboost the FFTLog grid, both rebased
+#  so 1.0 just works (see tests/README.md, test 15).
 #  fastpt:
 #    path: ./external_modules/code/FAST-PT
 #    extra_args:
-#      accuracyboost: 10
+#      accuracyboost: 1.0
+#      internal_accuracyboost: 1.0
 #      kmax_boltzmann: 7.5
 #      extrap_kmax: 250.0
 sampler:

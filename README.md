@@ -177,6 +177,12 @@ model).
 > For the sampled parameters of each model, their validity ranges, and the `bfmt`
 > options, see `Cocoa/external_modules/code/baryon_suppression/README.md`.
 
+# Table of contents <a name="table_of_contents"></a>
+
+1. [Baryonic feedback on EXAMPLE_EVALUATE1](#desy1xplanck_baryonic_feedback)
+2. [Running Hybrid Cosmolike-ML emulators](#desy1xplanck_examples_emul2)
+3. [Unit tests](#desy1xplanck_unit_tests)
+
 # Running Hybrid Cosmolike-ML emulators <a name="desy1xplanck_examples_emul2"></a>
 
 > [!Warning]
