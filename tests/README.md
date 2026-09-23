@@ -155,19 +155,20 @@ the table below is this project's own measurement:
 
 ![The 30 comparison points, colored by the per-point difference](cfastpt_vs_fastpt_points.png)
 
-The same sweep on the 6x2pt likelihood (test 16, 2026-09-23)
-measures max $\Delta\chi^2 = 0.000245$ at the defaults and
-$0.000134$ at the pushed camb/cosmolike settings, indistinguishable
-from cosmic shear's 0.000239 at the same points under the 6x2pt
-masked covariance; on the 2x2pt likelihood (test 17, 2026-09-23) it
-measures $0.000008$ and $0.000003$, the mildest of the three, with
-the TATT tables entering through galaxy-galaxy lensing alone.
+Measured on 2026-09-23:
 
-Under the all-ones mask (`--mask=ones`, 2026-09-23: no scale cuts,
-all 1,809 points weighted) cosmic shear measures max
-$\Delta\chi^2 = 0.004813$ at the default camb/cosmolike settings
-and $0.000224$ at the pushed settings; 2x2pt measures $0.003061$
-and $0.000249$. Every run stays well inside the 0.2 band.
+- Test 16 (6x2pt): max $\Delta\chi^2 = 0.000245$ at the defaults,
+  $0.000134$ at the pushed camb/cosmolike settings,
+  indistinguishable from cosmic shear's 0.000239 at the same points
+  under the 6x2pt masked covariance.
+- Test 17 (2x2pt): $0.000008$ and $0.000003$, the mildest of the
+  three, with the TATT tables entering through galaxy-galaxy
+  lensing alone.
+- `--mask=ones` (no scale cuts, all 1,809 points weighted): cosmic
+  shear measures max $\Delta\chi^2 = 0.004813$ at the default
+  camb/cosmolike settings and $0.000224$ at the pushed settings;
+  2x2pt measures $0.003061$ and $0.000249$. Every run stays well
+  inside the 0.2 band.
 
 > [!Warning]
 > The 6x2pt sweep cannot run under `--mask=ones` (2026-09-23): with
@@ -245,18 +246,21 @@ unmasked 6x2pt covariance is not positive definite and cosmolike
 aborts the model build, as the warning in the CFASTPT section
 describes for test 16.
 
-On 2026-09-23 check NL1 measures per-cosmology $\Delta\chi^2$
-between 0.3 and 42.2 (median 3.4) under the frozen mask, and
-between 0.4 and 71.2 (median 6.2) under `--mask=ones`; check NL2
-measures between 1.9 and 137.2 (median 12.7) under the frozen
-mask. Every sweep peaks at the high-omegam draws.
+Measured on 2026-09-23 (the figure below, frozen mask):
 
-The NL2 run under `--mask=ones` (2026-09-23) ends in the abort
-described above (`IP::set_inv_cov: masked cov not positive
-definite`), so the frozen-mask numbers are NL2's only measurement.
-At these ten cosmologies the two nonlinear-P(k) sources are not
-interchangeable at this project's precision even under the frozen
-scale cuts.
+- NL1 (cosmic shear): per-cosmology $\Delta\chi^2$ between 0.3 and
+  42.2 (median 3.4) under the frozen mask, and between 0.4 and 71.2
+  (median 6.2) under `--mask=ones`.
+- NL2 (6x2pt): between 1.9 and 137.2 (median 12.7) under the frozen
+  mask, its only measurement; the run under `--mask=ones` ends in
+  the abort described above (`IP::set_inv_cov: masked cov not
+  positive definite`).
+- Every sweep peaks at the high-omegam draws; at these ten
+  cosmologies the two nonlinear-P(k) sources are not
+  interchangeable at this project's precision even under the frozen
+  scale cuts.
+
+![The ten cosmologies, colored by the Halofit-vs-EE2 difference](halofit_vs_ee2_points.png)
 
 #### Running the Halofit vs EE2 checks <a name="run_halofit_ee2"></a>
 
