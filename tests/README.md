@@ -119,7 +119,9 @@ onto the other. Both boosts are rebased so 1.0 is the converged
 configuration, and the test runs FAST-PT at the
 defaults with the 0.2 band of the other checks as the pass
 limit; a doubled configuration repeats the measurement as an
-advisory. The point values, the design, and the
+advisory. Before the two-grid upgrade of the
+fastpt theory block (2026-09) there was no upsampling and the
+difference reached $\Delta\chi^2 = 29.6$ across the prior. The point values, the design, and the
 decision record live with the lsst_y1 project (its tests/README.md
 carries the full discussion); the table below is this project's own
 measurement:
