@@ -410,6 +410,7 @@ The `PolyChord` example, in contrast, is configured directly by the YAML file `E
 
 Details on the matter power spectrum emulator designs will be presented in the 
 [emulator_code](https://github.com/SBU-COSMOLIKE/emulators_code) repository. 
+
 Basically, we apply standard neural network techniques to generalize 
 the *syren-new* Eq. 6 of [arXiv:2410.14623](https://arxiv.org/abs/2410.14623) 
 formula for the linear power spectrum (w0waCDM with a fixed neutrino mass of $0.06$ eV) 
@@ -446,12 +447,14 @@ The advisory checks in `tests/test_accuracy.py` measure the
 numerical error of the default accuracy settings: each setting is
 raised one at a time on the 6x2pt configuration, so a large
 $\Delta\chi^2$ can be attributed to the setting causing it, and
-then every setting at once. Each check prints the $\Delta\chi^2$
-between the high-accuracy and the default evaluations, to compare
-against the 0.2 band the reference tests allow. No measured values
-are quoted here: rerun the checks to measure them on the current
-code, and see [tests/README.md](tests/README.md) for each check,
-the settings raised, and what each setting controls.
+then every setting at once.
+
+Each check prints the $\Delta\chi^2$ between the high-accuracy and
+the default evaluations, to compare against the 0.2 band the
+reference tests allow. No measured values are quoted here: rerun
+the checks to measure them on the current code, and see
+[tests/README.md](tests/README.md) for each check, the settings
+raised, and what each setting controls.
 
 The `accuracyboost <= 3` warnings next to the `accuracyboost` lines
 in this project's yaml files describe cosmolike builds whose FFTLog

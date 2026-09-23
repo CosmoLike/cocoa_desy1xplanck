@@ -3,7 +3,8 @@ bound to the shared Cocoa test machinery.
 
 The machinery itself (frozen-state verification, the chi2 pipeline,
 worker-subprocess isolation, the race and baryon checks, the
-CFASTPT-vs-FASTPT comparison, and the terminal reports) lives in
+CFASTPT-vs-FASTPT and Halofit-vs-EE2 comparisons, and the terminal
+reports) lives in
 external_modules/code/cosmolike_core/cocoa_testing.py. This file
 carries what is desy1xplanck's alone - the examples table (cosmic
 shear and the 6x2pt/2x2pt combinations), the TATT point, the
@@ -209,6 +210,7 @@ RACE_PERTURBATIONS = _cct.RACE_PERTURBATIONS
 HIGH_ACCURACY_CAMB_EXTRA_ARGS = _cct.HIGH_ACCURACY_CAMB_EXTRA_ARGS
 BARYON_METHODS = _cct.BARYON_METHODS
 BARYON_POINT_OVERRIDES = _cct.BARYON_POINT_OVERRIDES
+NONLINEAR_COMPARISON_POINTS = _cct.NONLINEAR_COMPARISON_POINTS
 
 # The 30 CFASTPT-vs-FASTPT comparison points under this project's
 # sampled-parameter prefix; the values are identical in every project.
@@ -229,6 +231,7 @@ _H = _cct.CocoaTestHarness(
     fastpt_high_settings=FASTPT_HIGH_SETTINGS,
     fastpt_points=FASTPT_COMPARISON_POINTS,
     nla_dataset=NLA_DATASET,
+    fastpt_masks=("frozen", "ones"),
 )
 
 # ---- module functions re-exported from the core (no project state) ----------
@@ -246,6 +249,7 @@ report_race_test = _cct.report_race_test
 report_accuracy = _cct.report_accuracy
 report_knob = _cct.report_knob
 report_fastpt_comparison = _cct.report_fastpt_comparison
+report_nonlinear_comparison = _cct.report_nonlinear_comparison
 
 # ---- bound methods of the harness (the machinery, project-bound) ------------
 compute_manifest = _H.compute_manifest
@@ -269,3 +273,5 @@ _fastpt_comparison_info = _H._fastpt_comparison_info
 _fastpt_comparison_block = _H._fastpt_comparison_block
 _run_fastpt_comparison_worker = _H._run_fastpt_comparison_worker
 cfastpt_vs_fastpt_chi2s = _H.cfastpt_vs_fastpt_chi2s
+_nonlinear_comparison_block = _H._nonlinear_comparison_block
+halofit_vs_ee2_dchi2s = _H.halofit_vs_ee2_dchi2s
