@@ -502,18 +502,18 @@ theory:
       accurate_massive_neutrino_transfers: false
       k_per_logint: 12
       kmax: 10
-#  Warning: keep the fastpt accuracyboost at 80 or above under
-#  TATT with IA_code: 1. The default fastpt settings hold accuracy
-#  only on a restricted region of the TATT prior; across the entire
-#  prior the FAST-PT and cfastpt data vectors differ by up to delta
-#  chi2 = 30 (see tests/README.md, test 15, for the
-#  convergence table).
+#  NOTE: under TATT with IA_code: 1 the fastpt defaults are the
+#  converged two-grid configuration: accuracyboost multiplies the
+#  density of the output table cosmolike interpolates (the accuracy
+#  driver) and internal_accuracyboost the FFTLog grid, both rebased
+#  so 1.0 just works (see tests/README.md, test 15).
 #  fastpt:
 #    path: ./external_modules/code/FAST-PT
-#    #extra_args:
-#      #accuracyboost: 80
-#      #kmax_boltzmann: 7.5
-#      #extrap_kmax: 250.0
+#    extra_args:
+#      accuracyboost: 1.0
+#      internal_accuracyboost: 1.0
+#      kmax_boltzmann: 7.5
+#      extrap_kmax: 250.0
   # bfmt:
   #   baryon_model: 2 # 1 = SP(k), 2 = BCEmu, 3 = FlamingoEmulator, 4 = BACCOemu, 5 = BCemu2025
   #   nz: 20  # internal (z, k) computation grid; the result is 2D-splined

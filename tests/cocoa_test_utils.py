@@ -1767,29 +1767,34 @@ FASTPT_COMPARISON_POINTS = [
 # information: across the IA prior they are large, so their
 # difference rides the local chi2 slope and measures the distance
 # from the data, not the numerics. 0.2 is the house comfort band,
-# reachable because FASTPT_LOW_SETTINGS carries the FAST-PT grid
-# boost this project's own sweep measured as the smallest one with
-# max delta chi2 below the band.
+# reachable because FASTPT_LOW_SETTINGS carries the converged
+# two-grid configuration (this project's own sweep: max delta chi2
+# 0.000239 there; the historical single-grid default reached 30
+# across the prior).
 FASTPT_COMPARISON_TOLERANCE = 0.2
 
 # The python FAST-PT side has numerical settings of its own, read by
 # the fastpt theory block from its extra_args block
 # (external_modules/code/PyFAST-PT/fastpt.py, symlinked into cobaya
-# as theories/fastpt). Low is the recommended minimum the example
-# yamls carry in their commented fastpt block, hard-coded here so the
-# test keeps evaluating this exact configuration even if the yamls
-# later move. The grid boost refines the FAST-PT k grid only; the
-# Boltzmann k_max request stays at kmax_boltzmann, with the grid's
-# high-k reach served by the Pk interpolator's log-extrapolation.
-# High doubles the boost, so the advisory column shows the residual
-# grid error of low.
+# as theories/fastpt). The block computes on two grids: accuracyboost
+# multiplies the density of the output table cosmolike reads with
+# linear interpolation (the accuracy driver), and
+# internal_accuracyboost the density of the internal grid the FFTLog
+# convolutions run on; a cubic spline in log k upsamples the terms
+# from one grid onto the other. Both boosts default to 1.0 = the
+# converged configuration, so low IS the default; it is hard-coded
+# here so the test keeps evaluating this exact configuration even if
+# the defaults later move. High doubles both boosts, so the advisory
+# column shows the residual grid response of low.
 FASTPT_LOW_SETTINGS = {
-    "accuracyboost": 80.0,
+    "accuracyboost": 1.0,
+    "internal_accuracyboost": 1.0,
     "kmax_boltzmann": 7.5,
     "extrap_kmax": 250.0,
 }
 FASTPT_HIGH_SETTINGS = {
-    "accuracyboost": 160.0,
+    "accuracyboost": 2.0,
+    "internal_accuracyboost": 2.0,
     "kmax_boltzmann": 7.5,
     "extrap_kmax": 250.0,
 }
@@ -2135,8 +2140,8 @@ def cfastpt_vs_fastpt_chi2s(example, high=False):
          measured against (its own chi2 against that vector is zero
          by construction);
       2. python FAST-PT (IA_code 1) at FASTPT_LOW_SETTINGS, the
-         recommended minimum settings of the example yamls;
-      3. python FAST-PT at FASTPT_HIGH_SETTINGS, the doubled grid.
+         pass configuration;
+      3. python FAST-PT at FASTPT_HIGH_SETTINGS, the doubled boosts.
 
     Block 2's per-point delta^T C^-1 delta against block 1 is the
     pass/fail quantity; block 3's shows how the deviation responds

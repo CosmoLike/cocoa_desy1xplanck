@@ -182,7 +182,6 @@ model).
 1. [Baryonic feedback on EXAMPLE_EVALUATE1](#desy1xplanck_baryonic_feedback)
 2. [Running Hybrid Cosmolike-ML emulators](#desy1xplanck_examples_emul2)
 3. [Unit tests](#desy1xplanck_unit_tests)
-4. [FAST-PT accuracy for TATT (`IA_code: 1`)](#fastpt_accuracy)
 
 # Running Hybrid Cosmolike-ML emulators <a name="desy1xplanck_examples_emul2"></a>
 
@@ -459,47 +458,3 @@ in this project's yaml files describe cosmolike builds whose FFTLog
 zero-padding stays constant while the boost densifies the chi grid;
 the cosmolike core compiled here scales the padding with the grid
 (`external_modules/code/cosmolike/cosmo2D.c`).
-
-# FAST-PT accuracy for TATT (`IA_code: 1`) <a name="fastpt_accuracy"></a>
-
-Cosmolike computes the TATT perturbation-theory integrals with two
-implementations: cfastpt, the C code inside the compiled interface
-(`IA_code: 0`, the default), and the python FAST-PT package through
-the fastpt theory block (`IA_code: 1`). Unit test 15 compares them
-at 30 fixed points across the intrinsic-alignment prior: at every
-point both implementations write their theory vector, and
-$\Delta\chi^2$ is the $\chi^2$ of the FAST-PT vector against the
-cfastpt vector through this project's masked inverse covariance,
-zero for identical predictions.
-
-The default fastpt settings were validated on a restricted region
-of the TATT prior, where the two implementations agree closely (the
-fiducial-point regression tests); across the entire prior volume
-they disagree by up to $\Delta\chi^2 = 30$. The
-disagreement falls as a power law with the fastpt `accuracyboost`,
-so accuracy over the full prior is a settings choice: the 0.2 band
-is reached at 80, the minimum the example yamls recommend.
-
-| FAST-PT grid boost | max $\Delta\chi^2$ | median $\Delta\chi^2$ | cost per cosmology |
-|---|---|---|---|
-| 1 (default settings) | 29.6 | 0.95 | 1.1 s |
-| 20 | 1.52 | 0.049 | 1.3 s |
-| 40 | 0.47 | 0.015 | 1.7 s |
-| 80 (recommended minimum) | 0.132 | 0.0042 | 2.6 s |
-| 160 | 0.036 | 0.0012 | 3.0 s |
-
-![The 30 comparison points, colored by the per-point difference](tests/cfastpt_vs_fastpt_points.png)
-
-> [!Warning]
-> Do not lower the fastpt `accuracyboost` below 80 in a
-> TATT analysis with `IA_code: 1`: the tidal-torquing and
-> $b_{\rm TA}$ convolution terms need the raised grid at large
-> intrinsic-alignment amplitudes.
-
-> [!NOTE]
-> Production TATT analyses use cfastpt (`IA_code: 0`): it is the
-> converged reference (FAST-PT approaches it monotonically as its
-> grid refines) and the fastest.
-> [tests/README.md](tests/README.md#cfastpt_fastpt) carries the
-> test, the convergence details, and the parameter attribution.
-

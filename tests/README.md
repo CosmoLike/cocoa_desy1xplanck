@@ -110,30 +110,32 @@ zero for identical vectors and quadratic in their difference. A
 comparison against the shipped data vector would measure the slope
 of the distance to the data instead of the numerics.
 
-The FAST-PT side runs at the recommended minimum settings the
-example yamls carry in their commented fastpt block, and the pass
-limit is 0.2. A second FAST-PT evaluation at a doubled grid boost
-repeats the measurement as an advisory. The point values, the
-design, and the parameter attribution are shared with the lsst_y1
-project (its tests/README.md carries the figures and the full
-discussion); the convergence below is this project's own sweep:
+The fastpt block computes on two grids: `accuracyboost` multiplies
+the density of the output table cosmolike reads with linear
+interpolation (the accuracy driver), and `internal_accuracyboost`
+the density of the internal grid the FFTLog convolutions run on,
+with a cubic spline in log k upsampling the terms from one grid
+onto the other. Both boosts are rebased so 1.0 is the converged
+configuration, and the test runs FAST-PT at the
+defaults with the 0.2 band of the other checks as the pass
+limit; a doubled configuration repeats the measurement as an
+advisory. The point values, the design, and the
+decision record live with the lsst_y1 project (its tests/README.md
+carries the full discussion); the table below is this project's own
+measurement:
 
-| FAST-PT grid boost | max $\Delta\chi^2$ | median $\Delta\chi^2$ | cost per cosmology |
+| output table (points) | internal grid (points) | max $\Delta\chi^2$ | cost per cosmology |
 |---|---|---|---|
-| 1 (default settings) | 29.6 | 0.95 | 1.1 s |
-| 20 | 1.52 | 0.049 | 1.3 s |
-| 40 | 0.47 | 0.015 | 1.7 s |
-| 80 (recommended minimum) | 0.132 | 0.0042 | 2.6 s |
-| 160 | 0.036 | 0.0012 | 3.0 s |
+| 1,100 (the historical single grid) | 1,100 (shared) | 29.6 | 1.1 s |
+| 1,024,900 (`accuracyboost: 1`, the default) | 1,100 (the default) | 0.000239 | 1.4 s |
+| 2,048,900 (`accuracyboost: 2`) | 1,300 (`internal_accuracyboost: 2`) | 0.000170 | 1.7 s |
 
 ![The 30 comparison points, colored by the per-point difference](cfastpt_vs_fastpt_points.png)
 
-> [!Warning]
-> Do not lower the fastpt `accuracyboost` below 80 in a
-> TATT analysis with `IA_code: 1`: the tidal-torquing and
-> $b_{\rm TA}$ convolution terms need the raised grid at large
-> intrinsic-alignment amplitudes. Production analyses use cfastpt (`IA_code: 0`), the
-> converged and faster reference.
+> [!NOTE]
+> The fastpt defaults hold this accuracy on their own; raising the
+> boosts is a convergence test, not a need. cfastpt (`IA_code: 0`)
+> remains the reference implementation.
 
 #### Running the comparison <a name="run_cfastpt_fastpt"></a>
 
