@@ -281,16 +281,20 @@ The file `test_accuracy_baryons.py` repeats the default-versus-high
 accuracy comparison with the `bfmt` theory block switched on: one
 advisory check per feedback method (the three SP(k) fb relations,
 BCEmu, Flamingo, BACCOemu, and BCemu2025), at a fixed parameter
-point per method. Each check creates its data vector on the fly, by
-the same mechanism as the N-random-models check: the
-default-settings model writes its own theory vector during
-evaluation, that vector becomes the data of a temporary dataset, and
-the pushed-settings model evaluates at the same point against it.
-The fiducial $\chi^2$ is therefore zero by construction, nothing is
-stored in the snapshot, and the single reported number,
-$\Delta\chi^2$, is a pure numerics response. The check BF0
-additionally runs the one-setting-at-a-time scan with the Akino
-SP(k) feedback on, so a large delta names the setting causing it.
+point per method.
+
+Each check creates its data vector on the fly, by the same
+mechanism as the N-random-models check: the default-settings model
+writes its own theory vector during evaluation, that vector becomes
+the data of a temporary dataset, and the pushed-settings model
+evaluates at the same point against it. The fiducial $\chi^2$ is
+therefore zero by construction, nothing is stored in the snapshot,
+and the single reported number, $\Delta\chi^2$, is a pure numerics
+response.
+
+The check BF0 additionally runs the one-setting-at-a-time scan with
+the Akino SP(k) feedback on, so a large delta names the setting
+causing it.
 
 Every checked configuration is measurable by construction. The
 BACCOemu check evaluates with `omegab: 0.049`, inside that
@@ -323,6 +327,7 @@ theory prediction was stored at freeze time
 today's prediction against that stored vector: zero at freeze time
 by construction, so a $\chi^2$ above the tolerance means cosmolike
 or the `bfmt` theory block changed its prediction since the freeze.
+
 These tests complement the accuracy checks above: the accuracy
 checks regenerate their vector on the fly per run, so they measure
 the numerical settings and can never see drift; the drift tests hold
@@ -374,12 +379,14 @@ either.
 
 This project's shipped data vector is real data, and the example
 cosmology is not its best fit, so the $\chi^2$ there sits far from the
-minimum, where it responds linearly to tiny numerical changes. Every
-variant therefore evaluates against a data vector generated at the
-fiducial point when the snapshot was created:
+minimum, where it responds linearly to tiny numerical changes.
+
+Every variant therefore evaluates against a data vector generated
+at the fiducial point when the snapshot was created:
 `frozen/data/synthetic_desy1xplanck.dataset`
 (default NLA model) for the NLA tests and
 `frozen/data/tatt_desy1xplanck.dataset` (TATT model) for the TATT tests.
+
 Both come from the 6x2pt model, whose full-length vector
 serves every probe; at its own minimum the $\chi^2$ response is quadratic
 and the drift and accuracy numbers stay meaningful.
