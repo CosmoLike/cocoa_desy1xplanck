@@ -120,7 +120,7 @@ discussion); the convergence below is this project's own sweep:
 
 | FAST-PT grid boost | max $\Delta\chi^2$ | median $\Delta\chi^2$ | cost per cosmology |
 |---|---|---|---|
-| 1 (shipped default) | 29.6 | 0.95 | 1.1 s |
+| 1 (default settings) | 29.6 | 0.95 | 1.1 s |
 | 20 | 1.52 | 0.049 | 1.3 s |
 | 40 | 0.47 | 0.015 | 1.7 s |
 | 80 (recommended minimum) | 0.132 | 0.0042 | 2.6 s |
@@ -131,8 +131,8 @@ discussion); the convergence below is this project's own sweep:
 > [!Warning]
 > Do not lower the fastpt `accuracyboost` below 80 in a
 > TATT analysis with `IA_code: 1`: the tidal-torquing and
-> $b_{\rm TA}$ convolution terms are under-resolved at the shipped
-> grid. Production analyses use cfastpt (`IA_code: 0`), the
+> $b_{\rm TA}$ convolution terms need the raised grid at large
+> intrinsic-alignment amplitudes. Production analyses use cfastpt (`IA_code: 0`), the
 > converged and faster reference.
 
 #### Running the comparison <a name="run_cfastpt_fastpt"></a>
