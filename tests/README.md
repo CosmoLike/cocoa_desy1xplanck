@@ -17,9 +17,10 @@ same.
 1. [Running the tests](#run_tests)
 2. [The tests](#the_tests)
     1. [The CFASTPT vs FASTPT comparison](#cfastpt_fastpt)
-    2. [Accuracy checks](#accuracy_checks)
-    3. [Baryonic feedback accuracy checks](#baryon_accuracy_checks)
-    4. [Baryonic feedback drift tests](#baryon_drift_tests)
+    2. [The Halofit vs EE2 checks](#halofit_ee2)
+    3. [Accuracy checks](#accuracy_checks)
+    4. [Baryonic feedback accuracy checks](#baryon_accuracy_checks)
+    5. [Baryonic feedback drift tests](#baryon_drift_tests)
 3. [Appendix](#appendix)
     1. [FAQ: Do the tests keep their own data?](#frozen_copy)
     2. [FAQ: Why do the tests use their own data vectors?](#synthetic_vectors)
@@ -215,6 +216,66 @@ settings
 > `mask_file` line, and the 0.2 pass rule applies unchanged. The
 > 6x2pt sweep aborts under `ones` (see the warning above).
 
+
+### The Halofit vs EE2 checks (`test_nonlinear.py`, NL1-NL2) <a name="halofit_ee2"></a>
+
+The likelihoods can source the nonlinear matter power from CAMB's
+Takahashi halofit (`non_linear_emul: 2`, the frozen contracts'
+setting) or from EuclidEmulator2 (`non_linear_emul: 1`). Check NL1
+evaluates the cosmic-shear data vector with both at ten fixed
+cosmologies across the omegam/ns/As space (every other parameter at
+the frozen fiducial); check NL2 repeats the sweep on the 6x2pt
+likelihood (`desy1xplanck.combo_6x2pt`).
+
+Each check reports, per cosmology, the $\Delta\chi^2$ of the
+Halofit vector against the EE2 vector. The EE2 vector is that
+cosmology's fiducial, so the baseline is zero by construction and
+no stored data vector enters the metric.
+
+The checks are advisory - there is no pass limit: the numbers say
+how much of the statistical error budget the Halofit-vs-emulator
+difference consumes under the chosen scale cuts, the question "can
+Halofit be used on real data analysis at this mask".
+
+The `--mask` option of the comparison sweeps applies:
+`--mask=frozen` (the default) keeps the shipped 6x2pt mask of the
+frozen contract (738 of the 1,809 data points); `--mask=ones` keeps
+every point (no scale cuts). NL2 cannot run under `ones`: the fully
+unmasked 6x2pt covariance is not positive definite and cosmolike
+aborts the model build, as the warning in the CFASTPT section
+describes for test 16.
+
+On 2026-09-23 check NL1 measures per-cosmology $\Delta\chi^2$
+between 0.3 and 42.2 (median 3.4) under the frozen mask, and
+between 0.4 and 71.2 (median 6.2) under `--mask=ones`; check NL2
+measures between 1.9 and 137.2 (median 12.7) under the frozen
+mask. Every sweep peaks at the high-omegam draws.
+
+The NL2 run under `--mask=ones` (2026-09-23) ends in the abort
+described above (`IP::set_inv_cov: masked cov not positive
+definite`), so the frozen-mask numbers are NL2's only measurement.
+At these ten cosmologies the two nonlinear-P(k) sources are not
+interchangeable at this project's precision even under the frozen
+scale cuts.
+
+#### Running the Halofit vs EE2 checks <a name="run_halofit_ee2"></a>
+
+We assume users are in the Conda cocoa environment from a previous
+`conda activate cocoa` command, that the shell is bash, and that the
+current folder is the cocoa main folder `cocoa/Cocoa`.
+
+**Step :one:**: activate the private Python environment by sourcing
+the script `start_cocoa.sh`
+
+    source start_cocoa.sh
+
+**Step :two:**: run the checks under the frozen scale cuts
+
+    python -m pytest ./projects/desy1xplanck/tests/test_nonlinear.py
+
+**Step :three:**: repeat them with every data point kept
+
+    python -m pytest ./projects/desy1xplanck/tests/test_nonlinear.py --mask=ones
 
 ### Accuracy checks (`test_accuracy.py`, A1-A6) <a name="accuracy_checks"></a>
 
