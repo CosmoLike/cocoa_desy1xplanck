@@ -452,3 +452,22 @@ in this project's yaml files describe cosmolike builds whose FFTLog
 zero-padding stays constant while the boost densifies the chi grid;
 the cosmolike core compiled here scales the padding with the grid
 (`external_modules/code/cosmolike/cosmo2D.c`).
+
+### FAST-PT settings under `IA_code: 1`
+
+The example yamls' commented `fastpt` block recommends
+`accuracyboost: 80`. At the shipped FAST-PT grid, the
+python FAST-PT and the C cfastpt implementations of the TATT
+perturbation-theory integrals disagree by up to
+$\Delta\chi^2 = 30$ on the cosmic-shear data
+vector across the intrinsic-alignment prior, and the disagreement
+falls as a power law with the FAST-PT grid boost, crossing the 0.2
+band at 80. Unit test 15 pins the comparison;
+[tests/README.md](tests/README.md#cfastpt_fastpt) carries the
+convergence table.
+
+> [!Warning]
+> Do not lower the fastpt `accuracyboost` below 80 in a
+> TATT analysis with `IA_code: 1`. Production analyses use cfastpt
+> (`IA_code: 0`), the converged and faster reference.
+

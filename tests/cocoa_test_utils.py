@@ -1632,3 +1632,612 @@ def ten_in_a_row_chi2(example, tatt):
     # unpacks it into the two names
     fresh, tenth = _run_isolated("race", example, tatt)
     return float(fresh), float(tenth)
+
+
+# =============================================================================
+# SECTION: THE CFASTPT VS FASTPT COMPARISON (test 15)
+# =============================================================================
+# Everything below is self-contained: it builds its cobaya input on
+# top of load_frozen_info and evaluates with its own cached evaluator,
+# so nothing above this line changes behavior. The design and the
+# point values are shared with lsst_y1's test 15 (every project's five
+# TATT parameters carry the same [-5, 5] and [0, 2] prior boxes, so a
+# per-point number is comparable project to project); see that
+# project's tests/README.md for the full discussion.
+
+import json
+import os
+import shutil
+import tempfile
+
+# Test 15 evaluates the SAME intrinsic-alignment points with
+# the two TATT perturbation-theory implementations (cfastpt, the C
+# code inside the compiled cosmolike interface, and the python
+# FAST-PT package) and compares them pair by pair. The first 20
+# points are hard-coded draws: drawn ONCE, uniformly across the prior
+# boxes of the five TATT parameters (DES_A1_1, DES_A1_2,
+# DES_A2_1, DES_A2_2 in [-5, 5]; DES_BTA_1 in [0, 2]) with
+# numpy.random.default_rng(20250922), and written out here so every
+# run evaluates exactly these points. Points 21-30 are the
+# one-parameter-at-a-time family that names the TATT parameter
+# driving a divergence: an all-zero null, each amplitude alone at
+# both signs, and the redshift powers and BTA riding on the amplitude
+# that activates them (alone they are exact nulls). Every other
+# parameter keeps its frozen fiducial value, so the Boltzmann
+# cosmology is shared by all the points.
+FASTPT_COMPARISON_POINTS = [
+    {"DES_A1_1": -2.347878, "DES_A1_2": -2.631529,
+     "DES_A2_1": -4.548776, "DES_A2_2": 4.089803,
+     "DES_BTA_1": 1.299591},
+    {"DES_A1_1": -4.5757, "DES_A1_2": 1.842436,
+     "DES_A2_1": -2.778512, "DES_A2_2": 2.349448,
+     "DES_BTA_1": 1.771619},
+    {"DES_A1_1": -1.885483, "DES_A1_2": -4.988485,
+     "DES_A2_1": -1.485879, "DES_A2_2": -4.495962,
+     "DES_BTA_1": 0.884889},
+    {"DES_A1_1": 4.467901, "DES_A1_2": -3.113044,
+     "DES_A2_1": 0.788438, "DES_A2_2": 4.321531,
+     "DES_BTA_1": 0.595105},
+    {"DES_A1_1": 2.925418, "DES_A1_2": 2.106288,
+     "DES_A2_1": 3.514003, "DES_A2_2": -4.307538,
+     "DES_BTA_1": 0.106922},
+    {"DES_A1_1": 0.737236, "DES_A1_2": -2.601612,
+     "DES_A2_1": -3.525379, "DES_A2_2": -2.532121,
+     "DES_BTA_1": 1.551288},
+    {"DES_A1_1": -2.208689, "DES_A1_2": 1.166122,
+     "DES_A2_1": -3.89846, "DES_A2_2": -3.625951,
+     "DES_BTA_1": 1.458385},
+    {"DES_A1_1": 3.577859, "DES_A1_2": -2.150368,
+     "DES_A2_1": 3.68132, "DES_A2_2": -0.800727,
+     "DES_BTA_1": 1.338299},
+    {"DES_A1_1": -3.301099, "DES_A1_2": -1.899991,
+     "DES_A2_1": 2.247241, "DES_A2_2": -2.085669,
+     "DES_BTA_1": 1.21194},
+    {"DES_A1_1": -1.957003, "DES_A1_2": 2.044701,
+     "DES_A2_1": 1.357407, "DES_A2_2": 3.861245,
+     "DES_BTA_1": 0.112379},
+    {"DES_A1_1": 1.56864, "DES_A1_2": -1.191915,
+     "DES_A2_1": 2.709754, "DES_A2_2": -3.689616,
+     "DES_BTA_1": 0.581821},
+    {"DES_A1_1": 0.092758, "DES_A1_2": 4.358014,
+     "DES_A2_1": -0.665741, "DES_A2_2": -1.574787,
+     "DES_BTA_1": 0.158704},
+    {"DES_A1_1": 1.205006, "DES_A1_2": 1.544994,
+     "DES_A2_1": -2.161392, "DES_A2_2": -0.047689,
+     "DES_BTA_1": 1.065058},
+    {"DES_A1_1": 2.623534, "DES_A1_2": -4.583449,
+     "DES_A2_1": 4.401911, "DES_A2_2": 3.545763,
+     "DES_BTA_1": 1.463577},
+    {"DES_A1_1": -4.459096, "DES_A1_2": 3.114698,
+     "DES_A2_1": -0.526033, "DES_A2_2": 2.268589,
+     "DES_BTA_1": 1.739542},
+    {"DES_A1_1": 0.206121, "DES_A1_2": -4.811619,
+     "DES_A2_1": 4.734078, "DES_A2_2": -2.90544,
+     "DES_BTA_1": 1.16909},
+    {"DES_A1_1": 3.56276, "DES_A1_2": -0.662237,
+     "DES_A2_1": -0.174979, "DES_A2_2": 4.150983,
+     "DES_BTA_1": 1.275072},
+    {"DES_A1_1": 3.593366, "DES_A1_2": -4.875329,
+     "DES_A2_1": 2.680328, "DES_A2_2": -3.169156,
+     "DES_BTA_1": 0.538465},
+    {"DES_A1_1": 1.290369, "DES_A1_2": 0.975332,
+     "DES_A2_1": -0.422358, "DES_A2_2": -2.637129,
+     "DES_BTA_1": 0.641767},
+    {"DES_A1_1": 1.835056, "DES_A1_2": -1.493955,
+     "DES_A2_1": 1.138184, "DES_A2_2": 4.009877,
+     "DES_BTA_1": 1.228736},
+    {"DES_A1_1": 0.0, "DES_A1_2": 0.0,
+     "DES_A2_1": 0.0, "DES_A2_2": 0.0,
+     "DES_BTA_1": 0.0},
+    {"DES_A1_1": 4.0, "DES_A1_2": 0.0,
+     "DES_A2_1": 0.0, "DES_A2_2": 0.0,
+     "DES_BTA_1": 0.0},
+    {"DES_A1_1": -4.0, "DES_A1_2": 0.0,
+     "DES_A2_1": 0.0, "DES_A2_2": 0.0,
+     "DES_BTA_1": 0.0},
+    {"DES_A1_1": 0.0, "DES_A1_2": 0.0,
+     "DES_A2_1": 4.0, "DES_A2_2": 0.0,
+     "DES_BTA_1": 0.0},
+    {"DES_A1_1": 0.0, "DES_A1_2": 0.0,
+     "DES_A2_1": -4.0, "DES_A2_2": 0.0,
+     "DES_BTA_1": 0.0},
+    {"DES_A1_1": 4.0, "DES_A1_2": 4.0,
+     "DES_A2_1": 0.0, "DES_A2_2": 0.0,
+     "DES_BTA_1": 0.0},
+    {"DES_A1_1": 4.0, "DES_A1_2": -4.0,
+     "DES_A2_1": 0.0, "DES_A2_2": 0.0,
+     "DES_BTA_1": 0.0},
+    {"DES_A1_1": 0.0, "DES_A1_2": 0.0,
+     "DES_A2_1": 4.0, "DES_A2_2": 4.0,
+     "DES_BTA_1": 0.0},
+    {"DES_A1_1": 0.0, "DES_A1_2": 0.0,
+     "DES_A2_1": 4.0, "DES_A2_2": -4.0,
+     "DES_BTA_1": 0.0},
+    {"DES_A1_1": 4.0, "DES_A1_2": 0.0,
+     "DES_A2_1": 0.0, "DES_A2_2": 0.0,
+     "DES_BTA_1": 2.0},
+]
+
+# Pass limit on the covariance-weighted difference of the two
+# implementations: at each point both blocks print their theory data
+# vector, and the tested number is delta^T C^-1 delta with
+# delta = dv(FASTPT low) - dv(CFASTPT) and C^-1 the masked inverse
+# covariance - the chi2 OF the implementation difference, zero when
+# the vectors agree. The raw chi2 values are printed only as
+# information: across the IA prior they are large, so their
+# difference rides the local chi2 slope and measures the distance
+# from the data, not the numerics. 0.2 is the house comfort band,
+# reachable because FASTPT_LOW_SETTINGS carries the FAST-PT grid
+# boost this project's own sweep measured as the smallest one with
+# max delta chi2 below the band.
+FASTPT_COMPARISON_TOLERANCE = 0.2
+
+# The python FAST-PT side has numerical settings of its own, read by
+# the fastpt theory block from its extra_args block
+# (external_modules/code/PyFAST-PT/fastpt.py, symlinked into cobaya
+# as theories/fastpt). Low is the recommended minimum the example
+# yamls carry in their commented fastpt block, hard-coded here so the
+# test keeps evaluating this exact configuration even if the yamls
+# later move. The grid boost refines the FAST-PT k grid only; the
+# Boltzmann k_max request stays at kmax_boltzmann, with the grid's
+# high-k reach served by the Pk interpolator's log-extrapolation.
+# High doubles the boost, so the advisory column shows the residual
+# grid error of low.
+FASTPT_LOW_SETTINGS = {
+    "accuracyboost": 80.0,
+    "kmax_boltzmann": 7.5,
+    "extrap_kmax": 250.0,
+}
+FASTPT_HIGH_SETTINGS = {
+    "accuracyboost": 160.0,
+    "kmax_boltzmann": 7.5,
+    "extrap_kmax": 250.0,
+}
+
+
+def _fastpt_comparison_info(example, fastpt, high, fastpt_settings):
+    """The cobaya input of one comparison block.
+
+    Starts from the project's frozen TATT configuration
+    (load_frozen_info) and applies the comparison's two adjustments:
+    IA_code selects the perturbation-theory implementation (0 keeps
+    cfastpt, 1 asks the python FAST-PT package through the fastpt
+    theory block, which is added here with the path the examples
+    use), and fastpt_settings becomes that block's extra_args.
+
+    Arguments:
+      example = a key of EXAMPLES; the comparison uses "example1"
+                (cosmic shear).
+      fastpt  = False keeps cfastpt (IA_code 0), True selects python
+                FAST-PT (IA_code 1).
+      high    = True applies the HIGH_ACCURACY settings on top (the
+                --high=1 option of the tests).
+      fastpt_settings = None, or the fastpt block's extra_args table
+                (FASTPT_LOW_SETTINGS or FASTPT_HIGH_SETTINGS).
+
+    Returns:
+      the input dictionary ready for cobaya's get_model.
+    """
+    info = load_frozen_info(example, tatt=True, high_accuracy=high)
+    likelihood_block = info["likelihood"][EXAMPLES[example]["likelihood"]]
+    if fastpt:
+        likelihood_block["IA_code"] = 1
+        # setdefault hands back the existing "theory" dictionary, or
+        # first inserts the empty {} and hands that back, so the
+        # assignment lands inside info either way
+        info.setdefault("theory", {})["fastpt"] = {
+            "path": "./external_modules/code/FAST-PT",
+        }
+        if fastpt_settings is not None:
+            # dict(...) copies, so a caller's settings table is never
+            # shared with (or mutated through) the built model
+            info["theory"]["fastpt"]["extra_args"] = dict(fastpt_settings)
+    return info
+
+
+def _evaluate_cached(model, point):
+    """One evaluation with cobaya's caching left on.
+
+    The comparison's points share one cosmology and differ only in
+    the five IA parameters, so letting cobaya skip components whose
+    inputs did not change (CAMB, and the fastpt theory block) makes
+    each point cost only the likelihood's data-vector rebuild. The
+    project's evaluate_chi2 forces cached=False because the race
+    tests need full recomputation; this comparison does not.
+
+    Arguments:
+      model = the cobaya Model to evaluate on.
+      point = {parameter name: value} covering the sampled
+              parameters.
+
+    Returns:
+      chi2 = -2 ln L of the single likelihood, as a plain float.
+
+    Raises:
+      RuntimeError on more than one likelihood; AssertionError on a
+      non-finite chi2 (an out-of-prior or rejected point).
+    """
+    import numpy as np
+
+    posterior = model.logposterior(point, cached=True)
+    if len(posterior.loglikes) != 1:
+        raise RuntimeError(
+            f"expected exactly one likelihood: {posterior.loglikes}")
+    chi2 = -2.0 * posterior.loglikes[0]
+    if not np.isfinite(chi2):
+        raise AssertionError(f"non-finite chi2 at point {point}")
+    return float(chi2)
+
+
+def _load_datavector(path):
+    """Read one printed theory data vector as a 1D numpy array.
+
+    print_datavector writes one line per data point; cosmolike's
+    format carries the entry index in the first column and the value
+    in the second, so a two-column file is reduced to its value
+    column. A one-column file is used as it is.
+
+    Arguments:
+      path = the .modelvector file a likelihood evaluation printed.
+
+    Returns:
+      the vector values as a 1D float array.
+
+    Raises:
+      RuntimeError when the file has more than two columns.
+    """
+    import numpy as np
+
+    table = np.loadtxt(path)
+    # ndim == 1 means one number per line: the values themselves
+    if table.ndim == 1:
+        return table
+    if table.shape[1] == 2:
+        # [:, 1] selects the second column (all rows): the values
+        return table[:, 1]
+    raise RuntimeError(
+        f"{path}: expected 1 or 2 columns, found {table.shape[1]}")
+
+
+def _fastpt_comparison_block(example, fastpt, high, fastpt_settings=None,
+                             label=None, vectors_dir=None,
+                             reference_label=None):
+    """The 30-point sweep on ONE model: the comparison's worker half.
+
+    Builds the frozen TATT configuration with one perturbation-theory
+    implementation selected and evaluates every
+    FASTPT_COMPARISON_POINTS entry on it. Each evaluation prints its
+    theory data vector into vectors_dir, and a block given a
+    reference_label measures itself against the vectors a previous
+    block left there: at every point it computes
+
+        delta chi2 = delta^T C^-1 delta,
+        delta = dv(this block) - dv(reference block),
+
+    with C^-1 the masked inverse covariance from the compiled
+    interface. That is exactly the chi2 this block would score
+    against a dataset whose data vector IS the reference block's
+    prediction at the same point: the reference block's own chi2
+    against it is zero, so the number is a pure second-order
+    deviation and never rides the slope of the distance to the
+    shipped data.
+
+    This function is meant to run inside a FRESH python process (see
+    cfastpt_vs_fastpt_chi2s): process isolation is what guarantees
+    that nothing computed under the other implementation, or under
+    the other accuracy settings, survives into this block - cobaya's
+    caches, CAMB's state, and the C globals of the compiled cosmolike
+    interface all die with their process, so there is no cache to
+    flush by hand.
+
+    Arguments:
+      example = a key of EXAMPLES; the comparison uses "example1".
+      fastpt  = False evaluates with cfastpt (IA_code 0), True with
+                python FAST-PT (IA_code 1).
+      high    = False keeps the frozen default settings; True applies
+                the HIGH_ACCURACY settings on top.
+      fastpt_settings = None for the cfastpt block; the fastpt blocks
+                pass FASTPT_LOW_SETTINGS or FASTPT_HIGH_SETTINGS.
+      label   = the file-name tag of this block's printed vectors.
+      vectors_dir = the directory the per-point vectors are printed
+                into, shared by the three blocks of one sweep.
+      reference_label = None to only print vectors, or the label of
+                the block to measure against.
+
+    Returns:
+      {"chi2s": the per-point chi2 list against the shipped data
+      (informational), "dchi2_vs_reference": the per-point
+      delta^T C^-1 delta list or None, "eval_seconds": per-point
+      wall-clock seconds (the first entry carries CAMB plus the PT
+      tables; the rest are the steady data-vector cost)}.
+
+    Raises:
+      ValueError when a comparison-point parameter is not sampled;
+      RuntimeError when an evaluation did not print its vector.
+    """
+    import time
+
+    import numpy as np
+
+    require_cocoa_environment()
+    code = "FASTPT" if fastpt else "CFASTPT"
+    if fastpt_settings is not None:
+        # name the fastpt settings by their boost, the one entry the
+        # low and high tables differ in
+        code += f"(boost {fastpt_settings['accuracyboost']:g})"
+    setting = "high accuracy" if high else "default settings"
+    print(f"  building model ({example}, TATT, {code}, {setting}) ...",
+          flush=True)
+    info = _fastpt_comparison_info(example, fastpt, high, fastpt_settings)
+    # every evaluation rewrites this one file; the loop below moves
+    # it to a per-point name right after each evaluation
+    current_path = os.path.join(vectors_dir,
+                                f"{label}_current.modelvector")
+    likelihood_block = info["likelihood"][EXAMPLES[example]["likelihood"]]
+    likelihood_block["print_datavector"] = True
+    likelihood_block["print_datavector_file"] = current_path
+    model = make_model(info)
+    # the frozen fiducial with the TATT_POINT replacements, after the
+    # sampled-parameter name check every test shares
+    base = build_point(model, example, tatt=True)
+    n_points = len(FASTPT_COMPARISON_POINTS)
+    chi2s = []
+    eval_seconds = []
+    # enumerate pairs each point with a counter; start=1 makes the
+    # printed rows read 1..30 instead of 0..29
+    for i, ia_values in enumerate(FASTPT_COMPARISON_POINTS, start=1):
+        for name in ia_values:
+            if name not in base:
+                raise ValueError(
+                    f"comparison parameter {name} is not sampled by "
+                    f"{example}; the IA parameterization changed since "
+                    "FASTPT_COMPARISON_POINTS was written")
+        # perf_counter is a monotonic wall clock; the difference of
+        # two readings is the elapsed time of the evaluation alone
+        started = time.perf_counter()
+        # {**base, **ia_values} builds a NEW dictionary: the
+        # fiducial entries first, then the five IA values replacing
+        # their fiducial counterparts; base itself stays untouched
+        chi2 = _evaluate_cached(model, {**base, **ia_values})
+        elapsed = time.perf_counter() - started
+        chi2s.append(chi2)
+        eval_seconds.append(elapsed)
+        if not os.path.isfile(current_path):
+            raise RuntimeError(
+                f"{code} point {i}: the evaluation printed no data "
+                f"vector at {current_path} (did print_datavector's "
+                "path handling change?)")
+        # os.replace moves the freshly printed vector to its
+        # per-point name; the next evaluation must write current_path
+        # anew, which the isfile check above enforces point by point
+        os.replace(current_path,
+                   os.path.join(vectors_dir,
+                                f"{label}_point{i:02d}.modelvector"))
+        print(f"  {code} point {i:2d}/{n_points}: chi2 = {chi2:.6f}"
+              f"   ({elapsed:.2f} s)", flush=True)
+    # the first evaluation carries the one-time work (CAMB plus this
+    # implementation's perturbation-theory tables); the mean of the
+    # rest is the steady per-point cost. eval_seconds[1:] is the
+    # list without its first entry.
+    print(f"  {code}: first evaluation {eval_seconds[0]:.2f} s "
+          f"(CAMB + PT tables + data vector); later evaluations "
+          f"mean {float(np.mean(eval_seconds[1:])):.3f} s", flush=True)
+    if reference_label is None:
+        return {"chi2s": chi2s, "dchi2_vs_reference": None,
+                "eval_seconds": eval_seconds}
+    # the compiled interface was initialized by the likelihood build
+    # above, so its masked inverse covariance (masked rows and
+    # columns zeroed, full data-vector dimensions) is available here;
+    # the import resolves because start_cocoa.sh puts the project
+    # interface folder on the python path
+    import cosmolike_desy1xplanck_interface as ci
+
+    icov = np.array(ci.get_inv_cov_masked())
+    dchi2s = []
+    for i in range(1, n_points + 1):
+        own = _load_datavector(
+            os.path.join(vectors_dir,
+                         f"{label}_point{i:02d}.modelvector"))
+        ref = _load_datavector(
+            os.path.join(vectors_dir,
+                         f"{reference_label}_point{i:02d}.modelvector"))
+        if own.shape != ref.shape or icov.shape[0] != own.shape[0]:
+            raise RuntimeError(
+                f"point {i}: vector/covariance shapes disagree "
+                f"({own.shape}, {ref.shape}, {icov.shape})")
+        delta = own - ref
+        # delta @ icov @ delta is the quadratic form delta^T C^-1
+        # delta: the chi2 of the difference vector in units of the
+        # statistical error the covariance defines
+        dchi2s.append(float(delta @ icov @ delta))
+    return {"chi2s": chi2s, "dchi2_vs_reference": dchi2s,
+            "eval_seconds": eval_seconds}
+
+
+def _run_fastpt_comparison_worker(example, fastpt, high, fastpt_settings,
+                                  label, vectors_dir, reference_label):
+    """Run one _fastpt_comparison_block in a fresh python subprocess.
+
+    A fresh process is the cache flush: cobaya's component caches,
+    CAMB, and the C globals of the compiled cosmolike interface start
+    empty in each block, so no block can reuse anything another block
+    computed. The child inherits this process's environment, sets
+    OMP_NUM_THREADS before its first import, adds tests/ to its
+    import path, calls _fastpt_comparison_block, and writes the
+    result as json into a temporary file the parent reads back; its
+    per-point progress lines stream to the same terminal because
+    stdout is inherited.
+
+    Arguments:
+      example, fastpt, high, fastpt_settings, label, vectors_dir,
+      reference_label = forwarded to _fastpt_comparison_block.
+
+    Returns:
+      the block's result dictionary.
+
+    Raises:
+      subprocess.CalledProcessError when the worker fails (its
+      traceback already streamed to the terminal);
+      RuntimeError when the worker returns the wrong number of chi2
+      values.
+    """
+    import subprocess
+    import sys
+
+    workdir = tempfile.mkdtemp(prefix="cocoa_fastpt_compare_")
+    out_path = os.path.join(workdir, "result.json")
+    # the child program, line by line: pin the OpenMP thread count
+    # BEFORE any import can load the compiled libraries, make tests/
+    # importable, run the block, dump the result. !r prints each
+    # interpolated value as python source, so the generated program
+    # is valid python.
+    child_code = (
+        "import os\n"
+        f"os.environ['OMP_NUM_THREADS'] = {REQUIRED_OMP_THREADS!r}\n"
+        "import json\n"
+        "import sys\n"
+        f"sys.path.insert(0, {TESTS_DIR!r})\n"
+        "import cocoa_test_utils as u\n"
+        f"result = u._fastpt_comparison_block({example!r}, "
+        f"fastpt={fastpt!r}, high={high!r}, "
+        f"fastpt_settings={fastpt_settings!r}, "
+        f"label={label!r}, vectors_dir={vectors_dir!r}, "
+        f"reference_label={reference_label!r})\n"
+        f"with open({out_path!r}, 'w') as f:\n"
+        "    json.dump(result, f)\n"
+    )
+    try:
+        # sys.executable is this python interpreter; check=True
+        # raises when the child exits nonzero (its traceback has
+        # already streamed to the inherited stderr)
+        subprocess.run([sys.executable, "-c", child_code], check=True)
+        with open(out_path) as f:
+            result = json.load(f)
+    finally:
+        # a finally block runs on EVERY exit from the try, so no
+        # failure mode leaves the temporary directory behind
+        shutil.rmtree(workdir, ignore_errors=True)
+    if len(result["chi2s"]) != len(FASTPT_COMPARISON_POINTS):
+        raise RuntimeError(
+            f"worker returned {len(result['chi2s'])} chi2 values for "
+            f"{len(FASTPT_COMPARISON_POINTS)} comparison points")
+    return result
+
+
+def cfastpt_vs_fastpt_chi2s(example, high=False):
+    """The comparison-point quantities under the three configurations.
+
+    The same 30 hard-coded intrinsic-alignment points evaluated three
+    times with everything else identical:
+
+      1. cfastpt (IA_code 0), the reference: its printed data vector
+         at each point becomes the fiducial the other blocks are
+         measured against (its own chi2 against that vector is zero
+         by construction);
+      2. python FAST-PT (IA_code 1) at FASTPT_LOW_SETTINGS, the
+         recommended minimum settings of the example yamls;
+      3. python FAST-PT at FASTPT_HIGH_SETTINGS, the doubled grid.
+
+    Block 2's per-point delta^T C^-1 delta against block 1 is the
+    pass/fail quantity; block 3's shows how the deviation responds
+    to the FAST-PT grid (advisory). Each configuration runs in its
+    own subprocess, one after the other; the per-point vectors
+    travel through one shared temporary directory that dies with
+    this call.
+
+    Arguments:
+      example = a key of EXAMPLES; the comparison uses "example1".
+      high    = False compares at the frozen default camb/cosmolike
+                settings; True repeats all three blocks with the
+                HIGH_ACCURACY settings (the --high=1 command line
+                option of the tests).
+
+    Returns:
+      (chi2_cfastpt, chi2_fastpt_low, chi2_fastpt_high, dchi2_low,
+      dchi2_high): five lists index-aligned with
+      FASTPT_COMPARISON_POINTS.
+    """
+    vectors_dir = tempfile.mkdtemp(prefix="cocoa_fastpt_vectors_")
+    try:
+        cfastpt = _run_fastpt_comparison_worker(
+            example, fastpt=False, high=high, fastpt_settings=None,
+            label="cfastpt", vectors_dir=vectors_dir,
+            reference_label=None)
+        fastpt_low = _run_fastpt_comparison_worker(
+            example, fastpt=True, high=high,
+            fastpt_settings=FASTPT_LOW_SETTINGS,
+            label="fastpt_low", vectors_dir=vectors_dir,
+            reference_label="cfastpt")
+        fastpt_high = _run_fastpt_comparison_worker(
+            example, fastpt=True, high=high,
+            fastpt_settings=FASTPT_HIGH_SETTINGS,
+            label="fastpt_high", vectors_dir=vectors_dir,
+            reference_label="cfastpt")
+    finally:
+        # the shared vectors die with the sweep, whether it finished
+        # or an exception is on its way out
+        shutil.rmtree(vectors_dir, ignore_errors=True)
+    return (cfastpt["chi2s"], fastpt_low["chi2s"], fastpt_high["chi2s"],
+            fastpt_low["dchi2_vs_reference"],
+            fastpt_high["dchi2_vs_reference"])
+
+
+def report_fastpt_comparison(number, label, chi2_cfastpt,
+                             chi2_fastpt_low, chi2_fastpt_high,
+                             dchi2_low, dchi2_high, tol):
+    """Print the CFASTPT-vs-FASTPT sweep as a readable block.
+
+    Two lines per comparison point. The first carries the raw chi2
+    of each configuration against the shipped data; those values are
+    large across the IA prior and are printed only as information,
+    because their differences ride the local chi2 slope. The second
+    line carries the tested quantities: the chi2 of each FASTPT
+    vector against the CFASTPT vector at the same point. The
+    fastpt-low entry is the pass/fail quantity; the doubled-grid
+    entry is advisory.
+
+    Arguments:
+      number           = the test number shown in the header.
+      label            = one line naming the example, probe, and the
+                         camb/cosmolike settings.
+      chi2_cfastpt     = the per-point chi2 list under IA_code 0.
+      chi2_fastpt_low  = the list under IA_code 1 at
+                         FASTPT_LOW_SETTINGS.
+      chi2_fastpt_high = the list under IA_code 1 at
+                         FASTPT_HIGH_SETTINGS.
+      dchi2_low        = per point, the chi2 of the FASTPT(low)
+                         vector against the CFASTPT vector.
+      dchi2_high       = the same for FASTPT(high).
+      tol              = the pass limit on max of dchi2_low.
+
+    Returns:
+      max of dchi2_low over the points, the quantity the calling
+      test asserts on.
+    """
+    import numpy as np
+
+    largest = float(np.max(dchi2_low))
+    middle = float(np.median(dchi2_low))
+    high_largest = float(np.max(dchi2_high))
+    print(f"""
+{'-' * 66}
+TEST {number}: {label}""", flush=True)
+    # zip walks the five lists in step, handing every per-point
+    # quantity at once; start=1 makes the rows read 1..30
+    for i, (c, fl, fh, dl, dh) in enumerate(
+            zip(chi2_cfastpt, chi2_fastpt_low, chi2_fastpt_high,
+                dchi2_low, dchi2_high), start=1):
+        # :14.6f = six decimals in a 14-wide field so the columns
+        # line up
+        print(f"  point {i:2d}:  CFASTPT = {c:14.6f}   "
+              f"FASTPT(low) = {fl:14.6f}   FASTPT(high) = {fh:14.6f}",
+              flush=True)
+        print(f"             dchi2 vs the CFASTPT vector:  "
+              f"low = {dl:.6f}   high = {dh:.6f}", flush=True)
+    print(f"""  max dchi2(FASTPT low vs CFASTPT)    = {largest:.6f}   \
+(limit: < {tol})
+  median dchi2(FASTPT low vs CFASTPT) = {middle:.6f}
+  max dchi2(FASTPT high vs CFASTPT)   = {high_largest:.6f}   (advisory)
+  -> {'OK' if largest < tol else 'EXCEEDS LIMIT'}
+{'-' * 66}""", flush=True)
+    return largest
