@@ -63,6 +63,21 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       (py::arg("integration_accuracy") = 0).none(false)
     );
 
+  m.def("init_photoz_conventions",
+      &cosmolike_interface::init_photoz_conventions,
+      "Set the n(z) interpolation type (0: cspline, 1: linear, 2+: steffen) "
+      "and the n(z) file z-column convention (0: Z_LOW, 1: Z_MID)",
+      (py::arg("interpolation_type") = 0).none(false),
+      (py::arg("zmid_convention") = 0).none(false)
+    );
+
+  m.def("init_fpt_internal_boost",
+      &cosmolike_interface::init_fpt_internal_boost,
+      "Set the C-FAST-PT internal (convolution) grid as a fraction of the "
+      "output table (1.0 = grids equal, the exact legacy path)",
+      (py::arg("internal_boost") = 1.0).none(false)
+    );
+
   m.def("init_baryons_contamination",
       py::overload_cast<std::string, std::string>(
          &cosmolike_interface::init_baryons_contamination),

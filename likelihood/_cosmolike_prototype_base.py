@@ -117,6 +117,13 @@ class _cosmolike_prototype_base(DataSetLikelihood):
     else:
       ci.set_log_level_info()
 
+    ci.init_photoz_conventions(
+        interpolation_type=int(getattr(self, "photoz_interpolation_type", 0)),
+        zmid_convention=int(getattr(self, "photoz_zmid_convention", 0)))
+
+    ci.init_fpt_internal_boost(
+        internal_boost=float(getattr(self, "internal_accuracyboost", 1.0)))
+
     # Init CMB cross spectra ---------------------------------------------------   
     ci.init_cmb_cross_correlation(
         lmin = ini.int("lmin_kx"),
