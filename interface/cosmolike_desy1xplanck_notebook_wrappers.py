@@ -669,3 +669,205 @@ def rf_xi_tomo_limber(k, ntheta=None, theta_min_arcmin=None,
                baryon_sims=baryon_sims, allsims_file=allsims)
     (rf_xip, rf_xim) = ci.rf_xi_tomo_limber(k=k)
     return (ci.get_binning_real_space(), rf_xip, rf_xim)
+
+
+# ----------------------------------------------------------------------
+# CMB lensing x shear (the CMB filter and bandpower machinery is set up
+# by init_cosmolike, mirroring the likelihood)
+# ----------------------------------------------------------------------
+def C_ks_tomo_limber(ell, omegam=omegam, omegab=omegab, H0=H0, ns=ns,
+                     As_1e9=As_1e9, w=w, w0pwa=w0pwa,
+                     A1=None, A2=None, BTA=None,
+                     shear_photoz_bias=None, M=None,
+                     baryon_sims=None, AccuracyBoost=1.0, kmax=10.0,
+                     k_per_logint=10, CAMBAccuracyBoost=1.0,
+                     CLAccuracyBoost=1.0, CLIntegrationAccuracy=0,
+                     non_linear_emul=None, allsims=None):
+    """CMB lensing x shear angular power spectra at multipoles ell.
+
+    Shear state as in C_ss_tomo_limber (the CMB is a single lens
+    plane, so only the shear nuisances enter), then
+    ci.C_ks_tomo_limber.
+
+    Returns:
+      2D array (n_ell, n_bin).
+    """
+    if non_linear_emul is None:
+        non_linear_emul = _CONFIG["non_linear_emul"]
+    M, shear_photoz_bias, A1, A2, BTA = _shear_defaults(
+        M, shear_photoz_bias, A1, A2, BTA)
+    _set_state(omegam, omegab, H0, ns, As_1e9, w, w0pwa,
+               AccuracyBoost, kmax, k_per_logint, CAMBAccuracyBoost,
+               CLAccuracyBoost, CLIntegrationAccuracy, non_linear_emul,
+               M=M, shear_photoz_bias=shear_photoz_bias,
+               A1=A1, A2=A2, BTA=BTA,
+               baryon_sims=baryon_sims, allsims_file=allsims)
+    return ci.C_ks_tomo_limber(l=ell)
+
+
+def w_ks(ntheta=None, theta_min_arcmin=None, theta_max_arcmin=None,
+         omegam=omegam, omegab=omegab, H0=H0, ns=ns, As_1e9=As_1e9,
+         w=w, w0pwa=w0pwa, A1=None, A2=None, BTA=None,
+         shear_photoz_bias=None, M=None, baryon_sims=None,
+         AccuracyBoost=1.0, kmax=10.0, k_per_logint=10,
+         CAMBAccuracyBoost=1.0, CLAccuracyBoost=1.0,
+         CLIntegrationAccuracy=0, non_linear_emul=None, allsims=None):
+    """Real-space CMB lensing x shear w_ks(theta) on a theta grid.
+
+    Same state build as C_ks_tomo_limber plus a re-binning; the CMB
+    beam/pixel-window filter set by init_cosmolike enters the
+    projection inside ci.w_ks_tomo.
+
+    Returns:
+      (theta, w_ks): theta in arcmin, w_ks a 2D array
+      (n_theta, n_bin).
+    """
+    if ntheta is None:
+        ntheta = _CONFIG["ntheta"]
+    if theta_min_arcmin is None:
+        theta_min_arcmin = _CONFIG["theta_min_arcmin"]
+    if theta_max_arcmin is None:
+        theta_max_arcmin = _CONFIG["theta_max_arcmin"]
+    if non_linear_emul is None:
+        non_linear_emul = _CONFIG["non_linear_emul"]
+    M, shear_photoz_bias, A1, A2, BTA = _shear_defaults(
+        M, shear_photoz_bias, A1, A2, BTA)
+    _set_state(omegam, omegab, H0, ns, As_1e9, w, w0pwa,
+               AccuracyBoost, kmax, k_per_logint, CAMBAccuracyBoost,
+               CLAccuracyBoost, CLIntegrationAccuracy, non_linear_emul,
+               binning=(ntheta, theta_min_arcmin, theta_max_arcmin),
+               M=M, shear_photoz_bias=shear_photoz_bias,
+               A1=A1, A2=A2, BTA=BTA,
+               baryon_sims=baryon_sims, allsims_file=allsims)
+    return (ci.get_binning_real_space(), ci.w_ks_tomo())
+
+
+def dlnC_ks_dlnk_tomo_limber(k, ell, omegam=omegam, omegab=omegab,
+                             H0=H0, ns=ns, As_1e9=As_1e9, w=w,
+                             w0pwa=w0pwa, A1=None, A2=None, BTA=None,
+                             shear_photoz_bias=None, M=None,
+                             baryon_sims=None, AccuracyBoost=1.0,
+                             kmax=10.0, k_per_logint=10,
+                             CAMBAccuracyBoost=1.0, CLAccuracyBoost=1.0,
+                             CLIntegrationAccuracy=0,
+                             non_linear_emul=None, allsims=None):
+    """Response d ln C_ks / d ln k at wavenumbers k, multipoles ell.
+
+    Shear state as in C_ks_tomo_limber, then the interface's
+    response evaluation.
+
+    Returns:
+      array as ci.dlnC_ks_dlnk_tomo_limber returns it.
+    """
+    if non_linear_emul is None:
+        non_linear_emul = _CONFIG["non_linear_emul"]
+    M, shear_photoz_bias, A1, A2, BTA = _shear_defaults(
+        M, shear_photoz_bias, A1, A2, BTA)
+    _set_state(omegam, omegab, H0, ns, As_1e9, w, w0pwa,
+               AccuracyBoost, kmax, k_per_logint, CAMBAccuracyBoost,
+               CLAccuracyBoost, CLIntegrationAccuracy, non_linear_emul,
+               M=M, shear_photoz_bias=shear_photoz_bias,
+               A1=A1, A2=A2, BTA=BTA,
+               baryon_sims=baryon_sims, allsims_file=allsims)
+    return ci.dlnC_ks_dlnk_tomo_limber(k=k, l=ell)
+
+
+def rf_C_ks_tomo_limber(k, ell, omegam=omegam, omegab=omegab, H0=H0,
+                        ns=ns, As_1e9=As_1e9, w=w, w0pwa=w0pwa,
+                        A1=None, A2=None, BTA=None,
+                        shear_photoz_bias=None, M=None,
+                        baryon_sims=None, AccuracyBoost=1.0,
+                        kmax=10.0, k_per_logint=10,
+                        CAMBAccuracyBoost=1.0, CLAccuracyBoost=1.0,
+                        CLIntegrationAccuracy=0,
+                        non_linear_emul=None, allsims=None):
+    """Cumulative response R(k_max) of C_ks.
+
+    Shear state as in C_ks_tomo_limber, then ci.rf_C_ks_tomo_limber.
+
+    Returns:
+      array as ci.rf_C_ks_tomo_limber returns it.
+    """
+    if non_linear_emul is None:
+        non_linear_emul = _CONFIG["non_linear_emul"]
+    M, shear_photoz_bias, A1, A2, BTA = _shear_defaults(
+        M, shear_photoz_bias, A1, A2, BTA)
+    _set_state(omegam, omegab, H0, ns, As_1e9, w, w0pwa,
+               AccuracyBoost, kmax, k_per_logint, CAMBAccuracyBoost,
+               CLAccuracyBoost, CLIntegrationAccuracy, non_linear_emul,
+               M=M, shear_photoz_bias=shear_photoz_bias,
+               A1=A1, A2=A2, BTA=BTA,
+               baryon_sims=baryon_sims, allsims_file=allsims)
+    return ci.rf_C_ks_tomo_limber(k=k, l=ell)
+
+
+def dlnw_ks_dlnk_tomo(k, ntheta=None, theta_min_arcmin=None,
+                      theta_max_arcmin=None, omegam=omegam,
+                      omegab=omegab, H0=H0, ns=ns, As_1e9=As_1e9,
+                      w=w, w0pwa=w0pwa, A1=None, A2=None, BTA=None,
+                      shear_photoz_bias=None, M=None,
+                      baryon_sims=None, AccuracyBoost=1.0, kmax=10.0,
+                      k_per_logint=10, CAMBAccuracyBoost=1.0,
+                      CLAccuracyBoost=1.0, CLIntegrationAccuracy=0,
+                      non_linear_emul=None, allsims=None):
+    """Response d ln w_ks / d ln k at wavenumbers k.
+
+    Shear state plus a re-binning, as in w_ks.
+
+    Returns:
+      (theta, dlnwks_dlnk).
+    """
+    if ntheta is None:
+        ntheta = _CONFIG["ntheta"]
+    if theta_min_arcmin is None:
+        theta_min_arcmin = _CONFIG["theta_min_arcmin"]
+    if theta_max_arcmin is None:
+        theta_max_arcmin = _CONFIG["theta_max_arcmin"]
+    if non_linear_emul is None:
+        non_linear_emul = _CONFIG["non_linear_emul"]
+    M, shear_photoz_bias, A1, A2, BTA = _shear_defaults(
+        M, shear_photoz_bias, A1, A2, BTA)
+    _set_state(omegam, omegab, H0, ns, As_1e9, w, w0pwa,
+               AccuracyBoost, kmax, k_per_logint, CAMBAccuracyBoost,
+               CLAccuracyBoost, CLIntegrationAccuracy, non_linear_emul,
+               binning=(ntheta, theta_min_arcmin, theta_max_arcmin),
+               M=M, shear_photoz_bias=shear_photoz_bias,
+               A1=A1, A2=A2, BTA=BTA,
+               baryon_sims=baryon_sims, allsims_file=allsims)
+    return (ci.get_binning_real_space(), ci.dlnw_ks_dlnk_tomo(k=k))
+
+
+def rf_w_ks_tomo(k, ntheta=None, theta_min_arcmin=None,
+                 theta_max_arcmin=None, omegam=omegam,
+                 omegab=omegab, H0=H0, ns=ns, As_1e9=As_1e9,
+                 w=w, w0pwa=w0pwa, A1=None, A2=None, BTA=None,
+                 shear_photoz_bias=None, M=None,
+                 baryon_sims=None, AccuracyBoost=1.0, kmax=10.0,
+                 k_per_logint=10, CAMBAccuracyBoost=1.0,
+                 CLAccuracyBoost=1.0, CLIntegrationAccuracy=0,
+                 non_linear_emul=None, allsims=None):
+    """Cumulative response R(k_max) of w_ks.
+
+    Shear state plus a re-binning, then ci.rf_w_ks_tomo.
+
+    Returns:
+      (theta, rf_wks).
+    """
+    if ntheta is None:
+        ntheta = _CONFIG["ntheta"]
+    if theta_min_arcmin is None:
+        theta_min_arcmin = _CONFIG["theta_min_arcmin"]
+    if theta_max_arcmin is None:
+        theta_max_arcmin = _CONFIG["theta_max_arcmin"]
+    if non_linear_emul is None:
+        non_linear_emul = _CONFIG["non_linear_emul"]
+    M, shear_photoz_bias, A1, A2, BTA = _shear_defaults(
+        M, shear_photoz_bias, A1, A2, BTA)
+    _set_state(omegam, omegab, H0, ns, As_1e9, w, w0pwa,
+               AccuracyBoost, kmax, k_per_logint, CAMBAccuracyBoost,
+               CLAccuracyBoost, CLIntegrationAccuracy, non_linear_emul,
+               binning=(ntheta, theta_min_arcmin, theta_max_arcmin),
+               M=M, shear_photoz_bias=shear_photoz_bias,
+               A1=A1, A2=A2, BTA=BTA,
+               baryon_sims=baryon_sims, allsims_file=allsims)
+    return (ci.get_binning_real_space(), ci.rf_w_ks_tomo(k=k))
