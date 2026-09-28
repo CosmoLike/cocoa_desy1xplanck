@@ -56,6 +56,13 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       (py::arg("lmax") = 75000).none(false)
     );
 
+  m.def("init_ntable_ell_internal",
+      &cosmolike_interface::init_ntable_ell_internal,
+      "Coarse exact-quadrature ell nodes of the C_ss/C_gs tables, "
+      "cubic-spline upsampled to N_ell; 0 = exact per-node quadrature",
+      (py::arg("nell_internal") = 192).none(false)
+    );
+
   m.def("init_accuracy_boost",
       &cosmolike_interface::init_accuracy_boost,
       "Init accuracy and sampling Boost (may slow down Cosmolike a lot)",
