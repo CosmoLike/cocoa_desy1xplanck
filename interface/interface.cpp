@@ -66,10 +66,11 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
 
   m.def("init_ntable_dcx_dlnk_nlnk_internal",
       &cosmolike_interface::init_ntable_dcx_dlnk_nlnk_internal,
-      "Coarse exact ln k nodes of the dC_X/dlnk scale-cut tables, "
-      "bicubic upsampled (the ell axis follows N_ell_internal); "
-      "0 = exact (the ln k axis carries the BAO wiggles)",
-      (py::arg("nlnk_internal") = 0).none(false)
+      "Coarse exact ln k nodes of the scale-cut machinery (the dC "
+      "tables and the dlnxi/dlnw caches), cubic upsampled; the ell "
+      "axis follows N_ell_internal; default 128 of the 256 grid, "
+      "0 = exact",
+      (py::arg("nlnk_internal") = 128).none(false)
     );
 
   m.def("init_ntable_nm_internal",
