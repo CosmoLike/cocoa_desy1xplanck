@@ -12,6 +12,8 @@ photoz_interpolation_type: 0
 photoz_zmid_convention: 0
 # galaxy-galaxy lensing: 1 = Limber at every multipole, 0 = non-Limber below l = 150
 adopt_limber_gs: 1
+# galaxy clustering: 0 = non-Limber below l = 150, 1 = Limber at every multipole
+adopt_limber_gg: 0
 lmax: 75000 
 kmax_boltzmann: 10.0
 speed: 1
