@@ -28,7 +28,7 @@ same.
 3. [Appendix](#appendix)
     1. [FAQ: Do the tests keep their own data?](#frozen_copy)
     2. [FAQ: Why do the tests use their own data vectors?](#synthetic_vectors)
-    3. [FAQ: Why do the 6x2pt and 2x2pt reference checks drift?](#gg_growth_fix)
+    3. [FAQ: Why were the references refrozen on 2026-09-28?](#gg_growth_fix)
     4. [FAQ: How can maintainers refresh the snapshot?](#refreeze)
 
 ## Running the tests <a name="run_tests"></a>
@@ -55,7 +55,7 @@ per model build and per evaluation, then a report with the
 computed $\chi^2$, the stored reference, the difference, and the pass
 limit.
 
-A full run performs about 55 likelihood evaluations and takes a
+A full run performs about 67 likelihood evaluations and takes a
 few minutes. The test files force `OMP_NUM_THREADS=4` internally.
 
 ## The tests <a name="the_tests"></a>
@@ -517,10 +517,11 @@ $\Delta\chi^2 = \delta^T C^{-1} \delta$, with $\delta$ the data-vector
 difference and $C^{-1}$ the masked inverse covariance: the $\chi^2$ the
 Limber model would score against a data set generated with non-Limber
 galaxy-galaxy lensing. It also prints the contribution of each
-lens-source pair. The assertions are the frozen-reference check on
-the Limber evaluation, a dead-flag floor on $\Delta\chi^2$, that only
-galaxy-galaxy lensing entries change, a bit-identical round trip back
-to Limber, and agreement with the measured $\Delta\chi^2$ to 5%.
+lens-source pair. The assertions are a dead-flag floor
+on $\Delta\chi^2$, that only galaxy-galaxy lensing entries change, a
+bit-identical round trip back to Limber, agreement with the measured
+$\Delta\chi^2$ to 5%, and, last, the frozen-reference check on the
+Limber evaluation.
 
 Measured on 2026-09-27:
 
@@ -543,10 +544,10 @@ The test evaluates the frozen 6x2pt fiducial with the default, the
 other setting, and the default again in one process and reports
 $\Delta\chi^2 = \delta^T C^{-1} \delta$, with $\delta$ the non-Limber
 minus the Limber data vector, and the contribution of each lens bin.
-The assertions are the frozen-reference check on the default
-evaluation, a dead-flag floor on $\Delta\chi^2$, that only clustering
-entries change, a bit-identical round trip back to the default, and
-agreement with the measured $\Delta\chi^2$ to 5%.
+The assertions are a dead-flag floor on $\Delta\chi^2$, that only
+clustering entries change, a bit-identical round trip back to the
+default, agreement with the measured $\Delta\chi^2$ to 5%, and, last,
+the frozen-reference check on the default evaluation.
 
 Measured on 2026-09-28:
 
@@ -598,11 +599,11 @@ Both come from the 6x2pt model, whose full-length vector
 serves every probe; at its own minimum the $\chi^2$ response is quadratic
 and the drift and accuracy numbers stay meaningful.
 
-## :interrobang: FAQ: Why do the 6x2pt and 2x2pt reference checks drift? <a name="gg_growth_fix"></a>
+## :interrobang: FAQ: Why were the references refrozen on 2026-09-28? <a name="gg_growth_fix"></a>
 
-The frozen references predate a fix (2026-09-28) to the non-Limber
-galaxy clustering spectrum $C_\ell^{gg}$, and were deliberately not
-refrozen. Below $\ell = 150$ cosmolike's `C_cl_tomo` computes
+On 2026-09-28 the non-Limber galaxy clustering spectrum
+$C_\ell^{gg}$ was fixed and the snapshot was refrozen. The bug:
+below $\ell = 150$ cosmolike's `C_cl_tomo` computes
 
 $$C_\ell = C_\ell^{\rm FFTLog}(P_{\rm lin}) + C_\ell^{\rm Limber}(P_\delta) - C_\ell^{\rm Limber}(P_{\rm lin}),$$
 
@@ -623,12 +624,15 @@ term uses $D(a)^2 P_{\rm lin}(k, z=0)$, and the two terms agree to
 0.02% to 0.17% at $\ell = 149$.
 
 The fix changes $w(\theta)$ only; cosmic shear and galaxy-galaxy
-lensing are unchanged. Measured with the fix (2026-09-28):
+lensing are unchanged. Against the pre-fix references, measured on
+2026-09-28 before the refreeze:
 
 - 6x2pt (tests 5, 7): $\chi^2 = 0.0092$ against the reference 0; 2x2pt
   (tests 11, 13): 0.0086 against 0. All pass (limit 0.2).
 
-A refreeze (next FAQ) makes the new values the references.
+The refreeze (next FAQ) regenerated the frozen fiducial model
+vectors with the fixed code and made the new $\chi^2$ values the
+references; the drift is absorbed.
 
 ## :interrobang: FAQ: How can maintainers refresh the snapshot? <a name="refreeze"></a>
 

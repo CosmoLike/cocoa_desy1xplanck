@@ -14,8 +14,8 @@ likelihood yaml key adopt_limber_gs chooses how it is computed:
       non-Limber correction interpolated between integer multipoles.
 
 ggl defaults to Limber because its lensing kernel is broad (galaxy
-clustering has its own key, adopt_limber_gg; see test_nonlimber_gg.py). The Limber approximation
-fails at low l for the lens-source pairs whose kernels overlap in
+clustering has its own key, adopt_limber_gg; see
+test_nonlimber_gg.py). The Limber approximation fails at low l for the lens-source pairs whose kernels overlap in
 redshift (lens bin = source bin, or the source bin in front of the lens
 bin, where the signal is the intrinsic alignment of the sources times
 the lens density). This test measures what the Limber default costs.
@@ -79,7 +79,7 @@ SETTINGS = (
 DCHI2_FLOOR = 1.0e-6
 
 # delta chi2 measured on 2026-09-27 (macOS, arm64), and the relative band
-# assertion 5 allows around it.
+# assertion 4 allows around it.
 DCHI2_MEASURED = 0.003663
 DCHI2_RTOL = 0.05
 

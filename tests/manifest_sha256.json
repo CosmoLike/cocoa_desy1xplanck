@@ -1,8 +1,8 @@
 {
   "_comment": "SHA-256 of every file under tests/frozen/; verified by every test before evaluating anything.",
   "files": {
-    "frozen/EXAMPLE_EVALUATE1.yaml": "7af5ebc9e6ade6d00cfe3a12955cc01116075df4ea48723a7652a7fd768a854b",
-    "frozen/EXAMPLE_EVALUATE2.yaml": "5f980b5782b169ae9b9a7892c74c4d67bda465a481ef455c015d6c3917a27d70",
+    "frozen/EXAMPLE_EVALUATE1.yaml": "b59b42f16591e332bf75726655d0bc99b2a47d108d692b61f94cb012fdff89e0",
+    "frozen/EXAMPLE_EVALUATE2.yaml": "3a4fbe309011fb52821a6266be156e91d0ebfedc60f8e9754eaaede63bb29ab7",
     "frozen/data/DESY3xPLKR4_6x2pt_antilles_baseline_archive.pca": "6fc94190d888b19fa5696168acdc49cec630d44c5f3af8dc58a9689731e61383",
     "frozen/data/DESY3xPlanckPR4_6x2pt_Maglim_baseline_archive.realdata": "a325e53dce403a5583a5d94dd8b820db4d21e1c88657fc4eec89f5a7678432ae",
     "frozen/data/DESY3xPlanckPR4_6x2pt_baseline_archive.covmat": "67fb19b6df5e2b5be76639cde49ee6f0548f96d57109532ce1ad0029c365b157",
@@ -60,13 +60,13 @@
     "frozen/data/nz_source_Y3_unblinded_02_26_21.txt": "c0dc83ea8dc125b2c8c6a9a852fda37fddff6c49ed41322119d7f7cb98880abb",
     "frozen/data/ones.mask": "1713aed4364d482046e5b0d0dab931a526d03a1093aafb21f0c35ef75a9a7cfa",
     "frozen/data/synthetic_desy1xplanck.dataset": "67223b5c069e862535e529d41c650e3cb6cb695663f8568034384f32ad8a006c",
-    "frozen/data/synthetic_desy1xplanck.modelvector": "0e7d0cf4b37718e2471904537be94f33b0d6d37061b4e44c7e491099ed4e00f3",
+    "frozen/data/synthetic_desy1xplanck.modelvector": "aa2fcdf9e91b19bcf6b1ff4a40e27f1dc71558549c821fea924e99eb965295f7",
     "frozen/data/tatt_desy1xplanck.dataset": "09b9b9682adc8ba3cb777684473c472563dd906aa727f1a6739c85a8612010f9",
-    "frozen/data/tatt_desy1xplanck.modelvector": "e5143ee9dfe750d6877b70f5025abfcac78117574574a03ce47926093f8c13bf",
+    "frozen/data/tatt_desy1xplanck.modelvector": "0ea3ca5f66b3ee6b9fb17863be50b88b9af33732d0198000b41d9417287d512e",
     "frozen/data/tatt_desy1xplanck_ones.dataset": "e133fd21b6db75cad2d4ec9cf5d19e6dc8a39c417f728e5efedb849f1e1c72c0",
-    "frozen/frozen_config_example1.py": "bf39d53b3ecc85a6a8997014e7206f9810a6a3fd3455ce3e7ae561f4614dae80",
-    "frozen/frozen_config_example2.py": "8ce57ddb45a315e1f1129c9ace0852a3c1beda43eabb065e8968c651bd4073c5",
-    "frozen/frozen_config_example2_2x2pt.py": "59c0d8c6cf895eece86f9344b3bda8cae971f9d2cd15a30792eeb3cabd078e5f",
-    "frozen/reference_chi2.json": "7547400fbc0d9b78461aff932b9f3a176bd4051053e84fd3a4f4214437300ec4"
+    "frozen/frozen_config_example1.py": "08d8f5055c254e200c947ffb284473db7ebe7ed298f221773410f1f62916e364",
+    "frozen/frozen_config_example2.py": "bb67a52f9806118479d71a8a9cbbe2655324b85328212c1f9a9759ec54acfbc9",
+    "frozen/frozen_config_example2_2x2pt.py": "1dfede878199428e9c50fff572cbebf7e22c83e72ea8a038575d8b065d1c42ba",
+    "frozen/reference_chi2.json": "b3cdfd824950ee0545f2e9075bb22f0047f393460ccf6d205410206d74c40034"
   }
 }
