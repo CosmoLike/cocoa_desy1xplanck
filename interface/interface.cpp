@@ -72,6 +72,28 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       (py::arg("nlnk_internal") = 0).none(false)
     );
 
+  m.def("init_ntable_nm_internal",
+      &cosmolike_interface::init_ntable_nm_internal,
+      "Coarse exact nodes of the sigma^2(M) halo-model table, "
+      "cubic-spline upsampled to N_M in ln sigma^2; 0 = exact",
+      (py::arg("nm_internal") = 192).none(false)
+    );
+
+  m.def("sigma2",
+      &cosmolike_interface::compute_sigma2,
+      "Halo-model mass variance sigma^2(M) at a = 1 from the cached "
+      "lobe-summed table; M in M_sun/h (diagnostic)",
+      (py::arg("M")).none(false)
+    );
+
+  m.def("sigma2_nointerp",
+      &cosmolike_interface::compute_sigma2_nointerp,
+      "Direct lobe-summed sigma^2 at one mass, table-free (the point "
+      "diagnostic; vs sigma2 = the table's upsampling + interpolation "
+      "error); M in M_sun/h",
+      (py::arg("M")).none(false), (py::arg("a") = 1.0).none(false)
+    );
+
   m.def("init_accuracy_boost",
       &cosmolike_interface::init_accuracy_boost,
       "Init accuracy and sampling Boost (may slow down Cosmolike a lot)",
