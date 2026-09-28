@@ -25,6 +25,7 @@ same.
     7. [The photo-z convention checks](#photoz_conventions)
     8. [The non-Limber galaxy-galaxy lensing check](#nonlimber_ggl)
     9. [The non-Limber galaxy clustering check](#nonlimber_gg)
+    10. [The sector-ladder cache check](#cache_ladder)
 3. [Appendix](#appendix)
     1. [FAQ: Do the tests keep their own data?](#frozen_copy)
     2. [FAQ: Why do the tests use their own data vectors?](#synthetic_vectors)
@@ -55,7 +56,7 @@ per model build and per evaluation, then a report with the
 computed $\chi^2$, the stored reference, the difference, and the pass
 limit.
 
-A full run performs about 67 likelihood evaluations and takes a
+A full run performs about 147 likelihood evaluations and takes a
 few minutes. The test files force `OMP_NUM_THREADS=4` internally.
 
 ## The tests <a name="the_tests"></a>
@@ -555,6 +556,24 @@ Measured on 2026-09-28:
   for the same comparison in galaxy-galaxy lensing.
 - Lens bins 3, 2, 1, 0 contribute 4.32, 2.04, 0.18, 0.07 (each bin's
   block alone).
+
+
+### The sector-ladder cache check (`test_cache_consistency.py`) <a name="cache_ladder"></a>
+
+cosmolike caches every expensive stage behind its own key, and a
+partial-invalidation bug - one sector's update path leaving a stale
+static another sector consumes - produces wrong data vectors only in
+MIXED update sequences, which the per-point checks never exercise.
+The test walks a deterministic ladder in one process (three
+cosmology-only steps, then IA-only, source-photo-z, lens-photo-z and
+shear-calibration steps), evaluating after every step, then scrambles
+every sector at once and returns to the ladder's final point: the
+pipeline must reproduce the recorded data vector and $\chi^2$ bit for
+bit, and a second instance walking the mirrored sector order must
+land on the same vector. The shear-calibration steps must equal the
+analytic $(1+m_i)(1+m_j)$ block rescale to $10^{-12}$, a no-op update
+must change nothing, and both intrinsic-alignment models run (the
+TATT ladder exercises the FAST-PT rebuild machinery).
 
 # Appendix <a name="appendix"></a>
 
