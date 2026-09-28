@@ -78,6 +78,13 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       (py::arg("internal_boost") = 1.0).none(false)
     );
 
+  m.def("init_adopt_limber_gs",
+      &cosmolike_interface::init_adopt_limber_gs,
+      "Galaxy-galaxy lensing: 1 = Limber at every multipole (default), "
+      "0 = non-Limber below limits.LMAX_NOLIMBER",
+      (py::arg("adopt_limber_gs") = 1).none(false)
+    );
+
   m.def("init_baryons_contamination",
       py::overload_cast<std::string, std::string>(
          &cosmolike_interface::init_baryons_contamination),

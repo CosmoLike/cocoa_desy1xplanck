@@ -124,6 +124,9 @@ class _cosmolike_prototype_base(DataSetLikelihood):
     ci.init_fpt_internal_boost(
         internal_boost=float(getattr(self, "internal_accuracyboost", 1.0)))
 
+    ci.init_adopt_limber_gs(
+        adopt_limber_gs=int(getattr(self, "adopt_limber_gs", 1)))
+
     # Init CMB cross spectra ---------------------------------------------------   
     ci.init_cmb_cross_correlation(
         lmin = ini.int("lmin_kx"),
