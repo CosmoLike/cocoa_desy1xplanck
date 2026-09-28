@@ -58,9 +58,18 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
 
   m.def("init_ntable_ell_internal",
       &cosmolike_interface::init_ntable_ell_internal,
-      "Coarse exact-quadrature ell nodes of the C_ss/C_gs tables, "
-      "cubic-spline upsampled to N_ell; 0 = exact per-node quadrature",
+      "Coarse exact-quadrature ell nodes of the C_ss/C_gs/C_gk/C_ks "
+      "tables and of the scale-cut tables' ell axis, cubic-spline "
+      "upsampled to N_ell; 0 = exact per-node quadrature",
       (py::arg("nell_internal") = 192).none(false)
+    );
+
+  m.def("init_ntable_dcx_dlnk_nlnk_internal",
+      &cosmolike_interface::init_ntable_dcx_dlnk_nlnk_internal,
+      "Coarse exact ln k nodes of the dC_X/dlnk scale-cut tables, "
+      "bicubic upsampled (the ell axis follows N_ell_internal); "
+      "0 = exact (the ln k axis carries the BAO wiggles)",
+      (py::arg("nlnk_internal") = 0).none(false)
     );
 
   m.def("init_accuracy_boost",
