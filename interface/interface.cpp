@@ -903,37 +903,9 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       py::arg("a").none(false)
     );
 
-  m.def("ngal_nointerp",
-      &cosmolike_interface::ngal_nointerp_cpp,
-      "Direct ngal integral at one (ni, a), table-free",
-      py::arg("ni").none(false).noconvert(),
-      py::arg("a").none(false)
-    );
-
   m.def("bgal",
       &cosmolike_interface::bgal_cpp,
       "HOD bias-weighted integral of lens bin ni (cached table)",
-      py::arg("ni").none(false).noconvert(),
-      py::arg("a").none(false)
-    );
-
-  m.def("bgal_nointerp",
-      &cosmolike_interface::bgal_nointerp_cpp,
-      "Direct bgal integral at one (ni, a), table-free",
-      py::arg("ni").none(false).noconvert(),
-      py::arg("a").none(false)
-    );
-
-  m.def("mmean_nointerp",
-      &cosmolike_interface::mmean_nointerp_cpp,
-      "Mean halo mass (M_sun/h) of the HOD galaxies of lens bin ni",
-      py::arg("ni").none(false).noconvert(),
-      py::arg("a").none(false)
-    );
-
-  m.def("fsat_nointerp",
-      &cosmolike_interface::fsat_nointerp_cpp,
-      "Satellite fraction of the HOD galaxies of lens bin ni",
       py::arg("ni").none(false).noconvert(),
       py::arg("a").none(false)
     );
