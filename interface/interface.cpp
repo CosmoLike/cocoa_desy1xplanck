@@ -88,14 +88,6 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       (py::arg("M")).none(false)
     );
 
-  m.def("sigma2_nointerp",
-      &cosmolike_interface::compute_sigma2_nointerp,
-      "Direct lobe-summed sigma^2 at one mass, table-free (the point "
-      "diagnostic; vs sigma2 = the table's upsampling + interpolation "
-      "error); M in M_sun/h",
-      (py::arg("M")).none(false), (py::arg("a") = 1.0).none(false)
-    );
-
   m.def("init_accuracy_boost",
       &cosmolike_interface::init_accuracy_boost,
       "Init accuracy and sampling Boost (may slow down Cosmolike a lot)",
