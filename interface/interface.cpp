@@ -42,6 +42,7 @@ namespace py = pybind11;
 #include "cosmolike/generic_interface.hpp"
 #include "cosmolike/cosmo2D_wrapper.hpp"
 #include "cosmolike/cosmo2D_scuts_wrapper.hpp"
+#include "cosmolike/halo_wrapper.hpp"
 
 PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
 {
@@ -838,6 +839,269 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       "Compute int from -infty to k of |dlnw_ks_dlnk| (fourier - limber)",
       py::arg("k").none(false),
       py::return_value_policy::move
+    );
+
+  // --------------------------------------------------------------------
+  // Halo model (halo.c)
+  // --------------------------------------------------------------------
+  m.def("hb1nu",
+      &cosmolike_interface::hb1nu_cpp,
+      "Tinker et al. 2010 halo bias b(nu) at peak height "
+      "nu = delta_c/sigma(M, a)",
+      py::arg("nu").none(false),
+      py::arg("a").none(false)
+    );
+
+  m.def("fnu",
+      &cosmolike_interface::fnu_cpp,
+      "Tinker et al. 2010 multiplicity function f(nu) of the halo mass "
+      "function at peak height nu (0 < a < 1)",
+      py::arg("nu").none(false),
+      py::arg("a").none(false)
+    );
+
+  m.def("conc",
+      &cosmolike_interface::conc_cpp,
+      "Halo concentration c(m) (Bhattacharya et al. 2013, Delta = 200 "
+      "mean); m in M_sun/h, growfac_a = D(a)",
+      py::arg("m").none(false),
+      py::arg("growfac_a").none(false)
+    );
+
+  m.def("dlognudlogm",
+      &cosmolike_interface::dlognudlogm_cpp,
+      "Slope dln nu/dln M of the peak height (cached table at a = 1); "
+      "M in M_sun/h",
+      py::arg("M").none(false)
+    );
+
+  m.def("bias_norm",
+      &cosmolike_interface::bias_norm_cpp,
+      "Halo-bias normalization int b(nu) f(nu) dnu over the tabulated "
+      "mass range (cached table in a)",
+      py::arg("a").none(false)
+    );
+
+  m.def("bias_norm_nointerp",
+      &cosmolike_interface::bias_norm_nointerp_cpp,
+      "Direct bias_norm integral at one a, table-free (the point "
+      "diagnostic of bias_norm)",
+      py::arg("a").none(false)
+    );
+
+  m.def("u_nfw_c",
+      &cosmolike_interface::u_nfw_c_cpp,
+      "Fourier transform of the NFW profile, normalized to 1 at k = 0; "
+      "k in (c/H0)^-1, m in M_sun/h",
+      py::arg("c").none(false),
+      py::arg("k").none(false),
+      py::arg("m").none(false),
+      py::arg("a").none(false)
+    );
+
+  m.def("u_KS",
+      &cosmolike_interface::u_KS_cpp,
+      "Fourier transform of the Komatsu-Seljak gas pressure profile "
+      "(cached table); k in (c/H0)^-1, rv in c/H0",
+      py::arg("c").none(false),
+      py::arg("k").none(false),
+      py::arg("rv").none(false)
+    );
+
+  m.def("ngal",
+      &cosmolike_interface::ngal_cpp,
+      "HOD galaxy number density of lens bin ni in (c/H0)^-3 (cached "
+      "table)",
+      py::arg("ni").none(false).noconvert(),
+      py::arg("a").none(false)
+    );
+
+  m.def("ngal_nointerp",
+      &cosmolike_interface::ngal_nointerp_cpp,
+      "Direct ngal integral at one (ni, a), table-free",
+      py::arg("ni").none(false).noconvert(),
+      py::arg("a").none(false)
+    );
+
+  m.def("bgal",
+      &cosmolike_interface::bgal_cpp,
+      "HOD bias-weighted integral of lens bin ni (cached table)",
+      py::arg("ni").none(false).noconvert(),
+      py::arg("a").none(false)
+    );
+
+  m.def("bgal_nointerp",
+      &cosmolike_interface::bgal_nointerp_cpp,
+      "Direct bgal integral at one (ni, a), table-free",
+      py::arg("ni").none(false).noconvert(),
+      py::arg("a").none(false)
+    );
+
+  m.def("mmean_nointerp",
+      &cosmolike_interface::mmean_nointerp_cpp,
+      "Mean halo mass (M_sun/h) of the HOD galaxies of lens bin ni",
+      py::arg("ni").none(false).noconvert(),
+      py::arg("a").none(false)
+    );
+
+  m.def("fsat_nointerp",
+      &cosmolike_interface::fsat_nointerp_cpp,
+      "Satellite fraction of the HOD galaxies of lens bin ni",
+      py::arg("ni").none(false).noconvert(),
+      py::arg("a").none(false)
+    );
+
+  m.def("p_mm",
+      py::overload_cast<const double, const double>(
+        &cosmolike_interface::p_mm_cpp
+      ),
+      "Halo-model matter power spectrum at one (k, a); k in (c/H0)^-1, "
+      "P in (c/H0)^3",
+      py::arg("k").none(false).noconvert(),
+      py::arg("a").none(false).noconvert()
+    );
+
+  m.def("p_mm",
+      py::overload_cast<const arma::Col<double>, const double>(
+        &cosmolike_interface::p_mm_cpp
+      ),
+      "Halo-model matter power spectrum at many k, one a (vectorized)",
+      py::arg("k").none(false),
+      py::arg("a").none(false),
+      py::return_value_policy::move
+    );
+
+  m.def("p_my",
+      py::overload_cast<const double, const double>(
+        &cosmolike_interface::p_my_cpp
+      ),
+      "Halo-model matter-Compton y power spectrum at one (k, a); k in "
+      "(c/H0)^-1",
+      py::arg("k").none(false).noconvert(),
+      py::arg("a").none(false).noconvert()
+    );
+
+  m.def("p_my",
+      py::overload_cast<const arma::Col<double>, const double>(
+        &cosmolike_interface::p_my_cpp
+      ),
+      "Halo-model matter-Compton y power spectrum at many k, one a "
+      "(vectorized)",
+      py::arg("k").none(false),
+      py::arg("a").none(false),
+      py::return_value_policy::move
+    );
+
+  m.def("p_yy",
+      py::overload_cast<const double, const double>(
+        &cosmolike_interface::p_yy_cpp
+      ),
+      "Halo-model Compton y power spectrum at one (k, a); k in "
+      "(c/H0)^-1",
+      py::arg("k").none(false).noconvert(),
+      py::arg("a").none(false).noconvert()
+    );
+
+  m.def("p_yy",
+      py::overload_cast<const arma::Col<double>, const double>(
+        &cosmolike_interface::p_yy_cpp
+      ),
+      "Halo-model Compton y power spectrum at many k, one a (vectorized)",
+      py::arg("k").none(false),
+      py::arg("a").none(false),
+      py::return_value_policy::move
+    );
+
+  m.def("p_gm",
+      py::overload_cast<const double, const double, const int>(
+        &cosmolike_interface::p_gm_cpp
+      ),
+      "Halo-model galaxy-matter power spectrum of lens bin ni at one "
+      "(k, a); k in (c/H0)^-1, P in (c/H0)^3",
+      py::arg("k").none(false).noconvert(),
+      py::arg("a").none(false).noconvert(),
+      py::arg("ni").none(false).noconvert()
+    );
+
+  m.def("p_gm",
+      py::overload_cast<const arma::Col<double>, const double, const int>(
+        &cosmolike_interface::p_gm_cpp
+      ),
+      "Halo-model galaxy-matter power spectrum of lens bin ni at many k, "
+      "one a (vectorized)",
+      py::arg("k").none(false),
+      py::arg("a").none(false),
+      py::arg("ni").none(false).noconvert(),
+      py::return_value_policy::move
+    );
+
+  m.def("p_gg",
+      py::overload_cast<const double, const double, const int, const int>(
+        &cosmolike_interface::p_gg_cpp
+      ),
+      "Halo-model galaxy-galaxy power spectrum of lens bin ni (nj = ni) "
+      "at one (k, a); k in (c/H0)^-1, P in (c/H0)^3",
+      py::arg("k").none(false).noconvert(),
+      py::arg("a").none(false).noconvert(),
+      py::arg("ni").none(false).noconvert(),
+      py::arg("nj").none(false).noconvert()
+    );
+
+  m.def("p_gg",
+      py::overload_cast<const arma::Col<double>, const double,
+                        const int, const int>(
+        &cosmolike_interface::p_gg_cpp
+      ),
+      "Halo-model galaxy-galaxy power spectrum of lens bin ni (nj = ni) "
+      "at many k, one a (vectorized)",
+      py::arg("k").none(false),
+      py::arg("a").none(false),
+      py::arg("ni").none(false).noconvert(),
+      py::arg("nj").none(false).noconvert(),
+      py::return_value_policy::move
+    );
+
+  m.def("growfac",
+      &cosmolike_interface::growfac_cpp,
+      "Linear growth factor D(a), D(1) = 1 (halo-model input)",
+      py::arg("a").none(false)
+    );
+
+  m.def("p_lin",
+      &cosmolike_interface::p_lin_cpp,
+      "Linear matter power spectrum at one (k, a); k in (c/H0)^-1, P in "
+      "(c/H0)^3 (halo-model input)",
+      py::arg("k").none(false),
+      py::arg("a").none(false)
+    );
+
+  m.def("Pdelta",
+      &cosmolike_interface::Pdelta_cpp,
+      "Run-mode (nonlinear) matter power spectrum at one (k, a); k in "
+      "(c/H0)^-1, P in (c/H0)^3 (halo-model input)",
+      py::arg("k").none(false),
+      py::arg("a").none(false)
+    );
+
+  m.def("set_HOD",
+      &cosmolike_interface::set_HOD_cpp,
+      "Load halo.c's built-in Coupon et al. 2012 HOD for lens bin ni",
+      py::arg("ni").none(false).noconvert()
+    );
+
+  m.def("set_nuisance_hod",
+      &cosmolike_interface::set_nuisance_hod_cpp,
+      "Set the HOD {lgMmin, sigma_lgM, lgM1, lgM0, alpha, f_c} and the "
+      "galaxy concentration factor gc of lens bin ni",
+      py::arg("ni").none(false).noconvert(),
+      py::arg("hod").none(false),
+      py::arg("gc").none(false)
+    );
+
+  m.def("set_nuisance_gas",
+      &cosmolike_interface::set_nuisance_gas_cpp,
+      "Set the gas (Compton-y) parameters nuisance.gas[0..n-1]",
+      py::arg("gas").none(false)
     );
 
   // --------------------------------------------------------------------

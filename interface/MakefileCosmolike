@@ -213,12 +213,14 @@ OBJECTC += \
 CPPSOURCES += \
 		${ROOTDIR}/external_modules/code/cosmolike/generic_interface.cpp \
 		${ROOTDIR}/external_modules/code/cosmolike/cosmo2D_wrapper.cpp \
-		${ROOTDIR}/external_modules/code/cosmolike/cosmo2D_scuts_wrapper.cpp
+		${ROOTDIR}/external_modules/code/cosmolike/cosmo2D_scuts_wrapper.cpp \
+		${ROOTDIR}/external_modules/code/cosmolike/halo_wrapper.cpp
 
 OBJECTCPP += \
 		./generic_interface.o \
 		./cosmo2D_wrapper.o \
-		./cosmo2D_scuts_wrapper.o
+		./cosmo2D_scuts_wrapper.o \
+		./halo_wrapper.o
 
 $(OBJECTC): $(CSOURCES)
 	$(CC) $(CFLAGS) -fPIC -c $(CSOURCES)
