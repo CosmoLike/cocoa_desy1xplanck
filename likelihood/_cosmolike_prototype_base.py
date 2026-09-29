@@ -129,6 +129,10 @@ class _cosmolike_prototype_base(DataSetLikelihood):
 
     ci.init_adopt_limber_gg(
         adopt_limber_gg=int(getattr(self, "adopt_limber_gg", 0)))
+    # 0 = perturbative galaxy bias, 1 = halo-model (HOD) galaxy power;
+    # always set, so a model never inherits the previous model's value
+    ci.init_include_HOD_GX(
+        include_HOD_GX=int(getattr(self, "include_HOD_GX", 0)))
 
     # Init CMB cross spectra ---------------------------------------------------   
     ci.init_cmb_cross_correlation(
