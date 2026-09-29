@@ -124,6 +124,13 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       (py::arg("adopt_limber_gg") = 0).none(false)
     );
 
+  m.def("init_include_HOD_GX",
+      &cosmolike_interface::init_include_HOD_GX,
+      "Galaxy probes: 0 = perturbative galaxy bias (default), 1 = "
+      "halo-model (HOD) galaxy power from halo.c (needs adopt_limber_gg = 1)",
+      (py::arg("include_HOD_GX") = 0).none(false)
+    );
+
   m.def("init_baryons_contamination",
       py::overload_cast<std::string, std::string>(
          &cosmolike_interface::init_baryons_contamination),
