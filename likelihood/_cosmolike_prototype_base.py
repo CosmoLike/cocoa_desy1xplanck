@@ -398,8 +398,19 @@ class _cosmolike_prototype_base(DataSetLikelihood):
       else:
         raise LoggedError(self.log, "non_linear_emul = %d is an invalid option", non_linear_emul)
 
-      G_growth = np.sqrt(PKL.P(self.z_interp_2D,0.0005)/PKL.P(0,0.0005))*(1+self.z_interp_2D)
-      G_growth /= G_growth[-1]
+      # G on the dense 1D z grid (clipped to the P(k) interpolator range):
+      # cosmolike reads G linearly in z, and on the coarse 2D grid
+      # (dz ~ 0.03) the linear read misses D by up to 9e-5 and the
+      # growth rate f = 1 - (1+z) dlnG/dz (the slope of the table) by
+      # 1%; on the 1D grid (dz = 0.003) by 1e-6 and 0.2%. PKL is a cubic
+      # spline in z through CAMB's transfer redshifts, so this asks CAMB
+      # for no extra redshifts (about 0.1 ms per evaluation). The table
+      # stays divided by G at the last z_2D node (z_growth ends below
+      # it); cosmolike's growfac divides by G(0), so D(z=0) = 1.
+      z_growth = self.z_interp_1D[self.z_interp_1D <= self.z_interp_2D[-1]]
+      G_growth = np.sqrt(PKL.P(z_growth,0.0005)/PKL.P(0,0.0005))*(1+z_growth)
+      z_norm = self.z_interp_2D[-1]
+      G_growth /= np.sqrt(PKL.P(z_norm,0.0005)/PKL.P(0,0.0005))*(1+z_norm)
       # Apply baryon suppression factors from theory block (if enabled)
       # The baryon suppression theory block computes S(k,z) for each requested z
       # and applies calibration masking. Here we simply retrieve and apply those factors.
@@ -444,6 +455,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
         lnP_linear=lnPL, 
         lnP_nonlinear=lnPNL, 
         G=G_growth,
+        z_G=z_growth,
         z_1D=self.z_interp_1D,
         chi=self.provider.get_comoving_radial_distance(self.z_interp_1D)*h # convert to Mpc/h
       )

@@ -340,14 +340,25 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
          arma::Col<double> io_G,
          arma::Col<double> io_z_1D,
          arma::Col<double> io_chi,
-         const double omega_baryon)
+         const double omega_baryon,
+         std::vector<double> io_z_G)
       {
         spdlog::debug("\x1b[90m{}\x1b[0m: Begins", "set_cosmology");
         using namespace cosmolike_interface;
         set_cosmological_parameters(omega_matter, omega_baryon, hubble);
         set_linear_power_spectrum(io_log10k_2D,io_z_2D,io_lnP_linear);
         set_non_linear_power_spectrum(io_log10k_2D,io_z_2D,io_lnP_nonlinear);
-        set_growth(io_z_2D,io_G);
+        // growfac reads G linearly in z: the likelihood samples G on its
+        // dense 1D grid (z_G) instead of the coarse z_2D grid of the power
+        // spectra (whose size CAMB's transfer redshifts cap), because the
+        // halo model, the IA amplitudes and f_growth inherit the error of
+        // that linear read. Without z_G, G is sampled on z_2D.
+        if (io_z_G.empty()) {
+          set_growth(io_z_2D, io_G);
+        }
+        else {
+          set_growth(arma::Col<double>(io_z_G), io_G);
+        }
         set_distances(io_z_1D,io_chi);
         spdlog::debug("\x1b[90m{}\x1b[0m: Ends", "set_cosmology");
       },
@@ -362,6 +373,7 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
        py::arg("z_1D").none(false),
        py::arg("chi").none(false),
        py::arg("omegab") = 0.0,
+       py::arg("z_G") = std::vector<double>(),
        py::return_value_policy::move
     );
 
