@@ -7,6 +7,7 @@ from scipy.interpolate import interp1d
 import sys
 import time
 import functools
+from collections.abc import Mapping
 
 # Local
 from cobaya.likelihoods.base_classes import DataSetLikelihood
@@ -46,6 +47,51 @@ def with_omp_threads(fn):
 survey = "DES"
 
 class _cosmolike_prototype_base(DataSetLikelihood):
+
+  @classmethod
+  def get_modified_defaults(cls, defaults, input_options={}):
+    """Apply the yaml option `fixed_params` to the default parameters.
+
+    cobaya calls this class method when it reads the defaults of a
+    combination (its yaml file, e.g. combo_3x2pt_ks_gk_kk.yaml), before it
+    merges them with the user's yaml. The parameters of a combination come
+    from `params: !defaults [params_source, params_lens_maglim]`, and the
+    `!defaults` tag builds the whole `params` mapping from those files, so
+    the same yaml cannot change one entry of it. A combination that fixes
+    some of these parameters lists them under `fixed_params` instead
+    (combo_3x2pt_ks_gk_kk fixes the point masses, which act only on
+    galaxy-galaxy lensing). Each entry replaces the parameter's default
+    info with the cobaya merge rule: a value drops prior, ref and proposal
+    and keeps the other keys (the latex label). A user yaml can override
+    `fixed_params` like any other option of the likelihood. Combinations
+    without `fixed_params` keep their defaults unchanged.
+
+    Arguments:
+      defaults = the combination's default options (dict, `params`
+                 included), changed in place
+      input_options = the user's options for this likelihood (dict)
+
+    Returns:
+      defaults, with each parameter of `fixed_params` replaced.
+    """
+    fixed = input_options.get("fixed_params", defaults.get("fixed_params"))
+    params = defaults.get("params") or {}
+    for p, info in (fixed or {}).items():
+      old = params.get(p)
+      new = {}
+      if isinstance(old, Mapping):
+        # keep every key of the default info except the sampling ones
+        for key, value in old.items():
+          if key not in ("prior", "ref", "proposal"):
+            new[key] = value
+      if isinstance(info, Mapping):
+        new.update(info)
+      else:
+        new["value"] = info
+      params[p] = new
+    if params:
+      defaults["params"] = params
+    return defaults
 
   def initialize(self, probe):
     ini = IniFile(os.path.normpath(os.path.join(self.path, self.data_file)))

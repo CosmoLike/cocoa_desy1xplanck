@@ -42,4 +42,24 @@ external_baryon_suppression: False
 print_datavector: False
 print_datavector_file: "./projects/desy1xplanck/chains/theory.modelvector"
 
+# The point masses DES_PM1..6 act on galaxy-galaxy lensing gamma_t only.
+# gk + ks + kk has no gamma_t block (probe 3x2pt_ks_gk_kk turns it off), so
+# its data vector does not move with them: they are fixed at zero, not
+# sampled. Each entry replaces the parameter's params_lens_maglim.yaml
+# default (a value drops prior, ref and proposal, the cobaya merge rule);
+# see _cosmolike_prototype_base.get_modified_defaults.
+fixed_params:
+  DES_PM1:
+    value: 0.0
+  DES_PM2:
+    value: 0.0
+  DES_PM3:
+    value: 0.0
+  DES_PM4:
+    value: 0.0
+  DES_PM5:
+    value: 0.0
+  DES_PM6:
+    value: 0.0
+
 params: !defaults [params_source, params_lens_maglim]

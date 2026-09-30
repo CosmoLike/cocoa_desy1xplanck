@@ -3,6 +3,9 @@ debug: False
 stop_at_error: True
 
 likelihood:
+  # combo_3x2pt_ks_gk_kk has no galaxy-galaxy lensing block and fixes the
+  # point masses DES_PM1..6 at zero (fixed_params of its yaml): delete them
+  # from the evaluate block below when it is the active likelihood
   #desy1xplanck.combo_2x2pt_ss_sg:
   #desy1xplanck.combo_2x2pt:
   #desy1xplanck.combo_3x2pt:
