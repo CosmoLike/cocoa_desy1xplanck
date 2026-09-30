@@ -44,4 +44,35 @@ external_baryon_suppression: False
 print_datavector: False
 print_datavector_file: "./projects/desy1xplanck/chains/theory.modelvector"
 
+# The mask of Y3xPlanckPR4.dataset (DESY3xPlanckR4_6x2pt_Maglim_baseline_
+# archive.mask) keeps lens bins 1-4 only: it removes every gs entry of lens
+# bins 5-6 (gs is the only lens block of 2x2pt_ss_sg). The parameters that
+# act only on lens bins 5-6 do not move this data vector, so they are fixed
+# at their fiducial values (the ref centers of params_lens_maglim.yaml), not
+# sampled: photo-z shift DES_DZ_L5-6, linear bias DES_B1_5-6, photo-z
+# stretch DES_DZ2_L5-6 and the point masses DES_PM5-6 (DES_B2_5-6 and
+# DES_BMAG_5-6 are constants of params_lens_maglim.yaml already). Each entry
+# replaces the parameter's params_lens_maglim.yaml default (a value drops
+# prior, ref and proposal, the cobaya merge rule); see
+# _cosmolike_prototype_base.get_modified_defaults. A mask that keeps lens
+# bins 5-6 needs `fixed_params: null` in the user's likelihood block
+# (likelihood/README.md).
+fixed_params:
+  DES_DZ_L5:
+    value: 0.002
+  DES_DZ_L6:
+    value: 0.002
+  DES_B1_5:
+    value: 2.0
+  DES_B1_6:
+    value: 2.2
+  DES_DZ2_L5:
+    value: 1.08
+  DES_DZ2_L6:
+    value: 0.845
+  DES_PM5:
+    value: 0.0
+  DES_PM6:
+    value: 0.0
+
 params: !defaults [params_source, params_lens_maglim]

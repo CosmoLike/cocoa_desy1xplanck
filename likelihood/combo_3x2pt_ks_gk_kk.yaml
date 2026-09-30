@@ -61,5 +61,27 @@ fixed_params:
     value: 0.0
   DES_PM6:
     value: 0.0
+  # The mask of Y3xPlanckPR4.dataset (DESY3xPlanckR4_6x2pt_Maglim_baseline_
+  # archive.mask) keeps lens bins 1-4 only: it removes every gk entry of lens
+  # bins 5-6 (gk is the only lens block of gk + ks + kk). The parameters that
+  # act only on lens bins 5-6 do not move this data vector, so they are fixed
+  # at their fiducial values (the ref centers of params_lens_maglim.yaml), not
+  # sampled: photo-z shift DES_DZ_L5-6, linear bias DES_B1_5-6 and photo-z
+  # stretch DES_DZ2_L5-6 (DES_B2_5-6 and DES_BMAG_5-6 are constants of
+  # params_lens_maglim.yaml already). A mask that keeps lens bins 5-6 needs
+  # these six entries removed from `fixed_params` in the user's likelihood
+  # block (likelihood/README.md).
+  DES_DZ_L5:
+    value: 0.002
+  DES_DZ_L6:
+    value: 0.002
+  DES_B1_5:
+    value: 2.0
+  DES_B1_6:
+    value: 2.2
+  DES_DZ2_L5:
+    value: 1.08
+  DES_DZ2_L6:
+    value: 0.845
 
 params: !defaults [params_source, params_lens_maglim]
