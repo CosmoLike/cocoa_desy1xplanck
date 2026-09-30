@@ -143,10 +143,10 @@ prior:
   g3: "lambda H0: stats.norm.logpdf(H0, loc=70, scale=10.0)"
   g4: "lambda omegab: stats.norm.logpdf(omegab, loc=0.045, scale=0.012)"
   g5: "lambda omegam: stats.norm.logpdf(omegam, loc=0.3 , scale=0.25)"
-  g8: "lambda roman_A1_1: stats.norm.logpdf(roman_A1_1, loc=0, scale=2.5)"
-  g9: "lambda roman_A1_2: stats.norm.logpdf(roman_A1_2, loc=-1.7, scale=2.5)"
-  g10: "lambda roman_A2_1: stats.norm.logpdf(roman_A2_1, loc=0, scale=2.5)"
-  g11: "lambda roman_A2_2: stats.norm.logpdf(roman_A2_2, loc=-1.7, scale=2.5)"
+  g8: "lambda DES_A1_1: stats.norm.logpdf(DES_A1_1, loc=0, scale=2.5)"
+  g9: "lambda DES_A1_2: stats.norm.logpdf(DES_A1_2, loc=-1.7, scale=2.5)"
+  g10: "lambda DES_A2_1: stats.norm.logpdf(DES_A2_1, loc=0, scale=2.5)"
+  g11: "lambda DES_A2_2: stats.norm.logpdf(DES_A2_2, loc=-1.7, scale=2.5)"
 params:
   As_1e9:
     prior:
@@ -480,10 +480,13 @@ def chi2(p):
     res1 = model.logprior(point,make_finite=False)
     if np.isinf(res1) or  np.any(np.isnan(res1)):
       return 1e20
+    # return_derived=True: emulbaosn needs rdrag, which emulrdrag also writes
+    # into the derived-parameter store; with return_derived=False that store
+    # is None and the evaluation fails. [0] is the log-likelihood
     res2 = model.loglike(point,
                          make_finite=False,
                          cached=False,
-                         return_derived=False)
+                         return_derived=True)[0]
     if np.isinf(res2) or  np.any(np.isnan(res2)):
       return 1e20
     return -2.0*(res1+res2)
