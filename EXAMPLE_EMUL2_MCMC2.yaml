@@ -103,25 +103,14 @@ params:
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
+  # DES_BARYON_Q1/Q2 are fixed at zero: use_baryon_pca is false in this
+  # example, so the baryon PCA amplitudes do not enter the data vector.
+  # To sample them, set use_baryon_pca: true and give them priors.
   DES_BARYON_Q1:
-    prior:
-      min: 0.0
-      max: 7.0
-    ref:
-      dist: norm
-      loc: 2.0
-      scale: 0.5
-    proposal: 0.5
+    value: 0.0
     latex: Q_\mathrm{DES}^1
   DES_BARYON_Q2:
-    prior:
-      min: -4.0
-      max: 4.0
-    ref:
-      dist: norm
-      loc: 2.0
-      scale: 0.5
-    proposal: 0.5
+    value: 0.0
     latex: Q_\mathrm{DES}^2
   # WL photo-z errors
   DES_DZ_S1:
@@ -613,7 +602,7 @@ sampler:
         ]
       - [50,
           [
-            DES_M1, DES_M2, DES_M3, DES_M4, DES_BARYON_Q1, DES_BARYON_Q2,
+            DES_M1, DES_M2, DES_M3, DES_M4,
             DES_PM1, DES_PM2, DES_PM3, DES_PM4
           ]
         ]

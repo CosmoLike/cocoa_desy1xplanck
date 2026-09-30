@@ -178,25 +178,14 @@ params:
   # Q1 informative: [0, 7]
   # Q1 wide: [-6, 20]
   # Q2: [-4, 4] 
+  # DES_BARYON_Q1/Q2 are fixed at zero: use_baryon_pca is false in this
+  # example, so the baryon PCA amplitudes do not enter the data vector.
+  # To sample them, set use_baryon_pca: true and give them priors.
   DES_BARYON_Q1:
-    prior:
-      min: 0.0
-      max: 7.0
-    ref:
-      dist: norm
-      loc: 2.0
-      scale: 0.5
-    proposal: 0.5
+    value: 0.0
     latex: Q_\mathrm{DES}^1
   DES_BARYON_Q2:
-    prior:
-      min: -4.0
-      max: 4.0
-    ref:
-      dist: norm
-      loc: 2.0
-      scale: 0.5
-    proposal: 0.5
+    value: 0.0
     latex: Q_\mathrm{DES}^2
   # ----------------------------------------------------------------------------
   # DES-Y3 nuisance parameters ends
@@ -264,8 +253,6 @@ sampler:
       DES_PM2: 0.0
       DES_PM3: 0.0
       DES_PM4: 0.0
-      DES_BARYON_Q1: 0.0
-      DES_BARYON_Q2: 0.0
       # TATT PARAMETERS
       DES_A1_1: -0.7
       DES_A1_2: -1.7
