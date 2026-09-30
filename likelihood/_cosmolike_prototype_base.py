@@ -7,6 +7,7 @@ from scipy.interpolate import interp1d
 import sys
 import time
 import functools
+from collections.abc import Mapping
 
 # Local
 from cobaya.likelihoods.base_classes import DataSetLikelihood
@@ -46,6 +47,51 @@ def with_omp_threads(fn):
 survey = "DES"
 
 class _cosmolike_prototype_base(DataSetLikelihood):
+
+  @classmethod
+  def get_modified_defaults(cls, defaults, input_options={}):
+    """Apply the yaml option `fixed_params` to the default parameters.
+
+    cobaya calls this class method when it reads the defaults of a
+    combination (its yaml file, e.g. combo_3x2pt_ks_gk_kk.yaml), before it
+    merges them with the user's yaml. The parameters of a combination come
+    from `params: !defaults [params_source, params_lens_maglim]`, and the
+    `!defaults` tag builds the whole `params` mapping from those files, so
+    the same yaml cannot change one entry of it. A combination that fixes
+    some of these parameters lists them under `fixed_params` instead
+    (combo_3x2pt_ks_gk_kk fixes the point masses, which act only on
+    galaxy-galaxy lensing). Each entry replaces the parameter's default
+    info with the cobaya merge rule: a value drops prior, ref and proposal
+    and keeps the other keys (the latex label). A user yaml can override
+    `fixed_params` like any other option of the likelihood. Combinations
+    without `fixed_params` keep their defaults unchanged.
+
+    Arguments:
+      defaults = the combination's default options (dict, `params`
+                 included), changed in place
+      input_options = the user's options for this likelihood (dict)
+
+    Returns:
+      defaults, with each parameter of `fixed_params` replaced.
+    """
+    fixed = input_options.get("fixed_params", defaults.get("fixed_params"))
+    params = defaults.get("params") or {}
+    for p, info in (fixed or {}).items():
+      old = params.get(p)
+      new = {}
+      if isinstance(old, Mapping):
+        # keep every key of the default info except the sampling ones
+        for key, value in old.items():
+          if key not in ("prior", "ref", "proposal"):
+            new[key] = value
+      if isinstance(info, Mapping):
+        new.update(info)
+      else:
+        new["value"] = info
+      params[p] = new
+    if params:
+      defaults["params"] = params
+    return defaults
 
   def initialize(self, probe):
     ini = IniFile(os.path.normpath(os.path.join(self.path, self.data_file)))
@@ -116,6 +162,42 @@ class _cosmolike_prototype_base(DataSetLikelihood):
       ci.set_log_level_debug()
     else:
       ci.set_log_level_info()
+
+    ci.init_photoz_conventions(
+        interpolation_type=int(getattr(self, "photoz_interpolation_type", 0)),
+        zmid_convention=int(getattr(self, "photoz_zmid_convention", 0)))
+
+    ci.init_fpt_internal_boost(
+        internal_boost=float(getattr(self, "internal_accuracyboost", 1.0)))
+
+    ci.init_adopt_limber_gs(
+        adopt_limber_gs=int(getattr(self, "adopt_limber_gs", 1)))
+
+    ci.init_adopt_limber_gg(
+        adopt_limber_gg=int(getattr(self, "adopt_limber_gg", 0)))
+    # 0 = perturbative galaxy bias, 1 = halo-model (HOD) galaxy power;
+    # always set, so a model never inherits the previous model's value
+    ci.init_include_HOD_GX(
+        include_HOD_GX=int(getattr(self, "include_HOD_GX", 0)))
+    # 0 = the init_IA model, 1 = halo-model IA (Fortuna et al. 2021)
+    ci.init_include_halo_IA(
+        include_halo_IA=int(getattr(self, "include_halo_IA", 0)))
+    # density field of the halo model's peak height: 0 = total matter,
+    # 1 = cold dark matter + baryons (sigma(M) from the linear P_cb, and
+    # rho_crit (Omega_m - Omega_nu) in R(M) and in the rho/M of dn/dM; see
+    # get_neutrino_inputs); always set, so a model never inherits the
+    # previous model's value
+    self.halo_matter_field = int(getattr(self, "halo_matter_field", 0))
+    if self.halo_matter_field not in (0, 1):
+      raise LoggedError(self.log, "halo_matter_field = %d: must be 0 (total "
+                        "matter) or 1 (cold dark matter + baryons)",
+                        self.halo_matter_field)
+    ci.init_halo_matter_field(halo_matter_field=self.halo_matter_field)
+    if (self.halo_matter_field == 1) and (self.use_emulator == 2):
+      self.log.info("halo_matter_field = 1 with use_emulator = 2: the "
+                    "emulators have no cold dark matter + baryon spectrum, "
+                    "so P_cb = P_lin/(1 - f_nu)^2 (an approximation; see "
+                    "get_neutrino_inputs)")
 
     # Init CMB cross spectra ---------------------------------------------------   
     ci.init_cmb_cross_correlation(
@@ -257,6 +339,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
         "As": None,
         "H0": None,
         "omegam": None,
+        "omegab": None,
         "Pk_interpolator": {
           "z": self.z_interp_2D_camb,
           "k_max": self.kmax_boltzmann * self.accuracyboost,
@@ -276,12 +359,15 @@ class _cosmolike_prototype_base(DataSetLikelihood):
         _requirements_["mnu"] = None
         _requirements_["w"] = None
         _requirements_["wa"] = None
+      # mnu gives Omega_nu h^2 on this path (get_neutrino_inputs)
+      _requirements_["mnu"] = None
       return _requirements_
     else:
       _requirements_ = {
         "As": None,
         "H0": None,
         "omegam": None,
+        "omegab": None,
         "Pk_interpolator": {
           "z": self.z_interp_2D_camb,
           "k_max": self.kmax_boltzmann * self.accuracyboost,
@@ -315,6 +401,14 @@ class _cosmolike_prototype_base(DataSetLikelihood):
         _requirements_["mnu"] = None
         _requirements_["w"] = None
         _requirements_["wa"] = None
+      # Omega_nu h^2 of the massive neutrinos (CAMB's omnuh2) and, for
+      # the cold dark matter + baryon halo field, the linear P_cb
+      # (get_neutrino_inputs)
+      _requirements_["omnuh2"] = None
+      if self.halo_matter_field == 1:
+        _requirements_["Pk_interpolator"]["vars_pairs"] = [
+          ("delta_tot", "delta_tot"),
+          ("delta_nonu", "delta_nonu")]
       return _requirements_
 
   # ------------------------------------------------------------------------
@@ -376,8 +470,19 @@ class _cosmolike_prototype_base(DataSetLikelihood):
       else:
         raise LoggedError(self.log, "non_linear_emul = %d is an invalid option", non_linear_emul)
 
-      G_growth = np.sqrt(PKL.P(self.z_interp_2D,0.0005)/PKL.P(0,0.0005))*(1+self.z_interp_2D)
-      G_growth /= G_growth[-1]
+      # G on the dense 1D z grid (clipped to the P(k) interpolator range):
+      # cosmolike reads G linearly in z, and on the coarse 2D grid
+      # (dz ~ 0.03) the linear read misses D by up to 9e-5 and the
+      # growth rate f = 1 - (1+z) dlnG/dz (the slope of the table) by
+      # 1%; on the 1D grid (dz = 0.003) by 1e-6 and 0.2%. PKL is a cubic
+      # spline in z through CAMB's transfer redshifts, so this asks CAMB
+      # for no extra redshifts (about 0.1 ms per evaluation). The table
+      # stays divided by G at the last z_2D node (z_growth ends below
+      # it); cosmolike's growfac divides by G(0), so D(z=0) = 1.
+      z_growth = self.z_interp_1D[self.z_interp_1D <= self.z_interp_2D[-1]]
+      G_growth = np.sqrt(PKL.P(z_growth,0.0005)/PKL.P(0,0.0005))*(1+z_growth)
+      z_norm = self.z_interp_2D[-1]
+      G_growth /= np.sqrt(PKL.P(z_norm,0.0005)/PKL.P(0,0.0005))*(1+z_norm)
       # Apply baryon suppression factors from theory block (if enabled)
       # The baryon suppression theory block computes S(k,z) for each requested z
       # and applies calibration masking. Here we simply retrieve and apply those factors.
@@ -413,14 +518,22 @@ class _cosmolike_prototype_base(DataSetLikelihood):
                 str(e),
             )
 
+      # the massive neutrinos: Omega_nu h^2 and, for the cold dark matter
+      # + baryon halo field, the linear P_cb (get_neutrino_inputs)
+      (omegan2, lnPL_cb) = self.get_neutrino_inputs(lnPL=lnPL, h=h)
+
       ci.set_cosmology(
         omegam=self.provider.get_param("omegam"),
+        omegab=self.provider.get_param("omegab"),
+        omegan2=omegan2,
         H0=self.provider.get_param("H0"),
         log10k_2D=self.log10k_interp_2D-np.log10(h), #h/Mpc
         z_2D=self.z_interp_2D,
         lnP_linear=lnPL, 
+        lnP_linear_cb=lnPL_cb,
         lnP_nonlinear=lnPNL, 
         G=G_growth,
+        z_G=z_growth,
         z_1D=self.z_interp_1D,
         chi=self.provider.get_comoving_radial_distance(self.z_interp_1D)*h # convert to Mpc/h
       )
@@ -449,6 +562,72 @@ class _cosmolike_prototype_base(DataSetLikelihood):
         z=self.z_interp_1D,
         chi=self.provider.get_comoving_radial_distance(self.z_interp_1D)*h
       )
+
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  def get_neutrino_inputs(self, lnPL, h):
+    """Return the massive-neutrino inputs of ci.set_cosmology.
+
+    omegan2 is Omega_nu h^2 of the massive neutrinos today, part of
+    omegam. It always reaches cosmolike. The halo model reads it only
+    when it counts halos of cold dark matter + baryons
+    (halo_matter_field = 1): the neutrinos free-stream out of halos, so
+    rho_crit (Omega_m - Omega_nu) replaces the total matter density in
+    the Lagrangian radius of sigma(M) and in the rho/M of dn/dM.
+
+    lnPL_cb is ln P_cb, the linear power spectrum of cold dark matter +
+    baryons, which sigma^2(M) integrates under halo_matter_field = 1.
+    It is an empty list under halo_matter_field = 0: nothing reads it,
+    and cosmolike then drops any table of a previous call.
+
+    The two theory paths:
+      CAMB (use_emulator = 0): omegan2 is CAMB's omnuh2 and P_cb its
+        ("delta_nonu", "delta_nonu") linear spectrum, read like P_lin
+        (get_requirements asks for both).
+      emulators (use_emulator = 2): the emulators take no neutrino
+        parameter (they were trained at mnu = 0.06 eV) and have no cb
+        spectrum. omegan2 = mnu (3.046/3)^0.75/94.0708, the neutrino
+        density the yaml's omegach2 subtracts, and
+        P_cb = P_lin/(1 - f_nu)^2 with f_nu = omegan2/(omegam h^2): the
+        ratio of the two spectra far above the neutrino free-streaming
+        scale, an approximation on cluster scales. Its measured size is
+        in projects/des_cluster/README.md.
+
+    Arguments:
+      lnPL = ln P_lin [(Mpc/h)^3], flattened as set_cosmology's
+             lnP_linear (Fortran order: k index slow, z index fast)
+      h    = H0/100
+
+    Returns:
+      (omegan2, lnPL_cb): a float and a numpy array of lnPL's shape, or
+      an empty list when halo_matter_field = 0.
+    """
+    if self.use_emulator == 2:
+      mnu = self.provider.get_param("mnu")
+      omegan2 = mnu*(3.046/3.0)**0.75/94.0708
+    else:
+      omegan2 = self.provider.get_param("omnuh2")
+
+    if self.halo_matter_field == 0:
+      return (omegan2, [])
+
+    if self.use_emulator == 2:
+      # P_cb/P_lin = 1/(1 - f_nu)^2 where the neutrinos no longer
+      # cluster (delta_m = (1 - f_nu) delta_cb)
+      f_nu = omegan2/(self.provider.get_param("omegam")*h*h)
+      lnPL_cb = lnPL - 2.0*np.log(1.0 - f_nu)
+    else:
+      # the same k extrapolation, (z, k) grid, flattening and units as
+      # lnPL in set_cosmo_related
+      PKL_cb = self.provider.get_Pk_interpolator(("delta_nonu", "delta_nonu"),
+                                                 nonlinear=False,
+                                                 extrap_kmin=1e-6,
+                                                 extrap_kmax=2.5e2*self.accuracyboost)
+      k_grid = np.power(10.0, self.log10k_interp_2D)
+      lnPL_cb = PKL_cb.logP(self.z_interp_2D, k_grid).flatten(order='F')
+      lnPL_cb = lnPL_cb + np.log(h**3)
+    return (omegan2, lnPL_cb)
 
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------

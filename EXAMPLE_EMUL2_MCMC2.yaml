@@ -103,25 +103,14 @@ params:
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
+  # DES_BARYON_Q1/Q2 are fixed at zero: use_baryon_pca is false in this
+  # example, so the baryon PCA amplitudes do not enter the data vector.
+  # To sample them, set use_baryon_pca: true and give them priors.
   DES_BARYON_Q1:
-    prior:
-      min: 0.0
-      max: 7.0
-    ref:
-      dist: norm
-      loc: 2.0
-      scale: 0.5
-    proposal: 0.5
+    value: 0.0
     latex: Q_\mathrm{DES}^1
   DES_BARYON_Q2:
-    prior:
-      min: -4.0
-      max: 4.0
-    ref:
-      dist: norm
-      loc: 2.0
-      scale: 0.5
-    proposal: 0.5
+    value: 0.0
     latex: Q_\mathrm{DES}^2
   # WL photo-z errors
   DES_DZ_S1:
@@ -280,6 +269,10 @@ params:
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # Lensing photo-z errors
+  # combo_6x2pt and combo_3x2pt fix the parameters of lens bins 5-6
+  # (DES_DZ_L5-6, DES_B1_5-6, DES_DZ2_L5-6, DES_PM5-6; fixed_params of
+  # their yaml): the Y3xPlanckPR4 mask removes those bins. This block does
+  # not declare them, as a declaration here would sample them again.
   DES_DZ_L1:
     prior:
       dist: norm
@@ -324,28 +317,6 @@ params:
       scale: 0.006
     proposal: 0.003
     latex: \Delta z_\mathrm{l,DES}^4
-  DES_DZ_L5:
-    prior:
-      dist: norm
-      loc: 0.002
-      scale: 0.007 
-    ref:
-      dist: norm
-      loc: 0.002
-      scale: 0.007
-    proposal: 0.0035
-    latex: \Delta z_\mathrm{l,DES}^5
-  DES_DZ_L6:
-    prior:
-      dist: norm
-      loc: 0.002
-      scale: 0.008 
-    ref:
-      dist: norm
-      loc: 0.002
-      scale: 0.008
-    proposal: 0.004
-    latex: \Delta z_\mathrm{l,DES}^6
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
@@ -390,26 +361,6 @@ params:
       scale: 0.1
     proposal: 0.1
     latex: b_\mathrm{1-DES}^4
-  DES_B1_5:
-    prior:
-      min: 0.8
-      max: 3
-    ref:
-      dist: norm
-      loc: 2.0
-      scale: 0.1
-    proposal: 0.1
-    latex: b_\mathrm{1-DES}^5
-  DES_B1_6:
-    prior:
-      min: 0.8
-      max: 3
-    ref:
-      dist: norm
-      loc: 2.2
-      scale: 0.1
-    proposal: 0.1
-    latex: b_\mathrm{1-DES}^6
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
@@ -501,28 +452,6 @@ params:
       scale: 0.051
     proposal: 0.025
     latex: \sigma z_\mathrm{l,DES}^4
-  DES_DZ2_L5:
-    prior:
-      dist: norm
-      loc: 1.08
-      scale: 0.067
-    ref:
-      dist: norm
-      loc: 1.08
-      scale: 0.067
-    proposal: 0.0335
-    latex: \sigma z_\mathrm{l,DES}^5
-  DES_DZ2_L6:
-    prior:
-      dist: norm
-      loc: 0.845
-      scale: 0.073
-    ref:
-      dist: norm
-      loc: 0.845
-      scale: 0.073
-    proposal: 0.0365
-    latex: \sigma z_\mathrm{l,DES}^6
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
@@ -570,28 +499,6 @@ params:
       scale: 25
     proposal: 5
     latex: PM_\mathrm{DES}^4
-  DES_PM5:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 25
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 25
-    proposal: 5
-    latex: PM_\mathrm{DES}^5
-  DES_PM6:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 25
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 25
-    proposal: 5
-    latex: PM_\mathrm{DES}^6
   # ----------------------------------------------------------------------------
   # DES-Y3 3x2pt nuissance parameter End
   # ----------------------------------------------------------------------------
@@ -688,15 +595,15 @@ sampler:
       - [15,
           [
             DES_DZ_S1, DES_DZ_S2, DES_DZ_S3, DES_DZ_S4,DES_A1_1, DES_A1_2,
-            DES_DZ_L1, DES_DZ_L2, DES_DZ_L3, DES_DZ_L4,DES_DZ_L5, DES_DZ_L6,
-            DES_DZ2_L1, DES_DZ2_L2, DES_DZ2_L3, DES_DZ2_L4,DES_DZ2_L5,DES_DZ2_L6,
-            DES_B1_1, DES_B1_2, DES_B1_3, DES_B1_4, DES_B1_5, DES_B1_6
+            DES_DZ_L1, DES_DZ_L2, DES_DZ_L3, DES_DZ_L4,
+            DES_DZ2_L1, DES_DZ2_L2, DES_DZ2_L3, DES_DZ2_L4,
+            DES_B1_1, DES_B1_2, DES_B1_3, DES_B1_4
           ]
         ]
       - [50,
           [
-            DES_M1, DES_M2, DES_M3, DES_M4, DES_BARYON_Q1, DES_BARYON_Q2,
-            DES_PM1, DES_PM2, DES_PM3, DES_PM4, DES_PM5, DES_PM6
+            DES_M1, DES_M2, DES_M3, DES_M4,
+            DES_PM1, DES_PM2, DES_PM3, DES_PM4
           ]
         ]
     # ---------------------------------------------------------------------

@@ -42,6 +42,7 @@ namespace py = pybind11;
 #include "cosmolike/generic_interface.hpp"
 #include "cosmolike/cosmo2D_wrapper.hpp"
 #include "cosmolike/cosmo2D_scuts_wrapper.hpp"
+#include "cosmolike/halo_wrapper.hpp"
 
 PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
 {
@@ -56,11 +57,100 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       (py::arg("lmax") = 75000).none(false)
     );
 
+  m.def("init_ntable_ell_internal",
+      &cosmolike_interface::init_ntable_ell_internal,
+      "Coarse exact-quadrature ell nodes of the C_ss/C_gs/C_gk/C_ks "
+      "tables and of the scale-cut tables' ell axis, cubic-spline "
+      "upsampled to N_ell; 0 = exact per-node quadrature",
+      (py::arg("nell_internal") = 192).none(false)
+    );
+
+  m.def("init_ntable_dcx_dlnk_nlnk_internal",
+      &cosmolike_interface::init_ntable_dcx_dlnk_nlnk_internal,
+      "Coarse exact ln k nodes of the scale-cut machinery (the dC "
+      "tables and the dlnxi/dlnw caches), cubic upsampled; the ell "
+      "axis follows N_ell_internal; default 128 of the 256 grid, "
+      "0 = exact",
+      (py::arg("nlnk_internal") = 128).none(false)
+    );
+
+  m.def("init_ntable_nm_internal",
+      &cosmolike_interface::init_ntable_nm_internal,
+      "Coarse exact nodes of the sigma^2(M) halo-model table, "
+      "cubic-spline upsampled to N_M in ln sigma^2; 0 = exact",
+      (py::arg("nm_internal") = 192).none(false)
+    );
+
+  m.def("init_ntable_halo_ia_lmax",
+      &cosmolike_interface::init_ntable_halo_ia_lmax,
+      "Highest multipole of the halo-model IA satellite profile: 2, 4 "
+      "or 6 (Fortuna et al. 2021: 6)",
+      (py::arg("halo_ia_lmax") = 6).none(false)
+    );
+
+  m.def("sigma2",
+      &cosmolike_interface::compute_sigma2,
+      "Halo-model mass variance sigma^2(M) at a = 1 from the cached "
+      "lobe-summed table; M in M_sun/h (diagnostic)",
+      (py::arg("M")).none(false)
+    );
+
   m.def("init_accuracy_boost",
       &cosmolike_interface::init_accuracy_boost,
       "Init accuracy and sampling Boost (may slow down Cosmolike a lot)",
       (py::arg("accuracy_boost") = 1.0).none(false),
       (py::arg("integration_accuracy") = 0).none(false)
+    );
+
+  m.def("init_photoz_conventions",
+      &cosmolike_interface::init_photoz_conventions,
+      "Set the n(z) interpolation type (0: cspline, 1: linear, 2+: steffen) "
+      "and the n(z) file z-column convention (0: Z_LOW, 1: Z_MID)",
+      (py::arg("interpolation_type") = 0).none(false),
+      (py::arg("zmid_convention") = 0).none(false)
+    );
+
+  m.def("init_fpt_internal_boost",
+      &cosmolike_interface::init_fpt_internal_boost,
+      "Set the C-FAST-PT internal (convolution) grid as a fraction of the "
+      "output table (1.0 = grids equal, the exact legacy path)",
+      (py::arg("internal_boost") = 1.0).none(false)
+    );
+
+  m.def("init_adopt_limber_gs",
+      &cosmolike_interface::init_adopt_limber_gs,
+      "Galaxy-galaxy lensing: 1 = Limber at every multipole (default), "
+      "0 = non-Limber below limits.LMAX_NOLIMBER",
+      (py::arg("adopt_limber_gs") = 1).none(false)
+    );
+
+  m.def("init_adopt_limber_gg",
+      &cosmolike_interface::init_adopt_limber_gg,
+      "Galaxy clustering: 0 = non-Limber below limits.LMAX_NOLIMBER, "
+      "1 = Limber at every multipole",
+      (py::arg("adopt_limber_gg") = 0).none(false)
+    );
+
+  m.def("init_include_HOD_GX",
+      &cosmolike_interface::init_include_HOD_GX,
+      "Galaxy probes: 0 = perturbative galaxy bias (default), 1 = "
+      "halo-model (HOD) galaxy power from halo.c (needs adopt_limber_gg = 1)",
+      (py::arg("include_HOD_GX") = 0).none(false)
+    );
+
+  m.def("init_include_halo_IA",
+      &cosmolike_interface::init_include_halo_IA,
+      "Cosmic shear and ggl: 0 = the init_IA model (default), 1 = "
+      "halo-model IA (Fortuna et al. 2021; NLA, Limber gs, no HOD)",
+      (py::arg("include_halo_IA") = 0).none(false)
+    );
+
+  m.def("init_halo_matter_field",
+      &cosmolike_interface::init_halo_matter_field,
+      "Halo-model density field of sigma(M) and dn/dM: 0 = total matter "
+      "(default), 1 = cold dark matter + baryons (needs set_cosmology's "
+      "omegan2 and lnP_linear_cb)",
+      (py::arg("halo_matter_field") = 0).none(false)
     );
 
   m.def("init_baryons_contamination",
@@ -257,18 +347,46 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
          arma::Col<double> io_lnP_nonlinear,
          arma::Col<double> io_G,
          arma::Col<double> io_z_1D,
-         arma::Col<double> io_chi)
+         arma::Col<double> io_chi,
+         const double omega_baryon,
+         std::vector<double> io_z_G,
+         const double omega_nu_h2,
+         std::vector<double> io_lnP_linear_cb)
       {
         spdlog::debug("\x1b[90m{}\x1b[0m: Begins", "set_cosmology");
         using namespace cosmolike_interface;
-        set_cosmological_parameters(omega_matter, hubble);
+        set_cosmological_parameters(omega_matter, omega_baryon, hubble,
+                                    omega_nu_h2);
         set_linear_power_spectrum(io_log10k_2D,io_z_2D,io_lnP_linear);
+        // the linear P_cb (cold dark matter + baryons) on the grid of
+        // lnP_linear, after it: sigma^2(M) reads it under
+        // init_halo_matter_field(1). An empty list removes the table of
+        // the previous call, so a stale P_cb is never read.
+        if (io_lnP_linear_cb.empty()) {
+          clear_linear_power_spectrum_cb();
+        }
+        else {
+          set_linear_power_spectrum_cb(io_log10k_2D, io_z_2D,
+                                       arma::Col<double>(io_lnP_linear_cb));
+        }
         set_non_linear_power_spectrum(io_log10k_2D,io_z_2D,io_lnP_nonlinear);
-        set_growth(io_z_2D,io_G);
+        // growfac reads G linearly in z: the likelihood samples G on its
+        // dense 1D grid (z_G) instead of the coarse z_2D grid of the power
+        // spectra (whose size CAMB's transfer redshifts cap), because the
+        // halo model, the IA amplitudes and f_growth inherit the error of
+        // that linear read. Without z_G, G is sampled on z_2D.
+        if (io_z_G.empty()) {
+          set_growth(io_z_2D, io_G);
+        }
+        else {
+          set_growth(arma::Col<double>(io_z_G), io_G);
+        }
         set_distances(io_z_1D,io_chi);
         spdlog::debug("\x1b[90m{}\x1b[0m: Ends", "set_cosmology");
       },
-      "Set Cosmological Paramters, Distance, Matter Power Spectrum, Growth Factor",
+      "Set Cosmological Parameters, Distance, Matter Power Spectrum, Growth "
+      "Factor, and the massive-neutrino density and linear P_cb of the halo "
+      "model",
        py::arg("omegam").none(false),
        py::arg("H0").none(false),
        py::arg("log10k_2D").none(false),
@@ -278,6 +396,12 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
        py::arg("G").none(false),
        py::arg("z_1D").none(false),
        py::arg("chi").none(false),
+       py::arg("omegab") = 0.0,
+       py::arg("z_G") = std::vector<double>(),
+       // Omega_nu h^2 of the massive neutrinos (CAMB's omnuh2)
+       py::arg("omegan2") = 0.0,
+       // ln P_cb [(Mpc/h)^3], flattened as lnP_linear; empty = none
+       py::arg("lnP_linear_cb") = std::vector<double>(),
        py::return_value_policy::move
     );
 
@@ -524,6 +648,13 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       py::return_value_policy::move
     );
 
+  m.def("w_ks_tomo",
+      &cosmolike_interface::w_ks_tomo_cpp,
+      "Compute CMB lensing-shear (real space) data vector at all"
+      " tomographic and theta bins",
+      py::return_value_policy::move
+    );
+
   m.def("C_ss_tomo_limber",
       py::overload_cast<const double, const int, const int>(
         &cosmolike_interface::C_ss_tomo_limber_cpp
@@ -544,28 +675,7 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       py::return_value_policy::move
     );
 
-  m.def("int_for_C_ss_tomo_limber",
-      py::overload_cast<const double, const double, const int, const int>(
-        &cosmolike_interface::int_for_C_ss_tomo_limber_cpp),
-      "Compute integrand for shear-shear (fourier - limber) data vector"
-      " at a single tomographic bin and ell value",
-      py::arg("a").none(false).noconvert(),
-      py::arg("l").none(false).noconvert(),
-      py::arg("ni").none(false).noconvert(),
-      py::arg("nj").none(false).noconvert()
-    );
-
-  m.def("int_for_C_ss_tomo_limber",
-      py::overload_cast<arma::Col<double>, arma::Col<double>>(
-        &cosmolike_interface::int_for_C_ss_tomo_limber_cpp),
-      "Compute integrand shear-shear (fourier - limber) data vector at all" 
-      " tomographic bins and many scale factor and ell (vectorized)",
-      py::arg("a").none(false),
-      py::arg("l").none(false),
-      py::return_value_policy::move
-    );
-
-  m.def("C_gs_tomo_limber",
+      m.def("C_gs_tomo_limber",
       py::overload_cast<const double, const int, const int>(
         &cosmolike_interface::C_gs_tomo_limber_cpp),
       "Compute shear-position (fourier - limber) data vector at a single"
@@ -584,28 +694,7 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       py::return_value_policy::move
     );
 
-  m.def("int_for_C_gs_tomo_limber",
-      py::overload_cast<const double, const double, const int, const int>(
-        &cosmolike_interface::int_for_C_gs_tomo_limber_cpp),
-      "Compute integrand for shear-position (fourier - limber) data vector"
-      " at a single tomographic bin and ell value",
-      py::arg("a").none(false).noconvert(),
-      py::arg("l").none(false).noconvert(),
-      py::arg("nl").none(false).noconvert(),
-      py::arg("ns").none(false).noconvert()
-    );
-
-  m.def("int_for_C_gs_tomo_limber",
-      py::overload_cast<arma::Col<double>, arma::Col<double>>(
-        &cosmolike_interface::int_for_C_gs_tomo_limber_cpp),
-      "Compute integrand shear-shear (fourier - limber) data vector at all" 
-      " tomographic bins and many scale factor and ell (vectorized)",
-      py::arg("a").none(false),
-      py::arg("l").none(false),
-      py::return_value_policy::move
-    );
-
-  m.def("C_gg_tomo_limber",
+      m.def("C_gg_tomo_limber",
       py::overload_cast<arma::Col<double>>(
         &cosmolike_interface::C_gg_tomo_limber_cpp),
       "Compute position-position (fourier - limber) data vector"
@@ -618,6 +707,24 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       py::overload_cast<arma::Col<double>>(&cosmolike_interface::C_gg_tomo_cpp),
       "Compute position-position (fourier - non-limber/limber) data vector"
       " at all tomographic bins and many ell (vectorized)",
+      py::arg("l").none(false),
+      py::return_value_policy::move
+    );
+
+  m.def("C_ks_tomo_limber",
+      py::overload_cast<const double, const int>(
+        &cosmolike_interface::C_ks_tomo_limber_cpp),
+      "Compute CMB lensing-shear (fourier - limber) data vector at a single"
+      " tomographic bin and ell value",
+      py::arg("l").none(false).noconvert(),
+      py::arg("ni").none(false).noconvert()
+    );
+
+  m.def("C_ks_tomo_limber",
+      py::overload_cast<arma::Col<double>>(
+        &cosmolike_interface::C_ks_tomo_limber_cpp),
+      "Compute CMB lensing-shear (fourier - limber) data vector at all"
+      " tomographic bins and many ell (vectorized)",
       py::arg("l").none(false),
       py::return_value_policy::move
     );
@@ -707,6 +814,392 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       "Compute int from -infty to k of |dlnxi_dlnk| (fourier - limber)",
       py::arg("k").none(false),
       py::return_value_policy::move
+    );
+
+  m.def("dlnC_ks_dlnk_tomo_limber",
+      py::overload_cast<const double, const double, const int>(
+        &cosmolike_interface::dlnC_ks_dlnk_tomo_limber_cpp
+      ),
+      "Compute dlnC_ks_dlnk (fourier - limber) derivative of the data vector",
+      py::arg("k").none(false).noconvert(),
+      py::arg("l").none(false).noconvert(),
+      py::arg("ni").none(false).noconvert(),
+      py::return_value_policy::move
+    );
+
+  m.def("dlnC_ks_dlnk_tomo_limber",
+      py::overload_cast<const arma::Col<double>, const arma::Col<double>>(
+        &cosmolike_interface::dlnC_ks_dlnk_tomo_limber_cpp
+      ),
+      "Compute dlnC_ks_dlnk (fourier - limber) derivative of the data vector",
+      py::arg("k").none(false),
+      py::arg("l").none(false),
+      py::return_value_policy::move
+    );
+
+  m.def("rf_C_ks_tomo_limber",
+      py::overload_cast<const double, const double, const int>(
+        &cosmolike_interface::RF_C_ks_tomo_limber_cpp
+      ),
+      "Compute int from -infty to k of |dlnC_ks_dlnk| (fourier - limber)",
+      py::arg("k").none(false).noconvert(),
+      py::arg("l").none(false).noconvert(),
+      py::arg("ni").none(false).noconvert(),
+      py::return_value_policy::move
+    );
+
+  m.def("rf_C_ks_tomo_limber",
+      py::overload_cast<const arma::Col<double>, const arma::Col<double>>(
+        &cosmolike_interface::RF_C_ks_tomo_limber_cpp
+      ),
+      "Compute int from -infty to k of |dlnC_ks_dlnk| (fourier - limber)",
+      py::arg("k").none(false),
+      py::arg("l").none(false),
+      py::return_value_policy::move
+    );
+
+  m.def("dlnw_ks_dlnk_tomo",
+      py::overload_cast<const double>(
+        &cosmolike_interface::dlnw_ks_dlnk_tomo_cpp
+      ),
+      "Compute dlnw_ks_dlnk (real - limber) derivative of the data vector",
+      py::arg("k").none(false),
+      py::return_value_policy::move
+    );
+
+  m.def("dlnw_ks_dlnk_tomo",
+      py::overload_cast<const arma::Col<double>>(
+        &cosmolike_interface::dlnw_ks_dlnk_tomo_cpp
+      ),
+      "Compute dlnw_ks_dlnk (real - limber) derivative of the data vector",
+      py::arg("k").none(false),
+      py::return_value_policy::move
+    );
+
+  m.def("rf_w_ks_tomo",
+      py::overload_cast<const double, const int, const int>(
+        &cosmolike_interface::RF_w_ks_tomo_cpp
+      ),
+      "Compute int from -infty to k of |dlnw_ks_dlnk| (fourier - limber)",
+      py::arg("k").none(false),
+      py::arg("nt").none(false).noconvert(),
+      py::arg("ni").none(false).noconvert(),
+      py::return_value_policy::move
+    );
+
+  m.def("rf_w_ks_tomo",
+      py::overload_cast<const arma::Col<double>>(
+        &cosmolike_interface::RF_w_ks_tomo_cpp
+      ),
+      "Compute int from -infty to k of |dlnw_ks_dlnk| (fourier - limber)",
+      py::arg("k").none(false),
+      py::return_value_policy::move
+    );
+
+  // --------------------------------------------------------------------
+  // Halo model (halo.c)
+  // --------------------------------------------------------------------
+  m.def("hb1nu",
+      &cosmolike_interface::hb1nu_cpp,
+      "Tinker et al. 2010 halo bias b(nu) at peak height "
+      "nu = delta_c/sigma(M, a)",
+      py::arg("nu").none(false),
+      py::arg("a").none(false)
+    );
+
+  m.def("fnu",
+      &cosmolike_interface::fnu_cpp,
+      "Tinker et al. 2010 multiplicity function f(nu) of the halo mass "
+      "function at peak height nu (0 < a < 1)",
+      py::arg("nu").none(false),
+      py::arg("a").none(false)
+    );
+
+  m.def("conc",
+      &cosmolike_interface::conc_cpp,
+      "Halo concentration c(m) (Bhattacharya et al. 2013, Delta = 200 "
+      "mean); m in M_sun/h, growfac_a = D(a)",
+      py::arg("m").none(false),
+      py::arg("growfac_a").none(false)
+    );
+
+  m.def("dlognudlogm",
+      &cosmolike_interface::dlognudlogm_cpp,
+      "Slope dln nu/dln M of the peak height (cached table at a = 1); "
+      "M in M_sun/h",
+      py::arg("M").none(false)
+    );
+
+  m.def("bias_norm",
+      &cosmolike_interface::bias_norm_cpp,
+      "Halo-bias normalization int b(nu) f(nu) dnu over the tabulated "
+      "mass range (cached table in a)",
+      py::arg("a").none(false)
+    );
+
+  m.def("u_nfw_c",
+      &cosmolike_interface::u_nfw_c_cpp,
+      "Fourier transform of the NFW profile, normalized to 1 at k = 0; "
+      "k in (c/H0)^-1, m in M_sun/h",
+      py::arg("c").none(false),
+      py::arg("k").none(false),
+      py::arg("m").none(false),
+      py::arg("a").none(false)
+    );
+
+  m.def("u_KS",
+      &cosmolike_interface::u_KS_cpp,
+      "Fourier transform of the Komatsu-Seljak gas pressure profile "
+      "(cached table); k in (c/H0)^-1, rv in c/H0",
+      py::arg("c").none(false),
+      py::arg("k").none(false),
+      py::arg("rv").none(false)
+    );
+
+  m.def("ngal",
+      &cosmolike_interface::ngal_cpp,
+      "HOD galaxy number density of lens bin ni in (c/H0)^-3 (cached "
+      "table)",
+      py::arg("ni").none(false).noconvert(),
+      py::arg("a").none(false)
+    );
+
+  m.def("bgal",
+      &cosmolike_interface::bgal_cpp,
+      "HOD bias-weighted integral of lens bin ni (cached table)",
+      py::arg("ni").none(false).noconvert(),
+      py::arg("a").none(false)
+    );
+
+  m.def("p_mm",
+      py::overload_cast<const double, const double>(
+        &cosmolike_interface::p_mm_cpp
+      ),
+      "Halo-model matter power spectrum at one (k, a); k in (c/H0)^-1, "
+      "P in (c/H0)^3",
+      py::arg("k").none(false).noconvert(),
+      py::arg("a").none(false).noconvert()
+    );
+
+  m.def("p_mm",
+      py::overload_cast<const arma::Col<double>, const double>(
+        &cosmolike_interface::p_mm_cpp
+      ),
+      "Halo-model matter power spectrum at many k, one a (vectorized)",
+      py::arg("k").none(false),
+      py::arg("a").none(false),
+      py::return_value_policy::move
+    );
+
+  m.def("p_my",
+      py::overload_cast<const double, const double>(
+        &cosmolike_interface::p_my_cpp
+      ),
+      "Halo-model matter-Compton y power spectrum at one (k, a); k in "
+      "(c/H0)^-1",
+      py::arg("k").none(false).noconvert(),
+      py::arg("a").none(false).noconvert()
+    );
+
+  m.def("p_my",
+      py::overload_cast<const arma::Col<double>, const double>(
+        &cosmolike_interface::p_my_cpp
+      ),
+      "Halo-model matter-Compton y power spectrum at many k, one a "
+      "(vectorized)",
+      py::arg("k").none(false),
+      py::arg("a").none(false),
+      py::return_value_policy::move
+    );
+
+  m.def("p_yy",
+      py::overload_cast<const double, const double>(
+        &cosmolike_interface::p_yy_cpp
+      ),
+      "Halo-model Compton y power spectrum at one (k, a); k in "
+      "(c/H0)^-1",
+      py::arg("k").none(false).noconvert(),
+      py::arg("a").none(false).noconvert()
+    );
+
+  m.def("p_yy",
+      py::overload_cast<const arma::Col<double>, const double>(
+        &cosmolike_interface::p_yy_cpp
+      ),
+      "Halo-model Compton y power spectrum at many k, one a (vectorized)",
+      py::arg("k").none(false),
+      py::arg("a").none(false),
+      py::return_value_policy::move
+    );
+
+  m.def("p_gm",
+      py::overload_cast<const double, const double, const int>(
+        &cosmolike_interface::p_gm_cpp
+      ),
+      "Halo-model galaxy-matter power spectrum of lens bin ni at one "
+      "(k, a); k in (c/H0)^-1, P in (c/H0)^3",
+      py::arg("k").none(false).noconvert(),
+      py::arg("a").none(false).noconvert(),
+      py::arg("ni").none(false).noconvert()
+    );
+
+  m.def("p_gm",
+      py::overload_cast<const arma::Col<double>, const double, const int>(
+        &cosmolike_interface::p_gm_cpp
+      ),
+      "Halo-model galaxy-matter power spectrum of lens bin ni at many k, "
+      "one a (vectorized)",
+      py::arg("k").none(false),
+      py::arg("a").none(false),
+      py::arg("ni").none(false).noconvert(),
+      py::return_value_policy::move
+    );
+
+  m.def("p_gg",
+      py::overload_cast<const double, const double, const int, const int>(
+        &cosmolike_interface::p_gg_cpp
+      ),
+      "Halo-model galaxy-galaxy power spectrum of lens bin ni (nj = ni) "
+      "at one (k, a); k in (c/H0)^-1, P in (c/H0)^3",
+      py::arg("k").none(false).noconvert(),
+      py::arg("a").none(false).noconvert(),
+      py::arg("ni").none(false).noconvert(),
+      py::arg("nj").none(false).noconvert()
+    );
+
+  m.def("p_gg",
+      py::overload_cast<const arma::Col<double>, const double,
+                        const int, const int>(
+        &cosmolike_interface::p_gg_cpp
+      ),
+      "Halo-model galaxy-galaxy power spectrum of lens bin ni (nj = ni) "
+      "at many k, one a (vectorized)",
+      py::arg("k").none(false),
+      py::arg("a").none(false),
+      py::arg("ni").none(false).noconvert(),
+      py::arg("nj").none(false).noconvert(),
+      py::return_value_policy::move
+    );
+
+  m.def("ia_f_red_central",
+      &cosmolike_interface::ia_f_red_central_cpp,
+      "Halo-model IA red-central fraction f_rc(a) of the source sample "
+      "(cached table; 0 outside the source a range)",
+      py::arg("a").none(false)
+    );
+
+  m.def("ia_window_2h",
+      py::overload_cast<const double>(
+        &cosmolike_interface::ia_window_2h_cpp
+      ),
+      "Halo-model IA window of the NLA 2-halo term, f_2h(k) = "
+      "exp[-(k/k_2h)^2], at one k; k in (c/H0)^-1",
+      py::arg("k").none(false).noconvert()
+    );
+
+  m.def("ia_window_2h",
+      py::overload_cast<const arma::Col<double>>(
+        &cosmolike_interface::ia_window_2h_cpp
+      ),
+      "Halo-model IA window of the NLA 2-halo term at many k (vectorized)",
+      py::arg("k").none(false),
+      py::return_value_policy::move
+    );
+
+  m.def("ia_p1h_dI",
+      py::overload_cast<const double, const double>(
+        &cosmolike_interface::ia_p1h_dI_cpp
+      ),
+      "Halo-model IA 1-halo matter-intrinsic spectrum at one (k, a), "
+      "signed with a_1h (the C_l cores subtract it); k in (c/H0)^-1, "
+      "P in (c/H0)^3",
+      py::arg("k").none(false).noconvert(),
+      py::arg("a").none(false).noconvert()
+    );
+
+  m.def("ia_p1h_dI",
+      py::overload_cast<const arma::Col<double>, const double>(
+        &cosmolike_interface::ia_p1h_dI_cpp
+      ),
+      "Halo-model IA 1-halo matter-intrinsic spectrum at many k, one a "
+      "(vectorized)",
+      py::arg("k").none(false),
+      py::arg("a").none(false),
+      py::return_value_policy::move
+    );
+
+  m.def("ia_p1h_II",
+      py::overload_cast<const double, const double>(
+        &cosmolike_interface::ia_p1h_II_cpp
+      ),
+      "Halo-model IA 1-halo intrinsic-intrinsic spectrum at one (k, a); "
+      "k in (c/H0)^-1, P in (c/H0)^3",
+      py::arg("k").none(false).noconvert(),
+      py::arg("a").none(false).noconvert()
+    );
+
+  m.def("ia_p1h_II",
+      py::overload_cast<const arma::Col<double>, const double>(
+        &cosmolike_interface::ia_p1h_II_cpp
+      ),
+      "Halo-model IA 1-halo intrinsic-intrinsic spectrum at many k, one a "
+      "(vectorized)",
+      py::arg("k").none(false),
+      py::arg("a").none(false),
+      py::return_value_policy::move
+    );
+
+  m.def("growfac",
+      &cosmolike_interface::growfac_cpp,
+      "Linear growth factor D(a), D(1) = 1 (halo-model input)",
+      py::arg("a").none(false)
+    );
+
+  m.def("p_lin",
+      &cosmolike_interface::p_lin_cpp,
+      "Linear matter power spectrum at one (k, a); k in (c/H0)^-1, P in "
+      "(c/H0)^3 (halo-model input)",
+      py::arg("k").none(false),
+      py::arg("a").none(false)
+    );
+
+  m.def("Pdelta",
+      &cosmolike_interface::Pdelta_cpp,
+      "Run-mode (nonlinear) matter power spectrum at one (k, a); k in "
+      "(c/H0)^-1, P in (c/H0)^3 (halo-model input)",
+      py::arg("k").none(false),
+      py::arg("a").none(false)
+    );
+
+  m.def("set_HOD",
+      &cosmolike_interface::set_HOD_cpp,
+      "Load halo.c's built-in Coupon et al. 2012 HOD for lens bin ni",
+      py::arg("ni").none(false).noconvert()
+    );
+
+  m.def("set_nuisance_hod",
+      &cosmolike_interface::set_nuisance_hod_cpp,
+      "Set the HOD {lgMmin, sigma_lgM, lgM1, lgM0, alpha, f_c} and the "
+      "galaxy concentration factor gc of lens bin ni",
+      py::arg("ni").none(false).noconvert(),
+      py::arg("hod").none(false),
+      py::arg("gc").none(false)
+    );
+
+  m.def("set_nuisance_gas",
+      &cosmolike_interface::set_nuisance_gas_cpp,
+      "Set the gas (Compton-y) parameters nuisance.gas[0..n-1]",
+      py::arg("gas").none(false)
+    );
+
+  m.def("set_nuisance_ia_halo",
+      &cosmolike_interface::set_nuisance_ia_halo_cpp,
+      "Set the halo-model IA parameters: ia_halo = {a_1h, eta_1h, "
+      "z_pivot}, ia_red = the four red-fraction sigmoid parameters, "
+      "ia_hod = the six IA-population HOD parameters",
+      py::arg("ia_halo").none(false),
+      py::arg("ia_red").none(false),
+      py::arg("ia_hod").none(false)
     );
 
   // --------------------------------------------------------------------

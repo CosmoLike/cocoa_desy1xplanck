@@ -12,6 +12,9 @@ likelihood:
     data_file: Y3xPlanckPR4.dataset
     print_datavector: False
     print_datavector_file: "./projects/desy1xplanck/chains/theory.modelvector"
+    # WARNING: keep accuracyboost <= 3. The chi2 is converged at the default 1.0
+    # (differences <= 0.004 through boost 3.25), and above that the 6x2pt integration
+    # tables break down: chi2 shifts by +0.05 at 3.75, +0.26 at 4, +27 at 5.
     accuracyboost: 1.0
     integration_accuracy: 0
     lmax: 75000 # lmax computed for real space correlation function
@@ -207,12 +210,18 @@ theory:
       accurate_massive_neutrino_transfers: false
       k_per_logint: 12
       kmax: 10
+#  NOTE: under TATT with IA_code: 1 the fastpt defaults are the
+#  converged two-grid configuration: accuracyboost multiplies the
+#  density of the output table cosmolike interpolates (the accuracy
+#  driver) and internal_accuracyboost the FFTLog grid, both rebased
+#  so 1.0 just works (see tests/README.md, test 15).
 #  fastpt:
 #    path: ./external_modules/code/FAST-PT
-    #extra_args:
-      #accuracyboost: 5
-      #kmax_boltzmann: 7.5
-      #extrap_kmax: 250.0     
+#    extra_args:
+#      accuracyboost: 1.0
+#      internal_accuracyboost: 1.0
+#      kmax_boltzmann: 7.5
+#      extrap_kmax: 250.0
 sampler:
   evaluate:
     N: 1

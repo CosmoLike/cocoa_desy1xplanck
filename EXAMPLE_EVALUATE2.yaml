@@ -3,6 +3,12 @@ debug: False
 stop_at_error: True
 
 likelihood:
+  # The Y3xPlanckPR4 mask removes lens bins 5-6, so every combination below
+  # fixes the parameters that act only on those bins (fixed_params of its
+  # yaml; likelihood/README.md), and the evaluate block does not name them.
+  # combo_3x2pt_ks_gk_kk has no galaxy-galaxy lensing block and also fixes
+  # the point masses DES_PM1..4 at zero: delete them from the evaluate
+  # block below when it is the active likelihood
   #desy1xplanck.combo_2x2pt_ss_sg:
   #desy1xplanck.combo_2x2pt:
   #desy1xplanck.combo_3x2pt:
@@ -172,25 +178,14 @@ params:
   # Q1 informative: [0, 7]
   # Q1 wide: [-6, 20]
   # Q2: [-4, 4] 
+  # DES_BARYON_Q1/Q2 are fixed at zero: use_baryon_pca is false in this
+  # example, so the baryon PCA amplitudes do not enter the data vector.
+  # To sample them, set use_baryon_pca: true and give them priors.
   DES_BARYON_Q1:
-    prior:
-      min: 0.0
-      max: 7.0
-    ref:
-      dist: norm
-      loc: 2.0
-      scale: 0.5
-    proposal: 0.5
+    value: 0.0
     latex: Q_\mathrm{DES}^1
   DES_BARYON_Q2:
-    prior:
-      min: -4.0
-      max: 4.0
-    ref:
-      dist: norm
-      loc: 2.0
-      scale: 0.5
-    proposal: 0.5
+    value: 0.0
     latex: Q_\mathrm{DES}^2
   # ----------------------------------------------------------------------------
   # DES-Y3 nuisance parameters ends
@@ -246,28 +241,18 @@ sampler:
       DES_DZ_L2: -0.035
       DES_DZ_L3: -0.005
       DES_DZ_L4: -0.007
-      DES_DZ_L5: 0.002
-      DES_DZ_L6: 0.002
       DES_B1_1: 1.5
       DES_B1_2: 1.8
       DES_B1_3: 1.8
       DES_B1_4: 1.9
-      DES_B1_5: 2.3
-      DES_B1_6: 2.3
       DES_DZ2_L1: 0.98
       DES_DZ2_L2: 1.31
       DES_DZ2_L3: 0.87
       DES_DZ2_L4: 0.92
-      DES_DZ2_L5: 1.08
-      DES_DZ2_L6: 0.845
       DES_PM1: 0.0
       DES_PM2: 0.0
       DES_PM3: 0.0
       DES_PM4: 0.0
-      DES_PM5: 0.0
-      DES_PM6: 0.0
-      DES_BARYON_Q1: 0.0
-      DES_BARYON_Q2: 0.0
       # TATT PARAMETERS
       DES_A1_1: -0.7
       DES_A1_2: -1.7

@@ -445,10 +445,13 @@ def chi2(p):
     res1 = model.logprior(point,make_finite=False)
     if np.isinf(res1) or  np.any(np.isnan(res1)):
       return 1.e20
+    # return_derived=True: emulbaosn needs rdrag, which emulrdrag also writes
+    # into the derived-parameter store; with return_derived=False that store
+    # is None and the evaluation fails. [0] is the log-likelihood
     res2 = model.loglike(point,
                          make_finite=False,
                          cached=False,
-                         return_derived=False)
+                         return_derived=True)[0]
     if np.isinf(res2) or  np.any(np.isnan(res2)):
       return 1e20
     return -2.0*(res1+res2)

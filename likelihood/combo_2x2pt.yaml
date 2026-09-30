@@ -4,7 +4,27 @@ data_file: Y3xPlanckPR4.dataset
 # (differences <= 0.004 through boost 3.25), and above that the 6x2pt integration
 # tables break down: chi2 shifts by +0.05 at 3.75, +0.26 at 4, +27 at 5.
 accuracyboost: 1.0
+internal_accuracyboost: 1.0 # C-FAST-PT convolution grid / output grid
 integration_accuracy: 0 # integer 0, 1 or 2
+# n(z) interpolation: 0 = cubic spline, 1 = linear, 2+ = Steffen (monotone)
+photoz_interpolation_type: 0
+# n(z) file z column: 0 = Z_LOW (left bin edges), 1 = Z_MID (sample points)
+photoz_zmid_convention: 0
+# galaxy-galaxy lensing: 1 = Limber at every multipole, 0 = non-Limber below l = 150
+adopt_limber_gs: 1
+# galaxy clustering: 0 = non-Limber below l = 150, 1 = Limber at every multipole
+adopt_limber_gg: 0
+# galaxy probes: 0 = perturbative galaxy bias, 1 = halo-model (HOD) galaxy
+# power (Limber only: needs adopt_limber_gg = adopt_limber_gs = 1)
+include_HOD_GX: 0
+# shear and ggl IA: 0 = the IA_model above, 1 = halo-model IA
+# (Fortuna et al. 2021; NLA only, Limber gs, include_HOD_GX = 0)
+include_halo_IA: 0
+# halo model: density field of sigma(M) and dn/dM. 0 = total matter;
+# 1 = cold dark matter + baryons, as the massive neutrinos free-stream
+# out of halos (sigma(M) from CAMB's delta_nonu P(k); the emulator path
+# approximates it; p_mm, p_my, p_yy stop under 1)
+halo_matter_field: 0
 lmax: 75000 
 kmax_boltzmann: 10.0
 speed: 1
@@ -36,5 +56,35 @@ external_baryon_suppression: False
 
 print_datavector: False
 print_datavector_file: "./projects/desy1xplanck/chains/theory.modelvector"
+
+# The mask of Y3xPlanckPR4.dataset (DESY3xPlanckR4_6x2pt_Maglim_baseline_
+# archive.mask) keeps lens bins 1-4 only: it removes every gs and gg entry
+# of lens bins 5-6. The parameters that act only on lens bins 5-6 do not
+# move this data vector, so they are fixed at their fiducial values (the ref
+# centers of params_lens_maglim.yaml), not sampled: photo-z shift
+# DES_DZ_L5-6, linear bias DES_B1_5-6, photo-z stretch DES_DZ2_L5-6 and the
+# point masses DES_PM5-6 (DES_B2_5-6 and DES_BMAG_5-6 are constants of
+# params_lens_maglim.yaml already). Each entry replaces the parameter's
+# params_lens_maglim.yaml default (a value drops prior, ref and proposal, the
+# cobaya merge rule); see _cosmolike_prototype_base.get_modified_defaults.
+# A mask that keeps lens bins 5-6 needs `fixed_params: null` in the user's
+# likelihood block (likelihood/README.md).
+fixed_params:
+  DES_DZ_L5:
+    value: 0.002
+  DES_DZ_L6:
+    value: 0.002
+  DES_B1_5:
+    value: 2.0
+  DES_B1_6:
+    value: 2.2
+  DES_DZ2_L5:
+    value: 1.08
+  DES_DZ2_L6:
+    value: 0.845
+  DES_PM5:
+    value: 0.0
+  DES_PM6:
+    value: 0.0
 
 params: !defaults [params_source, params_lens_maglim]
