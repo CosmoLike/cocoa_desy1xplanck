@@ -145,6 +145,14 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       (py::arg("include_halo_IA") = 0).none(false)
     );
 
+  m.def("init_halo_matter_field",
+      &cosmolike_interface::init_halo_matter_field,
+      "Halo-model density field of sigma(M) and dn/dM: 0 = total matter "
+      "(default), 1 = cold dark matter + baryons (needs set_cosmology's "
+      "omegan2 and lnP_linear_cb)",
+      (py::arg("halo_matter_field") = 0).none(false)
+    );
+
   m.def("init_baryons_contamination",
       py::overload_cast<std::string, std::string>(
          &cosmolike_interface::init_baryons_contamination),
@@ -341,12 +349,26 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
          arma::Col<double> io_z_1D,
          arma::Col<double> io_chi,
          const double omega_baryon,
-         std::vector<double> io_z_G)
+         std::vector<double> io_z_G,
+         const double omega_nu_h2,
+         std::vector<double> io_lnP_linear_cb)
       {
         spdlog::debug("\x1b[90m{}\x1b[0m: Begins", "set_cosmology");
         using namespace cosmolike_interface;
-        set_cosmological_parameters(omega_matter, omega_baryon, hubble);
+        set_cosmological_parameters(omega_matter, omega_baryon, hubble,
+                                    omega_nu_h2);
         set_linear_power_spectrum(io_log10k_2D,io_z_2D,io_lnP_linear);
+        // the linear P_cb (cold dark matter + baryons) on the grid of
+        // lnP_linear, after it: sigma^2(M) reads it under
+        // init_halo_matter_field(1). An empty list removes the table of
+        // the previous call, so a stale P_cb is never read.
+        if (io_lnP_linear_cb.empty()) {
+          clear_linear_power_spectrum_cb();
+        }
+        else {
+          set_linear_power_spectrum_cb(io_log10k_2D, io_z_2D,
+                                       arma::Col<double>(io_lnP_linear_cb));
+        }
         set_non_linear_power_spectrum(io_log10k_2D,io_z_2D,io_lnP_nonlinear);
         // growfac reads G linearly in z: the likelihood samples G on its
         // dense 1D grid (z_G) instead of the coarse z_2D grid of the power
@@ -362,7 +384,9 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
         set_distances(io_z_1D,io_chi);
         spdlog::debug("\x1b[90m{}\x1b[0m: Ends", "set_cosmology");
       },
-      "Set Cosmological Paramters, Distance, Matter Power Spectrum, Growth Factor",
+      "Set Cosmological Parameters, Distance, Matter Power Spectrum, Growth "
+      "Factor, and the massive-neutrino density and linear P_cb of the halo "
+      "model",
        py::arg("omegam").none(false),
        py::arg("H0").none(false),
        py::arg("log10k_2D").none(false),
@@ -374,6 +398,10 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
        py::arg("chi").none(false),
        py::arg("omegab") = 0.0,
        py::arg("z_G") = std::vector<double>(),
+       // Omega_nu h^2 of the massive neutrinos (CAMB's omnuh2)
+       py::arg("omegan2") = 0.0,
+       // ln P_cb [(Mpc/h)^3], flattened as lnP_linear; empty = none
+       py::arg("lnP_linear_cb") = std::vector<double>(),
        py::return_value_policy::move
     );
 
