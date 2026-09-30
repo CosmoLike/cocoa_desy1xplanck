@@ -81,6 +81,13 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       (py::arg("nm_internal") = 192).none(false)
     );
 
+  m.def("init_ntable_halo_ia_lmax",
+      &cosmolike_interface::init_ntable_halo_ia_lmax,
+      "Highest multipole of the halo-model IA satellite profile: 2, 4 "
+      "or 6 (Fortuna et al. 2021: 6)",
+      (py::arg("halo_ia_lmax") = 6).none(false)
+    );
+
   m.def("sigma2",
       &cosmolike_interface::compute_sigma2,
       "Halo-model mass variance sigma^2(M) at a = 1 from the cached "
@@ -129,6 +136,13 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       "Galaxy probes: 0 = perturbative galaxy bias (default), 1 = "
       "halo-model (HOD) galaxy power from halo.c (needs adopt_limber_gg = 1)",
       (py::arg("include_HOD_GX") = 0).none(false)
+    );
+
+  m.def("init_include_halo_IA",
+      &cosmolike_interface::init_include_halo_IA,
+      "Cosmic shear and ggl: 0 = the init_IA model (default), 1 = "
+      "halo-model IA (Fortuna et al. 2021; NLA, Limber gs, no HOD)",
+      (py::arg("include_halo_IA") = 0).none(false)
     );
 
   m.def("init_baryons_contamination",
@@ -1027,6 +1041,74 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       py::return_value_policy::move
     );
 
+  m.def("ia_f_red_central",
+      &cosmolike_interface::ia_f_red_central_cpp,
+      "Halo-model IA red-central fraction f_rc(a) of the source sample "
+      "(cached table; 0 outside the source a range)",
+      py::arg("a").none(false)
+    );
+
+  m.def("ia_window_2h",
+      py::overload_cast<const double>(
+        &cosmolike_interface::ia_window_2h_cpp
+      ),
+      "Halo-model IA window of the NLA 2-halo term, f_2h(k) = "
+      "exp[-(k/k_2h)^2], at one k; k in (c/H0)^-1",
+      py::arg("k").none(false).noconvert()
+    );
+
+  m.def("ia_window_2h",
+      py::overload_cast<const arma::Col<double>>(
+        &cosmolike_interface::ia_window_2h_cpp
+      ),
+      "Halo-model IA window of the NLA 2-halo term at many k (vectorized)",
+      py::arg("k").none(false),
+      py::return_value_policy::move
+    );
+
+  m.def("ia_p1h_dI",
+      py::overload_cast<const double, const double>(
+        &cosmolike_interface::ia_p1h_dI_cpp
+      ),
+      "Halo-model IA 1-halo matter-intrinsic spectrum at one (k, a), "
+      "signed with a_1h (the C_l cores subtract it); k in (c/H0)^-1, "
+      "P in (c/H0)^3",
+      py::arg("k").none(false).noconvert(),
+      py::arg("a").none(false).noconvert()
+    );
+
+  m.def("ia_p1h_dI",
+      py::overload_cast<const arma::Col<double>, const double>(
+        &cosmolike_interface::ia_p1h_dI_cpp
+      ),
+      "Halo-model IA 1-halo matter-intrinsic spectrum at many k, one a "
+      "(vectorized)",
+      py::arg("k").none(false),
+      py::arg("a").none(false),
+      py::return_value_policy::move
+    );
+
+  m.def("ia_p1h_II",
+      py::overload_cast<const double, const double>(
+        &cosmolike_interface::ia_p1h_II_cpp
+      ),
+      "Halo-model IA 1-halo intrinsic-intrinsic spectrum at one (k, a); "
+      "k in (c/H0)^-1, P in (c/H0)^3",
+      py::arg("k").none(false).noconvert(),
+      py::arg("a").none(false).noconvert()
+    );
+
+  m.def("ia_p1h_II",
+      py::overload_cast<const arma::Col<double>, const double>(
+        &cosmolike_interface::ia_p1h_II_cpp
+      ),
+      "Halo-model IA 1-halo intrinsic-intrinsic spectrum at many k, one a "
+      "(vectorized)",
+      py::arg("k").none(false),
+      py::arg("a").none(false),
+      py::return_value_policy::move
+    );
+
   m.def("growfac",
       &cosmolike_interface::growfac_cpp,
       "Linear growth factor D(a), D(1) = 1 (halo-model input)",
@@ -1068,6 +1150,16 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       &cosmolike_interface::set_nuisance_gas_cpp,
       "Set the gas (Compton-y) parameters nuisance.gas[0..n-1]",
       py::arg("gas").none(false)
+    );
+
+  m.def("set_nuisance_ia_halo",
+      &cosmolike_interface::set_nuisance_ia_halo_cpp,
+      "Set the halo-model IA parameters: ia_halo = {a_1h, eta_1h, "
+      "z_pivot}, ia_red = the four red-fraction sigmoid parameters, "
+      "ia_hod = the six IA-population HOD parameters",
+      py::arg("ia_halo").none(false),
+      py::arg("ia_red").none(false),
+      py::arg("ia_hod").none(false)
     );
 
   // --------------------------------------------------------------------

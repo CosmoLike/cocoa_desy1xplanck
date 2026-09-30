@@ -133,6 +133,9 @@ class _cosmolike_prototype_base(DataSetLikelihood):
     # always set, so a model never inherits the previous model's value
     ci.init_include_HOD_GX(
         include_HOD_GX=int(getattr(self, "include_HOD_GX", 0)))
+    # 0 = the init_IA model, 1 = halo-model IA (Fortuna et al. 2021)
+    ci.init_include_halo_IA(
+        include_halo_IA=int(getattr(self, "include_halo_IA", 0)))
 
     # Init CMB cross spectra ---------------------------------------------------   
     ci.init_cmb_cross_correlation(
