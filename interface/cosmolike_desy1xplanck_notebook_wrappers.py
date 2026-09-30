@@ -235,6 +235,12 @@ def init_cosmolike(CLprobe=None, with_data=False, lmax=None):
     ci.init_photoz_conventions(
         int(_CONFIG["photoz_interpolation_type"]),
         int(_CONFIG["photoz_zmid_convention"]))
+    # set before the init_accuracy_boost at the end of this function, as
+    # in the likelihood: that is normally the first call of the process,
+    # which stores the C-FAST-PT internal grid fraction
+    # (internal_accuracyboost) it finds as the base every later call
+    # multiplies by the boost; called the other way round, the base would
+    # be the C default 0.5 that initial_setup restores
     ci.init_fpt_internal_boost(
         float(_CONFIG["internal_accuracyboost"]))
     # CMB-lensing cross-correlation (beam + healpix pixel window) and
@@ -335,12 +341,17 @@ def _set_state(omegam, omegab, H0, ns, As_1e9, w, w0pwa,
     CLIntegrationAccuracy = max(
         0, CLIntegrationAccuracy + abs(3*(CLAccuracyBoost - 1.0)))
     ci.init_ntable_lmax(int(_CONFIG["lmax"] + 20000*(CLAccuracyBoost - 1)))
-    ci.init_accuracy_boost(CLAccuracyBoost, int(CLIntegrationAccuracy))
     ci.init_photoz_conventions(
         int(_CONFIG["photoz_interpolation_type"]),
         int(_CONFIG["photoz_zmid_convention"]))
+    # init_fpt_internal_boost comes first, as in the likelihood:
+    # init_accuracy_boost sets the C-FAST-PT internal grid fraction
+    # (internal_accuracyboost) to base x CLAccuracyBoost, where base is
+    # the fraction it found at its first call in the process; a fraction
+    # set after init_accuracy_boost would discard the boost
     ci.init_fpt_internal_boost(
         float(_CONFIG["internal_accuracyboost"]))
+    ci.init_accuracy_boost(CLAccuracyBoost, int(CLIntegrationAccuracy))
     if binning is not None:
         ci.init_binning(int(binning[0]), binning[1], binning[2])
     if B1 is not None:
