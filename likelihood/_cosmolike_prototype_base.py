@@ -135,7 +135,19 @@ class _cosmolike_prototype_base(DataSetLikelihood):
     # 3/n); the high block multiplies its INTERVAL count
     # (endpoint=True: 35 nodes = 34 intervals -> 34*m + 1 nodes).
     # zmax of the hybrid emulator is 50 (why 50? Only relevant if CMB lensing included)
+    #
+    # pk_z_refinement multiplies m on top of the accuracy boost (which stays
+    # global: it still sets m as before). A Fourier-space data vector reads
+    # P(k, z) at fixed multipoles, where the linear z interpolation residual
+    # does not average out as it does in real space: roman_fourier's 3x2pt
+    # chi2 moves by 0.25, 0.030, 0.002 from m = 1 to 2, 4, 8 (measured
+    # 2026-10-01), roman_real's and lsst_y1's by <= 0.004 from 1 to 2.
+    zref = getattr(self, "pk_z_refinement", 1)
+    if not (float(zref) == int(zref) and int(zref) >= 1):
+      raise LoggedError(self.log, "pk_z_refinement = %s: must be a positive "
+                        "integer", zref)
     m = int(min(2**np.ceil(np.log2(max(1.0, self.accuracyboost))), 16))
+    m = m*int(zref)
     self.z_interp_2D = np.concatenate((np.linspace(0,3.0,105*m,endpoint=False), 
                                        np.linspace(3.0,49.99,34*m + 1)),axis=0)
     self.len_z_interp_2D = len(self.z_interp_2D)
@@ -169,6 +181,11 @@ class _cosmolike_prototype_base(DataSetLikelihood):
 
     ci.init_fpt_internal_boost(
         internal_boost=float(getattr(self, "internal_accuracyboost", 1.0)))
+
+    # the non-Limber FFTLog chi grid, refined on top of the accuracy boost
+    # (narrow lens bins need it: see init_nonlimber_accuracy_boost)
+    ci.init_nonlimber_accuracy_boost(
+        nonlimber_boost=float(getattr(self, "nonlimber_accuracyboost", 1.0)))
 
     ci.init_adopt_limber_gs(
         adopt_limber_gs=int(getattr(self, "adopt_limber_gs", 1)))

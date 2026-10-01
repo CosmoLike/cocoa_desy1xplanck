@@ -1,8 +1,8 @@
 {
   "_comment": "SHA-256 of every file under tests/frozen/; verified by every test before evaluating anything.",
   "files": {
-    "frozen/EXAMPLE_EVALUATE1.yaml": "b59b42f16591e332bf75726655d0bc99b2a47d108d692b61f94cb012fdff89e0",
-    "frozen/EXAMPLE_EVALUATE2.yaml": "3a4fbe309011fb52821a6266be156e91d0ebfedc60f8e9754eaaede63bb29ab7",
+    "frozen/EXAMPLE_EVALUATE1.yaml": "6c565010313699bfd05b9434e04dbe19ea77b422257c18c82dfea6822997e381",
+    "frozen/EXAMPLE_EVALUATE2.yaml": "54c3b4767172f9843200a7c934f5eaf5f7ec542667467b70629a1d5b8c66296e",
     "frozen/data/DESY3xPLKR4_6x2pt_antilles_baseline_archive.pca": "6fc94190d888b19fa5696168acdc49cec630d44c5f3af8dc58a9689731e61383",
     "frozen/data/DESY3xPlanckPR4_6x2pt_Maglim_baseline_archive.realdata": "a325e53dce403a5583a5d94dd8b820db4d21e1c88657fc4eec89f5a7678432ae",
     "frozen/data/DESY3xPlanckPR4_6x2pt_baseline_archive.covmat": "67fb19b6df5e2b5be76639cde49ee6f0548f96d57109532ce1ad0029c365b157",
