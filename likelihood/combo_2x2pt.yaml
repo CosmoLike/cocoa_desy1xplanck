@@ -8,6 +8,10 @@ data_file: Y3xPlanckPR4.dataset
 # now scales with its chi grid.
 accuracyboost: 1.0
 internal_accuracyboost: 1.0 # C-FAST-PT convolution grid / output grid
+# refinements on top of accuracyboost (which multiplies them too):
+# the non-Limber FFTLog chi grid, and the z nodes of the P(k) tables
+nonlimber_accuracyboost: 1.0
+pk_z_refinement: 1
 integration_accuracy: 0 # integer 0, 1 or 2
 # n(z) interpolation: 0 = cubic spline, 1 = linear, 2+ = Steffen (monotone)
 photoz_interpolation_type: 0
