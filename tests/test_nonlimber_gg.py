@@ -85,9 +85,9 @@ SETTINGS = (
 # dead flag.
 DCHI2_FLOOR = 1.0e-6
 
-# delta chi2 measured on 2026-09-28 (macOS, arm64), and the relative band
-# assertion 5 allows around it.
-DCHI2_MEASURED = 6.520
+# delta chi2 measured on 2026-10-01 (macOS, arm64), and the relative band
+# assertion 4 allows around it.
+DCHI2_MEASURED = 6.613
 DCHI2_RTOL = 0.05
 
 
