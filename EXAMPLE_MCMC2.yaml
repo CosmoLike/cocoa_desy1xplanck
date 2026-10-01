@@ -7,12 +7,12 @@ likelihood:
   desy1xplanck.combo_6x2pt:
     path: ./external_modules/data/desy1xplanck
     data_file: Y3xPlanckPR4.dataset
-    # accuracyboost: the default 1.0 is the tested setting. Measured on
-    # 2026-10-01 (EXAMPLE_EVALUATE2, 6x2pt, fiducial): chi2 moves by up to 0.45
-    # between boosts 1 and 5, without a trend (2283.85 at 1, 2283.89 at 2,
-    # 2283.41 to 2283.76 from 3 to 4, 2283.45 at 5). The 6x2pt integration
-    # tables no longer break down above 3: the non-Limber FFTLog guard band
-    # now scales with its chi grid.
+    # accuracyboost: the default 1.0 is the tested setting. Against a
+    # synthetic data vector (EXAMPLE_EVALUATE2, 6x2pt fiducial, the model at
+    # boost 16; 2026-10-01) chi2 = 0.014 at boost 1, 9e-4 at 2, 5e-5 from 3
+    # to 4 and 7e-6 at 5 (the grids refine in dyadic steps); nothing breaks
+    # down above 3 any more. Against the real data chi2 moves by tenths: far
+    # from the best fit it measures the slope of chi2, not the numerical error.
     accuracyboost: 1.0
     integration_accuracy: 0
     lmax: 75000 # lmax computed for real space correlation function
