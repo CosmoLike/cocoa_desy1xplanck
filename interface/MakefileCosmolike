@@ -34,9 +34,6 @@ PYBIND := 1
 # LINK HDF5 LIBRARY
 HDF5 := 1
 
-# LINK TO SIMDE LIBRARY
-SIMDE := 1
-
 CSOURCES :=
 OBJECTC :=
 LDFLAGS := 
@@ -59,7 +56,6 @@ endif
 
 ifdef COSMOLIKE_DEBUG_MODE
 	COMMON_FLAGS += -O0 -DDEBUG -W -Wall -Wextra -Wcomment -pedantic -g -fmax-errors=1 -Wno-unknown-pragmas -fsignaling-nans
-	COMMON_FLAGS += -DCOSMO2D_NOT_USE_SIMD
 	ifeq ($(PYOS),Darwin)
 		COMMON_FLAGS += -ferror-limit=1 -fsanitize=undefined,float-divide-by-zero -fno-sanitize-recover=all
 	else
@@ -107,11 +103,8 @@ ifdef GSL
 	LDLIBS += -lgsl -lgslcblas
 endif
 
-ifdef SIMDE
-	COMMON_FLAGS += -I ${ROOTDIR}/external_modules/code/simde
-else
-	COMMON_FLAGS += -DCOSMO2D_NOT_USE_SIMD
-endif
+# SIMDe is required in both optimized and debug builds.
+COMMON_FLAGS += -I ${ROOTDIR}/external_modules/code/simde
 
 ifdef FMT
 	LDLIBS += -lfmt
