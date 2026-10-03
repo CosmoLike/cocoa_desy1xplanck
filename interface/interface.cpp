@@ -90,9 +90,11 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
 
   m.def("sigma2",
       &cosmolike_interface::compute_sigma2,
-      "Halo-model mass variance sigma^2(M) at a = 1 from the cached "
-      "lobe-summed table; M in M_sun/h (diagnostic)",
-      (py::arg("M")).none(false)
+      "Mass variance sigma^2(M,a) from FFTLog; M in M_sun/h, "
+      "field 0 = total matter, 1 = cold dark matter + baryons",
+      (py::arg("M")).none(false),
+      py::arg("a") = 1.0,
+      py::arg("field") = 0
     );
 
   m.def("init_accuracy_boost",
@@ -152,13 +154,6 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       (py::arg("include_halo_IA") = 0).none(false)
     );
 
-  m.def("init_halo_matter_field",
-      &cosmolike_interface::init_halo_matter_field,
-      "Halo-model density field of sigma(M) and dn/dM: 0 = total matter "
-      "(default), 1 = cold dark matter + baryons (needs set_cosmology's "
-      "omegan2 and lnP_linear_cb)",
-      (py::arg("halo_matter_field") = 0).none(false)
-    );
 
   m.def("init_baryons_contamination",
       py::overload_cast<std::string, std::string>(
@@ -366,8 +361,8 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
                                     omega_nu_h2);
         set_linear_power_spectrum(io_log10k_2D,io_z_2D,io_lnP_linear);
         // the linear P_cb (cold dark matter + baryons) on the grid of
-        // lnP_linear, after it: sigma^2(M) reads it under
-        // init_halo_matter_field(1). An empty list removes the table of
+        // lnP_linear, after it: sigma_cb^2(M,a) supplies
+        // all halo statistics. An empty list removes the table of
         // the previous call, so a stale P_cb is never read.
         if (io_lnP_linear_cb.empty()) {
           clear_linear_power_spectrum_cb();
@@ -925,16 +920,17 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
   m.def("conc",
       &cosmolike_interface::conc_cpp,
       "Halo concentration c(m) (Bhattacharya et al. 2013, Delta = 200 "
-      "mean); m in M_sun/h, growfac_a = D(a)",
+      "mean); m in M_sun/h, a = scale factor; cold variance and growth",
       py::arg("m").none(false),
-      py::arg("growfac_a").none(false)
+      py::arg("a").none(false)
     );
 
   m.def("dlognudlogm",
       &cosmolike_interface::dlognudlogm_cpp,
-      "Slope dln nu/dln M of the peak height (cached table at a = 1); "
+      "Slope dln nu/dln M of the peak height (cold field, at scale factor a); "
       "M in M_sun/h",
-      py::arg("M").none(false)
+      py::arg("M").none(false),
+      py::arg("a") = 1.0
     );
 
   m.def("bias_norm",

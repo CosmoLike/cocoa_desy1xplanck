@@ -27,11 +27,6 @@ include_HOD_GX: 0
 # shear and ggl IA: 0 = the IA_model above, 1 = halo-model IA
 # (Fortuna et al. 2021; NLA only, Limber gs, include_HOD_GX = 0)
 include_halo_IA: 0
-# halo model: density field of sigma(M) and dn/dM. 0 = total matter;
-# 1 = cold dark matter + baryons, as the massive neutrinos free-stream
-# out of halos (sigma(M) from CAMB's delta_nonu P(k); the emulator path
-# approximates it)
-halo_matter_field: 0
 lmax: 75000 
 kmax_boltzmann: 10.0
 speed: 1
