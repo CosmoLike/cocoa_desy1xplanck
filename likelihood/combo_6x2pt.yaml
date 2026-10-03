@@ -30,7 +30,7 @@ include_halo_IA: 0
 # halo model: density field of sigma(M) and dn/dM. 0 = total matter;
 # 1 = cold dark matter + baryons, as the massive neutrinos free-stream
 # out of halos (sigma(M) from CAMB's delta_nonu P(k); the emulator path
-# approximates it; p_mm, p_my, p_yy stop under 1)
+# approximates it; p_mm stops under 1)
 halo_matter_field: 0
 lmax: 75000 
 kmax_boltzmann: 10.0
