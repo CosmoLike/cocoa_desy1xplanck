@@ -978,26 +978,6 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       py::arg("a").none(false)
     );
 
-  m.def("p_mm",
-      py::overload_cast<const double, const double>(
-        &cosmolike_interface::p_mm_cpp
-      ),
-      "Halo-model matter power spectrum at one (k, a); k in (c/H0)^-1, "
-      "P in (c/H0)^3",
-      py::arg("k").none(false).noconvert(),
-      py::arg("a").none(false).noconvert()
-    );
-
-  m.def("p_mm",
-      py::overload_cast<const arma::Col<double>, const double>(
-        &cosmolike_interface::p_mm_cpp
-      ),
-      "Halo-model matter power spectrum at many k, one a (vectorized)",
-      py::arg("k").none(false),
-      py::arg("a").none(false),
-      py::return_value_policy::move
-    );
-
   m.def("p_gm",
       py::overload_cast<const double, const double, const int>(
         &cosmolike_interface::p_gm_cpp
