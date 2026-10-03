@@ -46,6 +46,7 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
 {
+  cosmolike_interface::set_blas_single_threaded();
   m.doc() = "CosmoLike Interface for DESY3 x Planck 6x2pt Module";
 
   // --------------------------------------------------------------------
@@ -319,6 +320,7 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
 #else
       (void) n;
 #endif
+      cosmolike_interface::set_blas_single_threaded();
     },
     pybind11::arg("n"),
     "Set the OpenMP thread count for cosmolike's internal parallel regions. "
