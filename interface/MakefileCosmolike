@@ -51,6 +51,12 @@ CXXFLAGS = -std=c++20  -I ${ROOTDIR}/.local/include/ -I ${ROOTDIR}/external_modu
 LDFLAGS += -L$(CONDA_PREFIX)/lib -L$(ROOTDIR)/.local/lib 
 LDFLAGS += -Wl,-rpath,$(CONDA_PREFIX)/lib -Wl,-rpath,$(ROOTDIR)/.local/lib
 
+# Fast-math builds can produce incorrect covariance inverses. Keep the
+# optimized strict-IEEE default; debug mode remains available for diagnostics.
+ifdef COSMOLIKE_AGGRESSIVE_MODE
+$(error COSMOLIKE_AGGRESSIVE_MODE is retired: unset it and use the default build. Do not enable -ffast-math, -Ofast or unsafe floating-point flags)
+endif
+
 ifdef COSMOLIKE_DEBUG_MODE
 	COMMON_FLAGS += -O0 -DDEBUG -W -Wall -Wextra -Wcomment -pedantic -g -fmax-errors=1 -Wno-unknown-pragmas -fsignaling-nans
 	COMMON_FLAGS += -DCOSMO2D_NOT_USE_SIMD
@@ -59,23 +65,10 @@ ifdef COSMOLIKE_DEBUG_MODE
 	else
 		COMMON_FLAGS += -fmax-errors=1 -fsignaling-nans
 	endif
-else ifdef COSMOLIKE_AGGRESSIVE_MODE
-	COMMON_FLAGS += -O3 -march=native -flto=auto
-	COMMON_FLAGS += -ffast-math -fno-signed-zeros -fno-trapping-math
-	COMMON_FLAGS += -freciprocal-math -ffinite-math-only
-	COMMON_FLAGS += -funsafe-math-optimizations -fassociative-math
-	COMMON_FLAGS += -DCOSMO3D_ASSUME_PIECEWISE_UNIFORM
-	ifeq ($(PYOS),Darwin)
-		COMMON_FLAGS += -fopenmp
-		 LDFLAGS +=  -Wno-pass-failed
-	else
-		COMMON_FLAGS += -fopenmp -funroll-loops
-	endif
 else
   COMMON_FLAGS += -O3 -march=native -flto=auto
   COMMON_FLAGS += -fno-fast-math -fno-associative-math -frounding-math -ftrapping-math
   COMMON_FLAGS += -fomit-frame-pointer
-  COMMON_FLAGS += -DCOSMO3D_ASSUME_PIECEWISE_UNIFORM
   COMMON_FLAGS += -fopenmp
   ifeq ($(PYOS),Darwin)
     COMMON_FLAGS += -fno-reciprocal-math -Wno-pass-failed
@@ -92,6 +85,7 @@ ifeq ($(PYOS),Darwin)
 else
 	SOFLAG := -shared
 	LDFLAGS += -Wl,-rpath,'$$ORIGIN'
+	LDLIBS += -ldl # runtime lookup of the OpenBLAS thread setter
 	INSTALL_NAME_FLAG =
 endif
 

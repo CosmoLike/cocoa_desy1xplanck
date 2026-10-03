@@ -199,22 +199,12 @@ class _cosmolike_prototype_base(DataSetLikelihood):
     # 0 = the init_IA model, 1 = halo-model IA (Fortuna et al. 2021)
     ci.init_include_halo_IA(
         include_halo_IA=int(getattr(self, "include_halo_IA", 0)))
-    # density field of the halo model's peak height: 0 = total matter,
-    # 1 = cold dark matter + baryons (sigma(M) from the linear P_cb, and
-    # rho_crit (Omega_m - Omega_nu) in R(M) and in the rho/M of dn/dM; see
-    # get_neutrino_inputs); always set, so a model never inherits the
-    # previous model's value
-    self.halo_matter_field = int(getattr(self, "halo_matter_field", 0))
-    if self.halo_matter_field not in (0, 1):
-      raise LoggedError(self.log, "halo_matter_field = %d: must be 0 (total "
-                        "matter) or 1 (cold dark matter + baryons)",
-                        self.halo_matter_field)
-    ci.init_halo_matter_field(halo_matter_field=self.halo_matter_field)
-    if (self.halo_matter_field == 1) and (self.use_emulator == 2):
-      self.log.info("halo_matter_field = 1 with use_emulator = 2: the "
-                    "emulators have no cold dark matter + baryon spectrum, "
-                    "so P_cb = P_lin/(1 - f_nu)^2 (an approximation; see "
-                    "get_neutrino_inputs)")
+    # Halo statistics use cold dark matter + baryons. The emulator path
+    # has no separate cb spectrum and uses the documented small-scale ratio.
+    if self.use_emulator == 2:
+      self.log.info("Halo P_cb uses P_lin/(1 - f_nu)^2 because the "
+                    "emulators have no cb spectrum (an approximation; "
+                    "see get_neutrino_inputs)")
 
     # Init CMB cross spectra ---------------------------------------------------   
     ci.init_cmb_cross_correlation(
@@ -422,10 +412,11 @@ class _cosmolike_prototype_base(DataSetLikelihood):
       # the cold dark matter + baryon halo field, the linear P_cb
       # (get_neutrino_inputs)
       _requirements_["omnuh2"] = None
-      if self.halo_matter_field == 1:
-        _requirements_["Pk_interpolator"]["vars_pairs"] = [
-          ("delta_tot", "delta_tot"),
-          ("delta_nonu", "delta_nonu")]
+      # Keep both fields available to the likelihood and direct halo readers.
+      # CAMB obtains them from the same transfer-function calculation.
+      _requirements_["Pk_interpolator"]["vars_pairs"] = [
+        ("delta_tot", "delta_tot"),
+        ("delta_nonu", "delta_nonu")]
       return _requirements_
 
   # ------------------------------------------------------------------------
@@ -497,9 +488,17 @@ class _cosmolike_prototype_base(DataSetLikelihood):
       # stays divided by G at the last z_2D node (z_growth ends below
       # it); cosmolike's growfac divides by G(0), so D(z=0) = 1.
       z_growth = self.z_interp_1D[self.z_interp_1D <= self.z_interp_2D[-1]]
-      G_growth = np.sqrt(PKL.P(z_growth,0.0005)/PKL.P(0,0.0005))*(1+z_growth)
+      # G is sampled at growth_k (default 0.05/Mpc), a sub-horizon scale.
+      # At k = 5e-4/Mpc (about 2 H0/c) CAMB's dark-energy perturbations
+      # change the growth by 0.5-0.9% at w != -1 (z = 0.5 to 2), while every
+      # reader of G (IA amplitudes, one-loop D^4, sigma(M, z), the growth
+      # rate f) describes sub-horizon modes; with 0.06 eV neutrinos the
+      # growth varies by 0.03% above 0.05/Mpc (cosmolike_core skill,
+      # references/growth_factor_measurements.md)
+      growth_k = float(getattr(self, "growth_k", 0.05))
+      G_growth = np.sqrt(PKL.P(z_growth,growth_k)/PKL.P(0,growth_k))*(1+z_growth)
       z_norm = self.z_interp_2D[-1]
-      G_growth /= np.sqrt(PKL.P(z_norm,0.0005)/PKL.P(0,0.0005))*(1+z_norm)
+      G_growth /= np.sqrt(PKL.P(z_norm,growth_k)/PKL.P(0,growth_k))*(1+z_norm)
       # Apply baryon suppression factors from theory block (if enabled)
       # The baryon suppression theory block computes S(k,z) for each requested z
       # and applies calibration masking. Here we simply retrieve and apply those factors.
@@ -586,17 +585,15 @@ class _cosmolike_prototype_base(DataSetLikelihood):
   def get_neutrino_inputs(self, lnPL, h):
     """Return the massive-neutrino inputs of ci.set_cosmology.
 
-    omegan2 is Omega_nu h^2 of the massive neutrinos today, part of
-    omegam. It always reaches cosmolike. The halo model reads it only
-    when it counts halos of cold dark matter + baryons
-    (halo_matter_field = 1): the neutrinos free-stream out of halos, so
-    rho_crit (Omega_m - Omega_nu) replaces the total matter density in
-    the Lagrangian radius of sigma(M) and in the rho/M of dn/dM.
+    omegan2 is Omega_nu h^2 of massive neutrinos today, part of omegam.
+    Halo variances use the cold dark matter + baryon spectrum P_cb at
+    each redshift. Their mass-radius relation and mass-function density
+    use rho_crit (Omega_m - Omega_nu). Total matter remains available
+    for lensing and for the separate total-matter variance.
 
-    lnPL_cb is ln P_cb, the linear power spectrum of cold dark matter +
-    baryons, which sigma^2(M) integrates under halo_matter_field = 1.
-    It is an empty list under halo_matter_field = 0: nothing reads it,
-    and cosmolike then drops any table of a previous call.
+    lnPL_cb is ln P_cb on the same (k,z) grid and in the same units as
+    lnPL. Both spectra are provided so direct halo readers can be used
+    even after a likelihood evaluation that did not count halos.
 
     The two theory paths:
       CAMB (use_emulator = 0): omegan2 is CAMB's omnuh2 and P_cb its
@@ -617,17 +614,13 @@ class _cosmolike_prototype_base(DataSetLikelihood):
       h    = H0/100
 
     Returns:
-      (omegan2, lnPL_cb): a float and a numpy array of lnPL's shape, or
-      an empty list when halo_matter_field = 0.
+      (omegan2, lnPL_cb): a float and a numpy array of lnPL's shape.
     """
     if self.use_emulator == 2:
       mnu = self.provider.get_param("mnu")
       omegan2 = mnu*(3.046/3.0)**0.75/94.0708
     else:
       omegan2 = self.provider.get_param("omnuh2")
-
-    if self.halo_matter_field == 0:
-      return (omegan2, [])
 
     if self.use_emulator == 2:
       # P_cb/P_lin = 1/(1 - f_nu)^2 where the neutrinos no longer
