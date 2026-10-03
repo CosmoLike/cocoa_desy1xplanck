@@ -497,9 +497,17 @@ class _cosmolike_prototype_base(DataSetLikelihood):
       # stays divided by G at the last z_2D node (z_growth ends below
       # it); cosmolike's growfac divides by G(0), so D(z=0) = 1.
       z_growth = self.z_interp_1D[self.z_interp_1D <= self.z_interp_2D[-1]]
-      G_growth = np.sqrt(PKL.P(z_growth,0.0005)/PKL.P(0,0.0005))*(1+z_growth)
+      # G is sampled at growth_k (default 0.05/Mpc), a sub-horizon scale.
+      # At k = 5e-4/Mpc (about 2 H0/c) CAMB's dark-energy perturbations
+      # change the growth by 0.5-0.9% at w != -1 (z = 0.5 to 2), while every
+      # reader of G (IA amplitudes, one-loop D^4, sigma(M, z), the growth
+      # rate f) describes sub-horizon modes; with 0.06 eV neutrinos the
+      # growth varies by 0.03% above 0.05/Mpc (cosmolike_core skill,
+      # references/growth_factor_measurements.md)
+      growth_k = float(getattr(self, "growth_k", 0.05))
+      G_growth = np.sqrt(PKL.P(z_growth,growth_k)/PKL.P(0,growth_k))*(1+z_growth)
       z_norm = self.z_interp_2D[-1]
-      G_growth /= np.sqrt(PKL.P(z_norm,0.0005)/PKL.P(0,0.0005))*(1+z_norm)
+      G_growth /= np.sqrt(PKL.P(z_norm,growth_k)/PKL.P(0,growth_k))*(1+z_norm)
       # Apply baryon suppression factors from theory block (if enabled)
       # The baryon suppression theory block computes S(k,z) for each requested z
       # and applies calibration masking. Here we simply retrieve and apply those factors.
