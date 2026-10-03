@@ -954,15 +954,6 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       py::arg("a").none(false)
     );
 
-  m.def("u_KS",
-      &cosmolike_interface::u_KS_cpp,
-      "Fourier transform of the Komatsu-Seljak gas pressure profile "
-      "(cached table); k in (c/H0)^-1, rv in c/H0",
-      py::arg("c").none(false),
-      py::arg("k").none(false),
-      py::arg("rv").none(false)
-    );
-
   m.def("ngal",
       &cosmolike_interface::ngal_cpp,
       "HOD galaxy number density of lens bin ni in (c/H0)^-3 (cached "
@@ -1130,12 +1121,6 @@ PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
       py::arg("ni").none(false).noconvert(),
       py::arg("hod").none(false),
       py::arg("gc").none(false)
-    );
-
-  m.def("set_nuisance_gas",
-      &cosmolike_interface::set_nuisance_gas_cpp,
-      "Set the gas (Compton-y) parameters nuisance.gas[0..n-1]",
-      py::arg("gas").none(false)
     );
 
   m.def("set_nuisance_ia_halo",
