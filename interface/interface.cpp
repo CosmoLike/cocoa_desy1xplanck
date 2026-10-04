@@ -40,6 +40,7 @@ namespace py = pybind11;
 #include <carma.h>
 #include <armadillo>
 #include "cosmolike/generic_interface.hpp"
+#include "cosmolike/covariances/generic_interface_cov.hpp"
 #include "cosmolike/cosmo2D_wrapper.hpp"
 #include "cosmolike/cosmo2D_scuts_wrapper.hpp"
 #include "cosmolike/halo_wrapper.hpp"
@@ -47,6 +48,7 @@ namespace py = pybind11;
 PYBIND11_MODULE(cosmolike_desy1xplanck_interface, m)
 {
   cosmolike_interface::set_blas_single_threaded();
+  cosmolike_interface::bind_covariance(m);
   m.doc() = "CosmoLike Interface for DESY3 x Planck 6x2pt Module";
 
   // --------------------------------------------------------------------
