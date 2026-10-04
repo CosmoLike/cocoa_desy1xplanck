@@ -233,6 +233,17 @@ OBJECTCPP += \
 		./cosmo2D_scuts_wrapper.o \
 		./halo_wrapper.o
 
+# Covariance generation is optional. Every covariance source and object ends
+# in _cov; omit both the kernels and notebook wrappers from a data-vector build.
+# The matching define also removes their includes and bindings in interface.cpp.
+ifdef IGNORE_COSMOLIKE_DESXPLANCK_COVARIANCE
+CXXFLAGS += -DCOSMOLIKE_NO_COVARIANCE
+CSOURCES := $(filter-out %_cov.c,$(CSOURCES))
+OBJECTC := $(filter-out %_cov.o,$(OBJECTC))
+CPPSOURCES := $(filter-out %_cov.cpp,$(CPPSOURCES))
+OBJECTCPP := $(filter-out %_cov.o,$(OBJECTCPP))
+endif
+
 $(OBJECTC): $(CSOURCES)
 	$(CC) $(CFLAGS) -fPIC -c $(CSOURCES)
 

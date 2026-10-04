@@ -489,6 +489,14 @@ its first 1,500 galaxy/shear entries. Their 635 retained entries form the
 supported 3×2pt submatrix. CMB lensing auto- and cross-covariances are not
 generated. The supplied full joint matrix remains available to the likelihood.
 
+The default [installation options](../../set_installation_options.sh) set
+`IGNORE_COSMOLIKE_DESXPLANCK_COVARIANCE=1`. This leaves covariance-generation
+kernels and notebook bindings out of the compiled interface. Likelihoods still
+read and invert their supplied covariance matrices. The steps below enable
+covariance generation for this build; comment out that export in
+`set_installation_options.sh` to keep it enabled in later sessions.
+Recompile after changing the option, then restart any running notebook kernel.
+
 We assume Cocoa and this project are installed, users have run
 `conda activate cocoa`, the shell is Bash, and the current folder is
 `cocoa/Cocoa`.
@@ -497,9 +505,10 @@ We assume Cocoa and this project are installed, users have run
 
     source start_cocoa.sh
 
-**Step :two:**: compile the project interface.
+**Step :two:**: enable covariance generation and compile the project interface.
 
-    unset IGNORE_COSMOLIKE_DESY1XPLANCK_CODE
+    unset IGNORE_COSMOLIKE_DESXPLANCK_CODE
+    unset IGNORE_COSMOLIKE_DESXPLANCK_COVARIANCE
     source ./projects/desy1xplanck/scripts/compile_desy1xplanck.sh
 
 **Step :three:**: start Jupyter.
@@ -529,3 +538,16 @@ component plots, accuracy controls and covariance-only tests.
 > eight OpenMP threads and one BLAS thread. `accuracy_boost` refines
 > tables and cutoffs; `integration_accuracy` separately selects precomputed
 > GSL rules from [covariance/default.yaml](covariance/default.yaml).
+
+To return to a data-vector-only build, use the following steps from
+`cocoa/Cocoa` with `conda activate cocoa` and Bash.
+
+**Step :one:**: activate Cocoa.
+
+    source start_cocoa.sh
+
+**Step :two:**: omit covariance generation and rebuild the interface.
+
+    unset IGNORE_COSMOLIKE_DESXPLANCK_CODE
+    export IGNORE_COSMOLIKE_DESXPLANCK_COVARIANCE=1
+    source ./projects/desy1xplanck/scripts/compile_desy1xplanck.sh
