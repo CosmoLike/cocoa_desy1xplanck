@@ -1,0 +1,43 @@
+# Run from cocoa/Cocoa with the project's covariance interface enabled:
+# python projects/desy1xplanck/covariance/compute_covariance.py \
+#   projects/desy1xplanck/EXAMPLE_EVALUATE_COVARIANCE.yaml
+# This evaluates one covariance; it does not start an MCMC sampler.
+timing: true
+debug: false
+
+theory:
+  camb:
+    path: ./external_modules/code/CAMB
+    extra_args:
+      halofit_version: takahashi
+      AccuracyBoost: 1.0
+      lens_potential_accuracy: 1.0
+      k_per_logint: 20
+      kmax: 20.0
+
+# Fixed values define the forecast cosmology. As in the likelihood YAMLs,
+# w0pwa is w0+wa and As_1e9 is 10^9 times the primordial scalar amplitude.
+params:
+  omegam: 0.3
+  omegab: 0.05
+  H0: 70.0
+  ns: 0.965
+  As_1e9: 2.1
+  w: -1.0
+  w0pwa: -1.0
+  mnu: 0.0
+
+sampler:
+  evaluate:
+    N: 1
+    # A parameter with a prior must have an explicit value in override.
+    # Fixed parameters above need no override.
+
+covariance:
+  space: real
+  threads: 8
+  # Internal refinements inherit covariance/default.yaml for this survey.
+  accuracy_boost: 1
+  integration_accuracy: 0
+
+output: ./projects/desy1xplanck/covariance/production_covariance.npz

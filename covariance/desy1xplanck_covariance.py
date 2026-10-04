@@ -106,16 +106,18 @@ def initialize(interface, settings):
     )
 
 
-def compute(interface, settings, space="real", rows=None, progress=None):
+def compute(interface, settings, space="real", rows=None, progress=None,
+            backend=None):
     """Return the galaxy/shear forecast with G, SSC, connected and total matrices.
 
     Arguments: interface = initialized compiled project; settings = configuration();
         space = "real" or "fourier"; rows = optional measured row subset;
-        progress = optional (stage, elapsed_seconds) callback.
+        progress = optional (stage, elapsed_seconds) callback;
+        backend = None for notebook wrappers, interface.covariance for CLI.
     Returns: shared forecast dict, including resolved settings and coordinates.
     The full real layout has 1500 entries; Fourier has 600 entries.
     """
     return compute_forecast(
         interface=interface, settings=settings, space=space, rows=rows,
-        progress=progress,
+        progress=progress, backend=backend,
     )

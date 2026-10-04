@@ -2,6 +2,7 @@
 
 1. [Overview](#overview)
 2. [Running the covariance notebook](#running)
+   - [Running from the command line](#command_line)
 3. [Changing the covariance accuracy](#accuracy)
 4. [Reading the figures](#figures)
 5. [Running the tests](#tests)
@@ -94,6 +95,54 @@ Rerunning the final cell replaces these computed output files.
 > [!TIP]
 > To inspect the forecast inputs before running CAMB, see
 > [which survey the example uses](#survey).
+
+# Running from the command line <a name="command_line"></a>
+
+The Python runner computes the full galaxy–shear covariance in real space,
+using the optimized production interface. It saves G, SSC, cNG and their
+sum without plotting or opening a notebook. Numerical kernels and survey
+settings are shared with the notebook calculation.
+
+From Bash in `cocoa/Cocoa`, with `conda activate cocoa`:
+
+**Step :one:**: activate Cocoa and enable covariance generation.
+
+    source start_cocoa.sh
+    unset IGNORE_COSMOLIKE_DESXPLANCK_CODE
+    unset IGNORE_COSMOLIKE_DESXPLANCK_COVARIANCE
+
+**Step :two:**: compile the project interface.
+
+    source ./projects/desy1xplanck/scripts/compile_desy1xplanck.sh
+
+**Step :three:**: inspect the YAML cosmology and compute the matrix components.
+
+    python ./projects/desy1xplanck/covariance/compute_covariance.py \
+        ./projects/desy1xplanck/EXAMPLE_EVALUATE_COVARIANCE.yaml
+
+The `.npz` archive contains the full matrix before likelihood scale cuts,
+its components, measurement ordering, resolved settings and stage timings.
+Existing output files require `--overwrite`; likelihood inputs are separate.
+
+Set `covariance.space` to `real` or `fourier` to select the measurement.
+
+The [evaluate YAML](../EXAMPLE_EVALUATE_COVARIANCE.yaml) uses Cobaya's YAML reader, with familiar
+`theory`, `params`, `sampler: evaluate` and `output` blocks. Fixed parameter
+values specify one cosmology; a parameter with a prior must be supplied
+explicitly in `sampler.evaluate.override`. No MCMC or random prior draw runs.
+
+In its `covariance` block, `accuracy_boost: 2` refines the project's
+`default.yaml` baseline. `integration_accuracy: 1` changes the quadrature
+level independently. Internal accuracy controls can also be set there.
+Use `threads` for the OpenMP team and `space` for the measurement space.
+
+`theory.camb.extra_args` supports `AccuracyBoost`, `kmax`, `k_per_logint`,
+`lens_potential_accuracy` and `halofit_version`. CAMB's boost controls
+CAMB; the covariance boost controls its own tables and cutoffs.
+
+Paths in the YAML are relative to the working directory, `cocoa/Cocoa`.
+`output` names the `.npz` archive. `--output` and `--threads` can override
+those two choices for an HPC job; `--help` lists the command options.
 
 # Changing the covariance accuracy <a name="accuracy"></a>
 

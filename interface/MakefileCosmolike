@@ -180,6 +180,7 @@ CSOURCES += \
 		${ROOTDIR}/external_modules/code/cosmolike/structs.c \
 		${ROOTDIR}/external_modules/code/cosmolike/covariances/spectra_cov.c \
 		${ROOTDIR}/external_modules/code/cosmolike/covariances/gaussian_cov.c \
+		${ROOTDIR}/external_modules/code/cosmolike/covariances/assembly_cov.c \
 		${ROOTDIR}/external_modules/code/cosmolike/covariances/halo_cov.c \
 		${ROOTDIR}/external_modules/code/cosmolike/covariances/perturbation_cov.c \
 		${ROOTDIR}/external_modules/code/cosmolike/covariances/non_gaussian_cov.c \
@@ -205,6 +206,7 @@ OBJECTC += \
 		./structs.o \
 		./spectra_cov.o \
 		./gaussian_cov.o \
+		./assembly_cov.o \
 		./halo_cov.o \
 		./perturbation_cov.o \
 		./non_gaussian_cov.o \
@@ -215,6 +217,9 @@ OBJECTC += \
 
 CPPSOURCES += \
 		${ROOTDIR}/external_modules/code/cosmolike/covariances/generic_interface_cov.cpp \
+		${ROOTDIR}/external_modules/code/cosmolike/covariances/matrix_interface_cov.cpp \
+		${ROOTDIR}/external_modules/code/cosmolike/covariances/components_interface_cov.cpp \
+		${ROOTDIR}/external_modules/code/cosmolike/covariances/production_interface_cov.cpp \
 		${ROOTDIR}/external_modules/code/cosmolike/covariances/python_components_cov.cpp \
 		${ROOTDIR}/external_modules/code/cosmolike/covariances/components_wrapper_cov.cpp \
 		${ROOTDIR}/external_modules/code/cosmolike/covariances/covariance_wrapper_cov.cpp \
@@ -225,6 +230,9 @@ CPPSOURCES += \
 
 OBJECTCPP += \
 		./generic_interface_cov.o \
+		./matrix_interface_cov.o \
+		./components_interface_cov.o \
+		./production_interface_cov.o \
 		./python_components_cov.o \
 		./components_wrapper_cov.o \
 		./covariance_wrapper_cov.o \
