@@ -104,10 +104,25 @@ boosts = [1, 2]
 settings = survey.configuration(accuracy_boost=boosts[0])
 ```
 
-`accuracy_boost` is the single user control. Supported values are
-1, 2, 4 and 8. It raises the covariance's multipole cutoffs and radial,
-angular, halo and lensing-window integration resolution together. It also
-refines the non-Gaussian multipole table. It leaves
+The numerical baseline is in [`default.yaml`](default.yaml). The notebook
+loads that file through `survey.configuration`. Its internal refinements
+multiply the global boost: factors 2 and 3 at boost 1 become 4 and 6 at
+boost 2. Resolved settings save both the base controls and effective grids.
+`integration_accuracy` is independent of the global boost. Its levels
+0/1/2/3/4 select precomputed GSL rules with 96/128/256/512/1024 nodes per
+panel for radial, mass and angular integrals. Wide angular bins are split
+into panels to resolve high-multipole oscillations. No rule below 64 nodes
+is supported, including in low-level calls. To check quadrature alone, use
+`survey.configuration(accuracy_boost=1, integration_accuracy=1)` and compare
+with level zero. A convergence scan should include levels 2, 3 and 4:
+compare the default directly with level 4, then check that the final 3-to-4
+refinement is small. Keep interpolation settings fixed in this scan and
+check them separately. The defaults are being checked against refined full
+matrices; a higher level alone is not a convergence certificate.
+
+`accuracy_boost` controls interpolation and cutoffs. Supported values are
+1, 2, 4 and 8. It raises the covariance multipole cutoffs and refines the non-Gaussian,
+lensing-window and shared core interpolation tables. It leaves
 CAMB and data-vector accuracy settings unchanged.
 
 **Step :four:**: choose which values to compare in the refinement cell.
@@ -131,8 +146,8 @@ plots and variance-ratio table.
 
 > [!NOTE]
 > A larger boost is a numerical resolution, not a guaranteed survey
-> accuracy. Boost 1 is a teaching example. Boost 8 uses more modes and
-> quadrature nodes and can require substantially more memory and time.
+> accuracy. Boost 1 uses the project baseline. Boost 8 uses more modes and
+> table samples and can require substantially more memory and time.
 > See [how to check convergence](#convergence).
 
 # Reading the figures <a name="figures"></a>

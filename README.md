@@ -506,7 +506,10 @@ arrays, physical approximations and separate covariance test command.
 > This is a massless-neutrino, Limber forecast with linear galaxy bias,
 > zero IA, magnification and RSD, and a spherical-cap footprint.
 > The notebook uses eight OpenMP threads and one BLAS thread.
-> A larger `accuracy_boost` refines integrations; it does not certify
+> `accuracy_boost` refines interpolation tables and multipole cutoffs.
+> `integration_accuracy` independently selects precomputed GSL quadrature
+> rules from the baseline in [`covariance/default.yaml`](covariance/default.yaml).
+> Increasing either control does not certify
 > parameter-error convergence or replace the likelihood's supplied matrix.
 
 > [!NOTE]

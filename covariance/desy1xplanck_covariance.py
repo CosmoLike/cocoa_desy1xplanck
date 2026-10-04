@@ -17,17 +17,21 @@ from cosmolike_notebook_utils.covariance.forecast import (
 from cosmolike_notebook_utils import covariance as cov
 
 
-def configuration(accuracy_boost=1):
-    """Return resolved survey, cosmology and pilot-integration choices.
+def configuration(accuracy_boost=None, **accuracy_overrides):
+    """Return resolved survey, cosmology and YAML accuracy choices.
 
     The covariance README records the catalog assumptions and their sources.
     Redshift-file normalization sets a shape, not a catalog number density.
     Arguments:
-        accuracy_boost = 1, 2, 4 or 8; raises covariance settings together.
+        accuracy_boost = None uses default.yaml; 1, 2, 4 or 8 refines it.
+        accuracy_overrides = named internal controls from default.yaml.
     Returns:
-        Fully resolved settings. Boost 1 is a pilot, not a certified FoM target.
+        Fully resolved settings, including the unboosted accuracy parameters.
     """
-    numerical = cov.covariance_accuracy(accuracy_boost=accuracy_boost)
+    numerical = cov.load_covariance_accuracy(
+        filename=Path(__file__).with_name("default.yaml"),
+        accuracy_boost=accuracy_boost, **accuracy_overrides,
+    )
 
     # Inclusive bands count every integer multipole once.
     band_edges = np.rint(np.geomspace(30, 4001, 16)).astype(np.int32)
