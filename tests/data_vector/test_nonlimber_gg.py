@@ -47,7 +47,7 @@ Assertions:
 To run (from the Cocoa/ folder, cocoa environment active,
 start_cocoa.sh sourced):
 
-    python -m pytest ./projects/desy1xplanck/tests/test_nonlimber_gg.py
+    python -m pytest ./projects/desy1xplanck/tests/data_vector/test_nonlimber_gg.py
 """
 
 import os
@@ -60,9 +60,9 @@ import sys
 import time
 import unittest
 
-# The tests folder is not a package; put it on the import path so the
-# shared harness resolves no matter where pytest was launched from.
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# The harness stays in the parent tests/ folder. Add it explicitly so
+# direct execution and worker processes resolve this project's stored inputs.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import cocoa_test_utils as u
 
 EXAMPLE = "example2"
