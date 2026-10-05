@@ -18,8 +18,8 @@
 > overhead. Both routes call the same C kernels.
 >
 > In a matched **LSST Y1 covariance** test on an M2 Pro with eight threads,
-> the CLI averaged **68.34 s** (three runs); one wrapper run took **177.74 s**.
-> The CLI was **2.60× faster**, with bitwise-identical covariance components.
+> the CLI averaged **50.23 s** (three runs); one wrapper run took **173.38 s**.
+> The CLI was **3.45× faster**, with bitwise-identical covariance components.
 > See [the production covariance CLI](#computing_covariances).
 
 From `Cocoa/Readme` instructions:
