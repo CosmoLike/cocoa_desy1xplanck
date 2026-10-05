@@ -18,8 +18,8 @@
 > overhead. Both routes call the same C kernels.
 >
 > In a matched **LSST Y1 covariance** test on an M2 Pro with eight threads,
-> the CLI averaged **68.34 s** (three runs); one wrapper run took **177.74 s**.
-> The CLI was **2.60× faster**, with bitwise-identical covariance components.
+> the CLI averaged **50.23 s** (three runs); one wrapper run took **173.38 s**.
+> The CLI was **3.45× faster**, with bitwise-identical covariance components.
 > See [the production covariance CLI](#computing_covariances).
 
 From `Cocoa/Readme` instructions:
@@ -252,7 +252,13 @@ Now, users must follow all the steps below.
         export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
         export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
 
- **Step :three:** Run `cobaya-run` on the first emulator example, following the commands below.
+ **Step :three:**: Remove GPU (idea is to run emulators on the CPU!)
+
+  - Linux
+
+        export CUDA_VISIBLE_DEVICES=""
+
+ **Step :four:** Run `cobaya-run` on the first emulator example, following the commands below.
 
 - **One model evaluation**:
 

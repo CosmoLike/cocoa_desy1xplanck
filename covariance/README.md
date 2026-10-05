@@ -79,6 +79,13 @@ It computes the native matrix, applies the selected dataset's mask, reports
 positivity and plots the computed components and supplied total. Set
 `boosts = [1, 2]` to add the numerical-refinement comparison.
 
+The **See the 1h, 2h, 3h and 4h matter trispectra** section can be run
+immediately after initialization, before computing the full covariance.
+It plots the diagonal matter trispectrum at `halo_redshift = 0.5`, with
+the two-halo term combining its 1+3 and 2+2 partitions. Both partitions
+and all sampled wavenumber pairs remain available as notebook arrays.
+These are matter terms before survey projection; G and SSC are separate.
+
 | Output in `covariance/` | Contents |
 | --- | --- |
 | `forecast_real.npz` | Full computed G, SSC, cNG, total, ordering and settings. |
@@ -105,7 +112,7 @@ sum without plotting or opening a notebook. Numerical kernels and survey
 settings are shared with the notebook calculation.
 
 The supplied evaluate YAML constructs the full **1,500 × 1,500**
-galaxy/shear covariance in **67.24 seconds** on an Apple M2 Pro
+galaxy/shear covariance in **47.43 seconds** on an Apple M2 Pro
 with eight OpenMP threads (mean of three fresh, sequential CLI runs
 on 2026-10-05). Gaussian clustering and galaxy–shear spectra include
 non-Limber corrections; the example uses zero IA.
@@ -231,6 +238,7 @@ plots and variance-ratio table.
 | --- | --- |
 | Split-triangle correlation matrix | Compare the generated native-space covariance in the lower triangle with the supplied likelihood covariance in the upper triangle, after the same cuts. Each uses its own diagonal normalization. |
 | G, SSC and cNG maps and histograms | Compare each component after normalization by the total diagonal variances. |
+| Halo trispectrum diagonal | See 1h, combined 2h, 3h, 4h and their sum at a chosen redshift, before survey projection. The signed axis retains negative terms. |
 | Error changes | With multiple boosts, compare first-source-bin standard deviations with the highest tested boost, in percent, for the native measurement. |
 | Generalized-mode report | Bound variance changes over every linear combination of measurements. |
 
