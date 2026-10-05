@@ -16,3 +16,11 @@ response_step: 0.00005
 # Rules below 64 nodes and generated rules are unsupported.
 # Level zero is being checked against refined full-matrix calculations.
 integration_accuracy: 0
+
+# Gaussian gg/gs non-Limber resolution, separate from GSL quadrature.
+# The global boost multiplies both this cutoff and the radial intervals.
+nonlimber_lmax: 1000
+nonlimber_accuracyboost: 1
+# Doubling both controls changed complete Gaussian variance modes by
+# less than 0.02% in the zero-IA real/Fourier example. Other numerical
+# controls were fixed; this is not full integration or Fisher convergence.

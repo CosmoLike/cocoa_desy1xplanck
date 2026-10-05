@@ -33,10 +33,11 @@ second boost for numerical comparisons and a companion measurement space.
 The supplied matrix is read only for comparison; no likelihood files are changed.
 
 > [!NOTE]
-> The forecast uses massless neutrinos, Limber spectra, linear galaxy bias,
-> zero IA, magnification and RSD, and a spherical-cap footprint. SSC uses the
-> isotropic halo response and cNG the halo trispectrum. All-pairs non-Limber
-> covariance and massive-neutrino non-Gaussian terms are not implemented.
+> The galaxy/shear Gaussian calculation supports non-Limber clustering
+> and galaxy–shear spectra, plus NLA or TATT intrinsic alignment.
+> Shear–shear and higher-order TATT spectra remain Limber. SSC/cNG retain
+> their zero-IA Limber model. The forecast uses massless neutrinos, linear
+> galaxy bias, zero magnification/RSD and a spherical-cap footprint.
 > These physical choices differ from the supplied likelihood matrices.
 > Matching their measurement layout does not establish physical or numerical
 > equivalence.
@@ -117,6 +118,7 @@ From Bash in `cocoa/Cocoa`, with `conda activate cocoa`:
 
 **Step :three:**: inspect the YAML cosmology and compute the matrix components.
 
+    export OMP_NUM_THREADS=8
     python ./projects/desy1xplanck/covariance/compute_covariance.py \
         ./projects/desy1xplanck/EXAMPLE_EVALUATE_COVARIANCE.yaml
 
@@ -134,15 +136,17 @@ explicitly in `sampler.evaluate.override`. No MCMC or random prior draw runs.
 In its `covariance` block, `accuracy_boost: 2` refines the project's
 `default.yaml` baseline. `integration_accuracy: 1` changes the quadrature
 level independently. Internal accuracy controls can also be set there.
-Use `threads` for the OpenMP team and `space` for the measurement space.
+Use `space` for the measurement space. Set the OpenMP team with
+`OMP_NUM_THREADS` in the shell; no thread count belongs in the YAML.
 
 `theory.camb.extra_args` supports `AccuracyBoost`, `kmax`, `k_per_logint`,
 `lens_potential_accuracy` and `halofit_version`. CAMB's boost controls
 CAMB; the covariance boost controls its own tables and cutoffs.
 
 Paths in the YAML are relative to the working directory, `cocoa/Cocoa`.
-`output` names the `.npz` archive. `--output` and `--threads` can override
-those two choices for an HPC job; `--help` lists the command options.
+`output` names the `.npz` archive; `--output` can override it for an HPC
+job. Set `OMP_NUM_THREADS` in that job’s environment. `--help` lists the
+command options.
 
 # Changing the covariance accuracy <a name="accuracy"></a>
 
@@ -329,9 +333,10 @@ CD therefore needs AC, BD, AD and BC spectra, even if those crossed pairs
 are excluded from the measured data vector. The example retains the
 complete field matrix before assembling the measured rows.
 
-The signal uses nonlinear matter power and Limber projection. Spherical
-spin operators average the resulting angular spectra over each angular
-bin. The signal covariance uses the $`f_{\rm sky}`$ approximation.
+The Gaussian signal uses nonlinear matter power, adding a non-Limber
+linear correction to galaxy clustering and galaxy–shear spectra. Shear–shear
+spectra remain Limber. Spherical spin operators average these spectra over
+each angular bin. The signal covariance uses the $`f_{\rm sky}`$ approximation.
 
 Pure white noise extends to arbitrarily high multipoles. The calculation
 replaces that infinite sum with the analytic pair-noise expression using
@@ -395,3 +400,62 @@ Rectangular projection inputs allow Python to request matrix subblocks.
 The C routines use OpenMP inside one process and never start MPI work.
 A future Python dispatcher can distribute those subblocks while keeping
 all cross correlations in the assembled matrix.
+
+## Choosing the Gaussian spectra
+
+The `gaussian` block selects the physics used in Gaussian covariance.
+`nonlimber: true` retains radial mode coupling for every galaxy–galaxy and
+galaxy–shear pair, including internal crosses excluded from the data vector.
+Shear–shear spectra remain Limber.
+
+For example, to include a constant NLA amplitude of 0.6 in every source bin:
+
+```yaml
+covariance:
+  space: real
+  accuracy_boost: 1
+  integration_accuracy: 0
+  gaussian:
+    nonlimber: true
+    ia: NLA
+    A1: 0.6
+```
+
+This amplitude is an illustrative choice. A list supplies one amplitude
+per source bin. `ia: none` omits IA; `ia: TATT` also accepts `A2` and
+`B_TA`, with the same scalar-or-per-bin convention. The core supplies their
+standard growth dependence. These lists are bin amplitudes, not the
+amplitude/slope pair used by some likelihood redshift-evolution models.
+
+TATT returns E and B spectra. Real-space shear covariance includes both,
+with the appropriate signs for xi+ and xi-. The Fourier example measures
+E spectra. Non-Limber corrects the linear-alignment part of galaxy–shear;
+higher-order TATT terms remain Limber.
+
+**These options change Gaussian covariance only.** SSC and cNG retain
+their existing lensing-only, Limber model, including the original SSC
+normalization signal. Their arrays are unchanged when these Gaussian
+options change. They do not constitute a complete IA four-point model.
+
+The notebook uses the same choices:
+
+```python
+settings = survey.configuration(
+    gaussian={"nonlimber": True, "ia": "NLA", "A1": 0.6},
+)
+```
+
+`nonlimber_lmax` in `default.yaml` controls the correction cutoff.
+`nonlimber_accuracyboost` refines its logarithmic distance grid; the global
+`accuracy_boost` refines that grid and the cutoff together. Radial nodes
+remain nested. `integration_accuracy` independently selects GSL quadrature.
+Refine the cutoff and distance sampling when assessing a survey's
+covariance accuracy; numerical mode tests do not replace Fisher tests.
+
+
+For the zero-IA galaxy/shear example, the default cutoff is 1,000
+and the distance grid has 4,097 samples. Doubling both changed the
+complete Gaussian covariance variance modes by at most
+0.0041% across real and Fourier space. Both base and refined matrices
+were positive definite with the specified catalog noise. Other numerical
+controls were held fixed in this check.

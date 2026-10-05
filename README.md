@@ -153,6 +153,18 @@ and
 
 The likelihoods of the examples, the parameter files they include, and the parameters each likelihood fixes or must not vary are described in [likelihood/README.md](likelihood/README.md).
 
+
+> [!Warning]
+> CosmoLike supports the optimized strict-IEEE default build and
+> `COSMOLIKE_DEBUG_MODE`. The compiler mode `COSMOLIKE_AGGRESSIVE_MODE`
+> is retired because its fast-math configuration produced incorrect
+> covariance inverses. Unset that variable before compiling.
+> Do not enable `-ffast-math`, `-Ofast`, `-funsafe-math-optimizations`,
+> `-fassociative-math`, `-ffinite-math-only`, `-freciprocal-math`,
+> `-fno-signed-zeros`, or `-fno-trapping-math` in CosmoLike builds.
+> This does not change Cocoa's separate `--aggressive` download option.
+
+
 # Baryonic feedback on EXAMPLE_EVALUATE1 <a name="desy1xplanck_baryonic_feedback"></a>
 
 `EXAMPLE_EVALUATE1.yaml` can apply an external baryonic feedback suppression to the
@@ -532,10 +544,10 @@ component plots, accuracy controls and covariance-only tests.
 
 > [!NOTE]
 > The generated matrix is an analogous forecast, not a reproduction of the
-> supplied likelihood covariance. It uses massless neutrinos, Limber,
-> linear bias, zero IA/magnification/RSD and a spherical-cap footprint.
-> Numerical defaults still need convergence validation. The notebook uses
-> eight OpenMP threads and one BLAS thread. `accuracy_boost` refines
+> supplied likelihood covariance. Gaussian spectra can include non-Limber
+> gg/gs and NLA/TATT; SSC/cNG retain zero-IA Limber physics. The forecast
+> uses massless neutrinos and a spherical-cap footprint.
+> `accuracy_boost` refines
 > tables and cutoffs; `integration_accuracy` separately selects precomputed
 > GSL rules from [covariance/default.yaml](covariance/default.yaml).
 
@@ -560,6 +572,7 @@ From Bash in `cocoa/Cocoa`, with `conda activate cocoa`:
 
 **Step :three:**: inspect the YAML cosmology and compute the matrix components.
 
+    export OMP_NUM_THREADS=8
     python ./projects/desy1xplanck/covariance/compute_covariance.py \
         ./projects/desy1xplanck/EXAMPLE_EVALUATE_COVARIANCE.yaml
 
@@ -577,15 +590,17 @@ explicitly in `sampler.evaluate.override`. No MCMC or random prior draw runs.
 In its `covariance` block, `accuracy_boost: 2` refines the project's
 `default.yaml` baseline. `integration_accuracy: 1` changes the quadrature
 level independently. Internal accuracy controls can also be set there.
-Use `threads` for the OpenMP team and `space` for the measurement space.
+Use `space` for the measurement space. Set the OpenMP team with
+`OMP_NUM_THREADS` in the shell; no thread count belongs in the YAML.
 
 `theory.camb.extra_args` supports `AccuracyBoost`, `kmax`, `k_per_logint`,
 `lens_potential_accuracy` and `halofit_version`. CAMB's boost controls
 CAMB; the covariance boost controls its own tables and cutoffs.
 
 Paths in the YAML are relative to the working directory, `cocoa/Cocoa`.
-`output` names the `.npz` archive. `--output` and `--threads` can override
-those two choices for an HPC job; `--help` lists the command options.
+`output` names the `.npz` archive; `--output` can override it for an HPC
+job. Set `OMP_NUM_THREADS` in that job’s environment. `--help` lists the
+command options.
 
 To return to a data-vector-only build, use the following steps from
 `cocoa/Cocoa` with `conda activate cocoa` and Bash.
@@ -599,3 +614,8 @@ To return to a data-vector-only build, use the following steps from
     unset IGNORE_COSMOLIKE_DESXPLANCK_CODE
     export IGNORE_COSMOLIKE_DESXPLANCK_COVARIANCE=1
     source ./projects/desy1xplanck/scripts/compile_desy1xplanck.sh
+
+Gaussian non-Limber and NLA/TATT options are documented in the
+[covariance guide](covariance/README.md#choosing-the-gaussian-spectra).
+The YAML keeps these Gaussian choices separate from SSC/cNG. OpenMP
+threads come exclusively from `OMP_NUM_THREADS`, not from a YAML key.

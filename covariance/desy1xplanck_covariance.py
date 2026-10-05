@@ -2,7 +2,8 @@
 
 This module initializes 6 lens and 4 source distributions from the
 project. Numerical algorithms live in cosmolike_notebook_utils.covariance.
-The example is a massless-neutrino, zero-IA forecast with explicitly chosen
+The example is a massless-neutrino forecast with explicit Gaussian
+non-Limber/IA choices and
 number densities; it does not reproduce the project's frozen likelihood.
 """
 
@@ -12,18 +13,20 @@ import numpy as np
 
 from cosmolike_notebook_utils.covariance.forecast import (
     initialize_forecast,
+    gaussian_model,
     compute_forecast,
 )
 from cosmolike_notebook_utils import covariance as cov
 
 
-def configuration(accuracy_boost=None, **accuracy_overrides):
+def configuration(accuracy_boost=None, gaussian=None, **accuracy_overrides):
     """Return resolved survey, cosmology and YAML accuracy choices.
 
     The covariance README records the catalog assumptions and their sources.
     Redshift-file normalization sets a shape, not a catalog number density.
     Arguments:
         accuracy_boost = None uses default.yaml; 1, 2, 4 or 8 refines it.
+        gaussian = optional nonlimber/ia/A1/A2/B_TA model mapping.
         accuracy_overrides = named internal controls from default.yaml.
     Returns:
         Fully resolved settings, including the unboosted accuracy parameters.
@@ -85,6 +88,9 @@ def configuration(accuracy_boost=None, **accuracy_overrides):
         "a_edges": 1.0/(1.0+np.array([3.1, 2., 1.5, 1., .7, .4, .2, 1.e-5])),
     }
     settings.update(numerical)
+    settings["gaussian"] = gaussian_model(
+        gaussian=gaussian, nsource=len(settings["source_density_arcmin2"]),
+    )
     return settings
 
 

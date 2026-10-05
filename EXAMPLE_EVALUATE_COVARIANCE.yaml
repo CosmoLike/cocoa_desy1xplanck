@@ -35,9 +35,14 @@ sampler:
 
 covariance:
   space: real
-  threads: 8
   # Internal refinements inherit covariance/default.yaml for this survey.
   accuracy_boost: 1
   integration_accuracy: 0
+  # Gaussian spectra only; SSC/cNG keep their existing model.
+  gaussian:
+    nonlimber: true
+    ia: none
+    # For NLA use ia: NLA and A1: 0.6 (illustrative, constant per bin).
+    # TATT also accepts A2 and B_TA; each can be a scalar or per-bin list.
 
 output: ./projects/desy1xplanck/covariance/production_covariance.npz

@@ -13,7 +13,7 @@ from pathlib import Path
 import sys
 
 # Set external numerical libraries to one worker before their first import.
-# CosmoLike's own OpenMP team is controlled separately by --threads.
+# CosmoLike's own OpenMP team is controlled by OMP_NUM_THREADS in the environment.
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["VECLIB_MAXIMUM_THREADS"] = "1"

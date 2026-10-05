@@ -178,6 +178,9 @@ CSOURCES += \
 		${ROOTDIR}/external_modules/code/cosmolike/radial_weights.c \
 		${ROOTDIR}/external_modules/code/cosmolike/redshift_spline.c \
 		${ROOTDIR}/external_modules/code/cosmolike/structs.c \
+		${ROOTDIR}/external_modules/code/cosmolike/covariances/nonlimber_cov.c \
+		${ROOTDIR}/external_modules/code/cosmolike/covariances/ia_cov.c \
+		${ROOTDIR}/external_modules/code/cosmolike/covariances/fftlog_cov.c \
 		${ROOTDIR}/external_modules/code/cosmolike/covariances/spectra_cov.c \
 		${ROOTDIR}/external_modules/code/cosmolike/covariances/gaussian_cov.c \
 		${ROOTDIR}/external_modules/code/cosmolike/covariances/assembly_cov.c \
@@ -204,6 +207,9 @@ OBJECTC += \
 		./radial_weights.o \
 		./redshift_spline.o \
 		./structs.o \
+		./nonlimber_cov.o \
+		./ia_cov.o \
+		./fftlog_cov.o \
 		./spectra_cov.o \
 		./gaussian_cov.o \
 		./assembly_cov.o \
