@@ -1,0 +1,2 @@
+# Generated covariance outputs; versioned survey matrices live in data/.
+*.npz
