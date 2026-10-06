@@ -42,10 +42,12 @@ The supplied matrix is read only for comparison; no likelihood files are changed
 > Matching their measurement layout does not establish physical or numerical
 > equivalence.
 
-Matter-halo integrals use **10⁴ to 10¹⁷ solar masses/h**, with the
-shared `halo_mass_edges()` panels. The lower limit reduces the
-unresolved contribution to the one-profile halo moment I11, retaining
-its additive completion and the existing halo bias and multiplicity conventions.
+Matter-halo integrals use **10⁻⁴⁰ to 10¹⁷ solar masses/h**, with the
+shared `halo_mass_edges()` panels. Wynn extrapolation estimates the remaining
+low-mass tail of I11; a residual completion preserves its unit response at
+zero wavenumber. Higher moments use their converged direct integrals.
+The fitted halo bias and multiplicity conventions are unchanged. See the
+[core halo-moment explanation](https://github.com/CosmoLike/cocoa-cosmolike-core/tree/bugfix/cosmolike/covariances#why-only-i11-uses-wynn-extrapolation).
 
 # Running the covariance notebook <a name="running"></a>
 
@@ -198,8 +200,9 @@ boost 2. Resolved settings save both the base controls and effective grids.
 `integration_accuracy` is independent of the global boost. Its levels
 0/1/2/3/4 select precomputed GSL rules with 96/128/256/512/1024 nodes per
 panel for radial, mass and angular integrals. Wide angular bins are split
-into panels to resolve high-multipole oscillations. No rule below 64 nodes
-is supported, including in low-level calls. To check quadrature alone, use
+into panels to resolve high-multipole oscillations. The low-mass Wynn tail
+uses 32/64/128/256/512 nodes at the same levels; other rules retain a
+64-node minimum. To check quadrature alone, use
 `survey.configuration(accuracy_boost=1, integration_accuracy=1)` and compare
 with level zero. A convergence scan should include levels 2, 3 and 4:
 compare the default directly with level 4, then check that the final 3-to-4
