@@ -42,6 +42,13 @@ The supplied matrix is read only for comparison; no likelihood files are changed
 > Matching their measurement layout does not establish physical or numerical
 > equivalence.
 
+Matter-halo integrals use **10⁻⁴⁰ to 10¹⁷ solar masses/h**, with the
+shared `halo_mass_edges()` panels. Wynn extrapolation estimates the remaining
+low-mass tail of I11; a residual completion preserves its unit response at
+zero wavenumber. Higher moments use their converged direct integrals.
+The fitted halo bias and multiplicity conventions are unchanged. See the
+[core halo-moment explanation](https://github.com/CosmoLike/cocoa-cosmolike-core/tree/bugfix/cosmolike/covariances#why-only-i11-uses-wynn-extrapolation).
+
 # Running the covariance notebook <a name="running"></a>
 
 The default build omits covariance generation. Unset
@@ -193,14 +200,24 @@ boost 2. Resolved settings save both the base controls and effective grids.
 `integration_accuracy` is independent of the global boost. Its levels
 0/1/2/3/4 select precomputed GSL rules with 96/128/256/512/1024 nodes per
 panel for radial, mass and angular integrals. Wide angular bins are split
-into panels to resolve high-multipole oscillations. No rule below 64 nodes
-is supported, including in low-level calls. To check quadrature alone, use
+into panels to resolve high-multipole oscillations. The low-mass Wynn tail
+uses 32/64/128/256/512 nodes at the same levels; other rules retain a
+64-node minimum. To check quadrature alone, use
 `survey.configuration(accuracy_boost=1, integration_accuracy=1)` and compare
 with level zero. A convergence scan should include levels 2, 3 and 4:
 compare the default directly with level 4, then check that the final 3-to-4
 refinement is small. Keep interpolation settings fixed in this scan and
 check them separately. The defaults are being checked against refined full
 matrices; a higher level alone is not a convergence certificate.
+
+`power_accuracyboost: 8` prepares all three matter-power tables with
+11,993 wavenumber samples from the original 1,500 CAMB samples. Natural
+cubic interpolation fills the dense tables once; the C calculations
+continue to use linear lookups. This reduces interpolation errors
+amplified by cancellation in the four-halo trispectrum. The global boost
+also multiplies this refinement: boost 2 gives 23,985 samples, retaining
+every boost-1 node. The notebook reinitializes these inputs for each
+boost; custom scripts must likewise initialize after changing settings.
 
 `accuracy_boost` controls interpolation and cutoffs. Supported values are
 1, 2, 4 and 8. It raises the covariance multipole cutoffs and refines the non-Gaussian,

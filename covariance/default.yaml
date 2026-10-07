@@ -9,11 +9,16 @@ ng_ell_intervals: 127
 non_gaussian_accuracyboost: 1
 window_accuracyboost: 1
 core_accuracyboost: 1
+
+# Natural cubic preparation: 1500 CAMB k nodes become 11993; C lookup
+# remains linear. The global boost multiplies these interval subdivisions.
+power_accuracyboost: 8
 response_step: 0.00005
 
 # Independent integration level: 0/1/2/3/4 selects the precomputed GSL
 # 96/128/256/512/1024-node rule. The global boost never changes that rule.
-# Rules below 64 nodes and generated rules are unsupported.
+# The Wynn low-mass tail uses 32/64/128/256/512 nodes at these levels.
+# Other rules require at least 64 nodes; generated rules are unsupported.
 # Level zero is being checked against refined full-matrix calculations.
 integration_accuracy: 0
 
