@@ -210,6 +210,15 @@ refinement is small. Keep interpolation settings fixed in this scan and
 check them separately. The defaults are being checked against refined full
 matrices; a higher level alone is not a convergence certificate.
 
+`power_accuracyboost: 8` prepares all three matter-power tables with
+11,993 wavenumber samples from the original 1,500 CAMB samples. Natural
+cubic interpolation fills the dense tables once; the C calculations
+continue to use linear lookups. This reduces interpolation errors
+amplified by cancellation in the four-halo trispectrum. The global boost
+also multiplies this refinement: boost 2 gives 23,985 samples, retaining
+every boost-1 node. The notebook reinitializes these inputs for each
+boost; custom scripts must likewise initialize after changing settings.
+
 `accuracy_boost` controls interpolation and cutoffs. Supported values are
 1, 2, 4 and 8. It raises the covariance multipole cutoffs and refines the non-Gaussian,
 lensing-window and shared core interpolation tables. It leaves

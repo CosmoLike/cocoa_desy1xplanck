@@ -9,6 +9,10 @@ ng_ell_intervals: 127
 non_gaussian_accuracyboost: 1
 window_accuracyboost: 1
 core_accuracyboost: 1
+
+# Natural cubic preparation: 1500 CAMB k nodes become 11993; C lookup
+# remains linear. The global boost multiplies these interval subdivisions.
+power_accuracyboost: 8
 response_step: 0.00005
 
 # Independent integration level: 0/1/2/3/4 selects the precomputed GSL
