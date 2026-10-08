@@ -1,8 +1,9 @@
 """Advisory checks NL1-NL2: Halofit vs EuclidEmulator2, per probe.
 
 The likelihoods can source the nonlinear matter power from CAMB's
-Takahashi halofit (non_linear_emul: 2, the frozen contracts'
-setting) or from EuclidEmulator2 (non_linear_emul: 1). Both checks
+Takahashi halofit (non_linear_emul: 2, the setting of the frozen
+configurations) or from EuclidEmulator2 (EE2, non_linear_emul: 1, an
+emulator of the nonlinear boost P_nl/P_lin). Both checks
 evaluate their data vector with both sources at ten fixed
 cosmologies across the omegam/ns/As space
 (NONLINEAR_COMPARISON_POINTS; every other parameter stays at the
@@ -18,34 +19,38 @@ costs more per point.
 
 There is no pass/fail: the numbers say how much of the statistical
 error budget the Halofit-vs-emulator difference consumes under the
-chosen scale cuts - the question "can Halofit be used on real data
-analysis at this mask". The checks read the --mask option of the
+chosen scale cuts, which answers whether Halofit can be used on real
+data with this mask. The checks read the --mask option of the
 comparison sweeps (conftest.py): --mask=frozen (the default) keeps
-the shipped 6x2pt scale-cut mask of the frozen contract, and
+the shipped 6x2pt scale-cut mask of the frozen configurations, and
 --mask=ones keeps every data point (no scale cuts). NL2 aborts
 under ones: with every point unmasked the shipped 6x2pt covariance
 is not positive definite and cosmolike refuses it (see
-tests/README.md).
+tests/data_vector/README.md).
 
 To run (from the Cocoa/ folder, cocoa environment active,
 start_cocoa.sh sourced):
 
     python -m pytest ./projects/desy1xplanck/tests/data_vector/test_nonlinear.py
 
-    python -m pytest ./projects/desy1xplanck/tests/data_vector/test_nonlinear.py --mask=ones
+    python -m pytest ./projects/desy1xplanck/tests/data_vector/test_nonlinear.py \\
+        --mask=ones
 """
 
 import os
 
 # OpenMP reads OMP_NUM_THREADS when the compiled libraries load, so
-# this must run before ANY cobaya/cosmolike import in the process.
+# this must run before any cobaya/cosmolike import in the process. "4"
+# is REQUIRED_OMP_THREADS of cocoa_testing, the count of every worker
+# subprocess: a race check needs more than one thread.
 os.environ["OMP_NUM_THREADS"] = "4"
 
 import sys
 import unittest
 
-# The harness stays in the parent tests/ folder. Add it explicitly so
-# direct execution and worker processes resolve this project's stored inputs.
+# The harness stays in the parent tests/ folder (dirname applied twice to
+# this file's absolute path). Add it explicitly so direct execution and
+# worker processes resolve this project's stored inputs.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import cocoa_test_utils as u
 
@@ -69,9 +74,11 @@ class TestHalofitVsEE2(unittest.TestCase):
         """Cosmic shear: Halofit scored against EE2 at ten cosmologies.
 
         Advisory: the printed report is the product. The only
-        assertion is structural - every cosmology must have produced
+        assertion is structural: every cosmology must have produced
         a number.
         """
+        # the conftest copies the --mask option into this variable; the
+        # "frozen" default keeps a run outside pytest on the frozen mask
         mask = os.environ.get("COCOA_FASTPT_MASK", "frozen")
         dchi2s = u.halofit_vs_ee2_dchi2s("example1", mask=mask)
         u.report_nonlinear_comparison(

@@ -21,19 +21,20 @@ Three layers of state matter here:
   resets everything it depends on (tables, accuracy, cosmology,
   nuisances) on every call, so no call depends on which wrapper ran
   before it.
-- The project fiducial point lives in this module as plain
-  constants (DES_A1_1, ...), shared by every notebook; a notebook
-  overrides any of them per call (nw.C_ss_tomo_limber(ell=ell,
-  omegam=x)) or imports the names for its own sweeps.
+- The project fiducial point (the reference parameter values at
+  which the examples evaluate the model) lives in this module as
+  plain constants (DES_A1_1, ...), shared by every notebook; a
+  notebook overrides any of them per call (nw.C_ss_tomo_limber(
+  ell=ell, omegam=x)) or imports the names for its own sweeps.
 - The few values that differ between notebooks because each mirrors
   its own yaml (the lmax of the internal C_ell tables, the angular
   binning, the nonlinear emulator choice) live in _CONFIG and are
   set once per notebook with configure().
 
-Every wrapper accepts the same accuracy arguments and applies the
-same folds: CLAccuracyBoost multiplies by AccuracyBoost, the
-integration accuracy grows as |3 (CLAccuracyBoost - 1)|, and the
-C_ell table reaches lmax + 20000 (CLAccuracyBoost - 1).
+Every wrapper accepts the same accuracy arguments and combines them
+by the same rules: CLAccuracyBoost is multiplied by AccuracyBoost,
+the integration accuracy grows by |3 (CLAccuracyBoost - 1)|, and the
+C_ell tables reach lmax + 20000 (CLAccuracyBoost - 1).
 
 Two desy1xplanck-specific points, both mirroring the likelihood
 (_cosmolike_prototype_base.py):
@@ -42,9 +43,12 @@ Two desy1xplanck-specific points, both mirroring the likelihood
   beam/pixel-window filter of the kappa cross-correlations and the
   kk bandpower binning), read from the same .dataset keys the
   likelihood reads, so the ks/gk/kk probes work from notebooks.
-- The lens (MagLim) photo-z model has a stretch parameter per bin
-  (DES_DZ2_L*) on top of the additive bias, and the magnification
-  coefficients DES_BMAG_* are fixed nonzero values.
+- The lens (MagLim) photo-z model has, per bin i, a stretch s_i
+  (DES_DZ2_L<i>) on top of the shift dz_i (DES_DZ_L<i>): cosmolike
+  maps n_i(z) -> n_i((z - dz_i - zbar_i)/s_i + zbar_i)/s_i, with
+  zbar_i the mean redshift of the tabulated bin, so s_i = 1 leaves
+  the width unchanged. The magnification coefficients DES_BMAG_* are
+  fixed nonzero values.
 """
 
 import os
@@ -55,7 +59,9 @@ from getdist import IniFile
 
 # the shared notebook utilities live in cosmolike_core; the compiled
 # interface is on the path already (each project's interface/
-# directory is part of the Cocoa PYTHONPATH)
+# directory is part of the Cocoa PYTHONPATH). ROOTDIR, the path of the
+# Cocoa/ folder, is exported by start_cocoa.sh; without it this line
+# stops with a KeyError.
 sys.path.insert(0, os.environ["ROOTDIR"] + "/external_modules/code/cosmolike_core")
 import cosmolike_notebook_utils as cnu
 import cosmolike_desy1xplanck_interface as ci
@@ -65,6 +71,11 @@ import cosmolike_desy1xplanck_interface as ci
 # Project fiducial point (the evaluate override of the example yamls;
 # the lens values are the params_lens_maglim.yaml reference point)
 # ----------------------------------------------------------------------
+# Cosmology: As_1e9 = 10^9 A_s (primordial amplitude), ns (scalar
+# spectral index), H0 in km/s/Mpc, omegab and omegam (density
+# parameters today), mnu (sum of the neutrino masses, eV), w = w0 and
+# w0pwa = w0 + wa of the dark-energy equation of state
+# w(a) = w0 + wa (1 - a).
 As_1e9 = 2.1
 ns = 0.96605
 H0 = 67.32
@@ -73,8 +84,12 @@ omegam = 0.3
 mnu = 0.06
 w = -1.0
 w0pwa = -1.0
+# Intrinsic alignment, IA_redshift_evolution = 3: A1(z) = DES_A1_1
+# ((1 + z)/(1 + z_0))^DES_A1_2, with z_0 a fixed pivot redshift
 DES_A1_1 = -0.7      # NLA amplitude
 DES_A1_2 = -1.7      # NLA redshift power-law index
+# Source bins: photo-z shifts (redshift units) and multiplicative shear
+# calibrations m_i (the shear of bin i is multiplied by 1 + m_i)
 DES_DZ_S1 = 0.0
 DES_DZ_S2 = 0.0
 DES_DZ_S3 = 0.0
@@ -83,6 +98,7 @@ DES_M1 = -0.0063
 DES_M2 = -0.0198
 DES_M3 = -0.0241
 DES_M4 = -0.0369
+# Lens bins: photo-z shifts dz_i and stretches s_i (module docstring)
 DES_DZ_L1 = -0.009
 DES_DZ_L2 = -0.035
 DES_DZ_L3 = -0.005
@@ -95,6 +111,7 @@ DES_DZ2_L3 = 0.87
 DES_DZ2_L4 = 0.918
 DES_DZ2_L5 = 1.08
 DES_DZ2_L6 = 0.845
+# Linear galaxy bias b1 of each lens bin
 DES_B1_1 = 1.5
 DES_B1_2 = 1.6
 DES_B1_3 = 1.7
@@ -107,6 +124,8 @@ DES_BMAG_3 = 1.75
 DES_BMAG_4 = 1.94
 DES_BMAG_5 = 1.56
 DES_BMAG_6 = 2.96
+# Point masses of the lens bins (10^13 M_sun/h): a 1/theta^2 term in
+# gamma_t; zero at the fiducial point
 DES_PM1 = 0.0
 DES_PM2 = 0.0
 DES_PM3 = 0.0
@@ -116,7 +135,10 @@ DES_PM6 = 0.0
 
 # default nuisance vectors built from the constants above; wrappers
 # take None and fall back to these, so a call overrides one vector
-# without retyping the rest
+# without retyping the rest. The IA vectors have one slot per source
+# bin, but with IA_redshift_evolution = 3 cosmolike reads only the
+# first two (amplitude, power-law index); ZEROS6 fills the lens-bin
+# vectors that are zero at the fiducial point (B2, B3nl, BK).
 A1_FID = [DES_A1_1, DES_A1_2, 0, 0]
 A2_FID = [0, 0, 0, 0]
 BTA_FID = [0, 0, 0, 0]
@@ -143,15 +165,24 @@ PM_FID = [DES_PM1, DES_PM2, DES_PM3, DES_PM4, DES_PM5, DES_PM6]
 _CONFIG = {
     "lmax": 75000,              # base of the internal C_ell tables
     "ntheta": 30,               # angular bins of the real-space vector
+    # edges of the logarithmic angular binning, in arcmin
     "theta_min_arcmin": 0.25,
     "theta_max_arcmin": 250.0,
     "non_linear_emul": 2,       # 1 = EuclidEmulator2, 2 = halofit
+    # the folder of the .dataset file, relative to the folder the notebook
+    # runs in (projects/desy1xplanck), and the .dataset file itself
     "path": "../../external_modules/data/desy1xplanck",
     "data_file": "Y3xPlanckPR4.dataset",
+    # 0 = NLA intrinsic alignments, 1 = TATT; 3 = the redshift power law
+    # of the IA amplitudes (see A1_FID)
     "IA_model": 0,
     "IA_redshift_evolution": 3,
     "IA_code": 0,               # 0 = C FASTPT (NLA always uses 0)
+    # galaxy-bias model codes for (b1, b2, bs2, b3, bmag, bK): 0 = one
+    # amplitude per lens bin, 1 = derived from b1 (here b3), as bias_model
+    # in the likelihood yaml files
     "bias_model": [0, 0, 0, 1, 0, 0],    # n(z) photo-z conventions (mirror the likelihood yaml keys):
+    # n(z) photo-z conventions, the likelihood yaml keys of the same names:
     # interpolation 0 = cspline, 1 = linear, 2+ = Steffen monotone;
     # z column 0 = Z_LOW (left bin edges), 1 = Z_MID (sample points)
     "photoz_interpolation_type": 0,
@@ -294,18 +325,25 @@ def _set_state(omegam, omegab, H0, ns, As_1e9, w, w0pwa,
 
     This is the body every wrapper shares. The compiled interface
     keeps global state, so the sequence rebuilds everything a
-    spectrum call reads: the accuracy folds and lookup tables, the
+    spectrum call reads: the accuracy settings and lookup tables, the
     binning when a real-space probe asked for it, the cosmology
     (power spectra, growth, distances from one CAMB run), and each
     nuisance group whose vectors were passed. A group passed as None
     is skipped, which leaves that part of the state at whatever the
-    interface holds, exactly as the per-probe notebook definitions
-    did (a cosmic-shear wrapper never touched galaxy bias).
+    interface holds: a cosmic-shear wrapper never touches the galaxy
+    bias.
+
+    The neutrino mass comes from the module constant mnu (0.06 eV),
+    not from an argument. set_cosmology receives no cold dark matter +
+    baryon spectrum here (the likelihood passes one as lnP_linear_cb),
+    so after a wrapper call any halo-model quantity built on that
+    spectrum (the halo statistics, or ci.sigma2 with field=1) makes
+    cosmolike print a fatal error and end the Python process.
 
     Arguments:
       omegam ... non_linear_emul = the cosmology and accuracy
                  arguments, forwarded to cnu.get_camb_cosmology
-                 (kmax in h/Mpc; see its docstring for the grids).
+                 (kmax in 1/Mpc; see its docstring for the grids).
       binning  = (ntheta, theta_min_arcmin, theta_max_arcmin) to
                  re-run init_binning (the real-space wrappers), or
                  None to keep the current binning.
@@ -335,9 +373,9 @@ def _set_state(omegam, omegab, H0, ns, As_1e9, w, w0pwa,
         CAMBAccuracyBoost=CAMBAccuracyBoost,
         CLAccuracyBoost=CLAccuracyBoost,
         non_linear_emul=non_linear_emul)
-    # the house accuracy folds: the overall boost multiplies the
-    # cosmolike boost, and the integration accuracy and the C_ell
-    # table length grow with it
+    # the accuracy rules shared by every wrapper: the overall boost
+    # multiplies the cosmolike boost, and the integration accuracy and
+    # the C_ell table length grow with it
     CLAccuracyBoost = CLAccuracyBoost * AccuracyBoost
     CLIntegrationAccuracy = max(
         0, CLIntegrationAccuracy + abs(3*(CLAccuracyBoost - 1.0)))
@@ -393,7 +431,16 @@ def _set_state(omegam, omegab, H0, ns, As_1e9, w, w0pwa,
 
 
 def _shear_defaults(M, shear_photoz_bias, A1, A2, BTA):
-    """Replaces None shear vectors with the fiducial ones."""
+    """Replaces None shear vectors with the fiducial ones.
+
+    Arguments:
+      M, shear_photoz_bias, A1, A2, BTA = the source-bin nuisance lists
+          of a wrapper call (one entry per source bin), or None.
+
+    Returns:
+      the five lists in the same order, each None replaced by M_FID,
+      SHEAR_PHOTOZ_FID, A1_FID, A2_FID or BTA_FID.
+    """
     if M is None:
         M = M_FID
     if shear_photoz_bias is None:
@@ -409,7 +456,18 @@ def _shear_defaults(M, shear_photoz_bias, A1, A2, BTA):
 
 def _clustering_defaults(lens_photoz_bias, lens_photoz_stretch,
                          B1, B2, B_MAG, B3nl, BK):
-    """Replaces None clustering vectors with the fiducial ones."""
+    """Replaces None clustering vectors with the fiducial ones.
+
+    Arguments:
+      lens_photoz_bias, lens_photoz_stretch, B1, B2, B_MAG, B3nl, BK =
+          the lens-bin nuisance lists of a wrapper call (one entry per
+          lens bin), or None.
+
+    Returns:
+      the seven lists in the same order, each None replaced by its
+      fiducial list (LENS_PHOTOZ_FID, LENS_STRETCH_FID, B1_FID, BMAG_FID,
+      or ZEROS6 for B2, B3nl and BK).
+    """
     if lens_photoz_bias is None:
         lens_photoz_bias = LENS_PHOTOZ_FID
     if lens_photoz_stretch is None:
@@ -439,15 +497,17 @@ def C_ss_tomo_limber(ell, omegam=omegam, omegab=omegab, H0=H0, ns=ns,
     """Cosmic-shear angular power spectra (EE, BB) at multipoles ell.
 
     Rebuilds the full interface state (see _set_state) and evaluates
-    ci.C_ss_tomo_limber. The nuisance vectors default to the module
-    fiducials when passed as None.
+    ci.C_ss_tomo_limber, the spectra in the Limber approximation. The
+    nuisance vectors default to the module fiducials when passed as
+    None.
 
     Arguments:
       ell = 1D array of multipoles; the rest as in _set_state, with
       the shear group only (this wrapper never touches clustering).
 
     Returns:
-      (EE, BB): two 3D arrays (n_ell, n_bin, n_bin).
+      (EE, BB): two 3D arrays (n_ell, n_bin, n_bin), n_bin = source
+      bins; only the pairs i <= j are filled, the other entries are 0.
     """
     if non_linear_emul is None:
         non_linear_emul = _CONFIG["non_linear_emul"]
@@ -472,12 +532,19 @@ def xi(ntheta=None, theta_min_arcmin=None, theta_max_arcmin=None,
     """Real-space shear correlations xi_plus/minus on a theta grid.
 
     Same state build as C_ss_tomo_limber plus a re-binning, so the
-    binning can change between calls without restarting the kernel;
-    the binning arguments default to the configure()d values.
+    binning can change between calls without restarting the
+    notebook's Python process (the Jupyter kernel); the binning
+    arguments default to the configure()d values.
+
+    Arguments:
+      ntheta, theta_min_arcmin, theta_max_arcmin = the logarithmic
+      angular binning (edges in arcmin), or None; the rest as in
+      C_ss_tomo_limber.
 
     Returns:
-      (theta, xi_plus, xi_minus): theta in arcmin, xi 3D arrays
-      (n_theta, n_bin, n_bin).
+      (theta, xi_plus, xi_minus): theta = the area-weighted bin centers
+      in arcmin, xi 3D arrays (n_theta, n_bin, n_bin) with both orders
+      of a source pair filled.
     """
     if ntheta is None:
         ntheta = _CONFIG["ntheta"]
@@ -517,11 +584,19 @@ def get_chi2(omegam=omegam, omegab=omegab, H0=H0, ns=ns, As_1e9=As_1e9,
     probe selection fixes which blocks enter the masked vector, and
     with_data loads the covariance, mask, and data vector this chi2
     compares against. The full 6x2pt nuisance state is set every
-    call; blocks outside the selected probes simply never read
-    theirs (a "xi" run ignores the clustering state).
+    call; blocks outside the selected probes never read theirs (a
+    "xi" run ignores the clustering state).
+
+    Arguments:
+      galaxy_bias_b1, galaxy_bias_b2, galaxy_bias_bmag,
+      galaxy_bias_b3nl, galaxy_bias_bk = the lens-bin lists B1, B2,
+          B_MAG, B3nl and BK of _set_state, or None for the fiducials;
+      PM = the point masses, or None for PM_FID; the rest as in
+          _set_state (kmax defaults to 7.5 here, 10 elsewhere).
 
     Returns:
-      float chi2.
+      float chi2 = (d - t)^T C^-1 (d - t) over the entries the mask
+      keeps (d the data, t the theory vector).
     """
     if non_linear_emul is None:
         non_linear_emul = _CONFIG["non_linear_emul"]
@@ -553,6 +628,12 @@ def get_chi2(omegam=omegam, omegab=omegab, H0=H0, ns=ns, As_1e9=As_1e9,
 # ----------------------------------------------------------------------
 # Response functions (cosmic shear)
 # ----------------------------------------------------------------------
+# In the Limber approximation a multipole l reads P(k) at k = (l + 1/2)/chi
+# along the line of sight, so a spectrum is an integral over ln k. The
+# response d ln C/d ln k is the fraction of C(l) contributed per unit
+# ln k, and the cumulative response R(k_max) integrates its absolute
+# value over ln k up to ln k_max: they show which wavenumbers (h/Mpc) a
+# multipole or an angle probes.
 def dlnC_dlss_tomo_limber(k, ell, omegam=omegam, omegab=omegab, H0=H0,
                           ns=ns, As_1e9=As_1e9, w=w, w0pwa=w0pwa,
                           A1=None, A2=None, BTA=None,
@@ -567,8 +648,13 @@ def dlnC_dlss_tomo_limber(k, ell, omegam=omegam, omegab=omegab, H0=H0,
     Shear state as in C_ss_tomo_limber, then the interface's
     response evaluation.
 
+    Arguments:
+      k = 1D array of wavenumbers in h/Mpc; ell = 1D array of
+      multipoles; the rest as in C_ss_tomo_limber.
+
     Returns:
-      array as ci.dlnC_ss_dlnk_tomo_limber returns it.
+      (EE, BB) as ci.dlnC_ss_dlnk_tomo_limber returns them: two arrays
+      (n_k, n_ell, n_bin, n_bin).
     """
     if non_linear_emul is None:
         non_linear_emul = _CONFIG["non_linear_emul"]
@@ -598,8 +684,12 @@ def dlnxi_dlnk_pm_tomo_limber(k, ntheta=None, theta_min_arcmin=None,
 
     Shear state plus a re-binning, as in xi.
 
+    Arguments:
+      k = 1D array of wavenumbers in h/Mpc; the rest as in xi.
+
     Returns:
-      (theta, dlnxip_dlnk, dlnxim_dlnk).
+      (theta, dlnxip_dlnk, dlnxim_dlnk): theta in arcmin, the two
+      responses arrays (n_k, n_theta, n_bin, n_bin).
     """
     if ntheta is None:
         ntheta = _CONFIG["ntheta"]
@@ -635,8 +725,13 @@ def rf_C_ss_tomo_limber(k, ell, omegam=omegam, omegab=omegab, H0=H0,
 
     Shear state as in C_ss_tomo_limber, then ci.rf_C_ss_tomo_limber.
 
+    Arguments:
+      k = 1D array of k_max values in h/Mpc; ell = 1D array of
+      multipoles; the rest as in C_ss_tomo_limber.
+
     Returns:
-      array as ci.rf_C_ss_tomo_limber returns it.
+      (EE, BB) as ci.rf_C_ss_tomo_limber returns them: two arrays
+      (n_k, n_ell, n_bin, n_bin).
     """
     if non_linear_emul is None:
         non_linear_emul = _CONFIG["non_linear_emul"]
@@ -664,8 +759,12 @@ def rf_xi_tomo_limber(k, ntheta=None, theta_min_arcmin=None,
 
     Shear state plus a re-binning, then ci.rf_xi_tomo_limber.
 
+    Arguments:
+      k = 1D array of k_max values in h/Mpc; the rest as in xi.
+
     Returns:
-      (theta, rf_xip, rf_xim).
+      (theta, rf_xip, rf_xim): theta in arcmin, the two responses
+      arrays (n_k, n_theta, n_bin, n_bin).
     """
     if ntheta is None:
         ntheta = _CONFIG["ntheta"]
@@ -702,12 +801,15 @@ def C_ks_tomo_limber(ell, omegam=omegam, omegab=omegab, H0=H0, ns=ns,
                      non_linear_emul=None, allsims=None):
     """CMB lensing x shear angular power spectra at multipoles ell.
 
-    Shear state as in C_ss_tomo_limber (the CMB is a single lens
+    Shear state as in C_ss_tomo_limber (the CMB is a single source
     plane, so only the shear nuisances enter), then
-    ci.C_ks_tomo_limber.
+    ci.C_ks_tomo_limber (Limber approximation).
+
+    Arguments:
+      ell = 1D array of multipoles; the rest as in C_ss_tomo_limber.
 
     Returns:
-      2D array (n_ell, n_bin).
+      2D array (n_ell, n_bin), one column per source bin.
     """
     if non_linear_emul is None:
         non_linear_emul = _CONFIG["non_linear_emul"]
@@ -734,6 +836,11 @@ def w_ks(ntheta=None, theta_min_arcmin=None, theta_max_arcmin=None,
     Same state build as C_ks_tomo_limber plus a re-binning; the CMB
     beam/pixel-window filter set by init_cosmolike enters the
     projection inside ci.w_ks_tomo.
+
+    Arguments:
+      ntheta, theta_min_arcmin, theta_max_arcmin = the angular binning,
+      or None for the configure()d values; the rest as in
+      C_ks_tomo_limber.
 
     Returns:
       (theta, w_ks): theta in arcmin, w_ks a 2D array
@@ -773,8 +880,13 @@ def dlnC_ks_dlnk_tomo_limber(k, ell, omegam=omegam, omegab=omegab,
     Shear state as in C_ks_tomo_limber, then the interface's
     response evaluation.
 
+    Arguments:
+      k = 1D array of wavenumbers in h/Mpc; ell = 1D array of
+      multipoles; the rest as in C_ks_tomo_limber.
+
     Returns:
-      array as ci.dlnC_ks_dlnk_tomo_limber returns it.
+      array as ci.dlnC_ks_dlnk_tomo_limber returns it,
+      (n_k, n_ell, n_bin).
     """
     if non_linear_emul is None:
         non_linear_emul = _CONFIG["non_linear_emul"]
@@ -802,8 +914,12 @@ def rf_C_ks_tomo_limber(k, ell, omegam=omegam, omegab=omegab, H0=H0,
 
     Shear state as in C_ks_tomo_limber, then ci.rf_C_ks_tomo_limber.
 
+    Arguments:
+      k = 1D array of k_max values in h/Mpc; ell = 1D array of
+      multipoles; the rest as in C_ks_tomo_limber.
+
     Returns:
-      array as ci.rf_C_ks_tomo_limber returns it.
+      array as ci.rf_C_ks_tomo_limber returns it, (n_k, n_ell, n_bin).
     """
     if non_linear_emul is None:
         non_linear_emul = _CONFIG["non_linear_emul"]
@@ -831,8 +947,12 @@ def dlnw_ks_dlnk_tomo(k, ntheta=None, theta_min_arcmin=None,
 
     Shear state plus a re-binning, as in w_ks.
 
+    Arguments:
+      k = 1D array of wavenumbers in h/Mpc; the rest as in w_ks.
+
     Returns:
-      (theta, dlnwks_dlnk).
+      (theta, dlnwks_dlnk): theta in arcmin, the response array
+      (n_k, n_theta, n_bin).
     """
     if ntheta is None:
         ntheta = _CONFIG["ntheta"]
@@ -867,8 +987,12 @@ def rf_w_ks_tomo(k, ntheta=None, theta_min_arcmin=None,
 
     Shear state plus a re-binning, then ci.rf_w_ks_tomo.
 
+    Arguments:
+      k = 1D array of k_max values in h/Mpc; the rest as in w_ks.
+
     Returns:
-      (theta, rf_wks).
+      (theta, rf_wks): theta in arcmin, the response array
+      (n_k, n_theta, n_bin).
     """
     if ntheta is None:
         ntheta = _CONFIG["ntheta"]

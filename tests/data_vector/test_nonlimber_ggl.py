@@ -15,13 +15,15 @@ likelihood yaml key adopt_limber_gs chooses how it is computed:
 
 ggl defaults to Limber because its lensing kernel is broad (galaxy
 clustering has its own key, adopt_limber_gg; see
-test_nonlimber_gg.py). The Limber approximation fails at low l for the lens-source pairs whose kernels overlap in
-redshift (lens bin = source bin, or the source bin in front of the lens
-bin, where the signal is the intrinsic alignment of the sources times
-the lens density). This test measures what the Limber default costs.
+test_nonlimber_gg.py). The Limber approximation fails at low l for
+the lens-source pairs whose kernels overlap in redshift (lens bin =
+source bin, or the source bin in front of the lens bin, where the
+signal is the intrinsic alignment of the sources times the lens
+density). This test measures what the Limber default costs.
 
-It evaluates the frozen 6x2pt fiducial (NLA) three times IN
-ONE PROCESS: Limber, non-Limber, Limber again, and computes
+It evaluates the frozen 6x2pt fiducial (NLA) three times in one
+process (so the caches of the compiled library must follow the flag):
+Limber, non-Limber, Limber again, and computes
 
     delta chi2 = delta^T C^-1 delta,
     delta = dv(non-Limber) - dv(Limber),
@@ -52,15 +54,18 @@ start_cocoa.sh sourced):
 import os
 
 # OpenMP reads OMP_NUM_THREADS when the compiled libraries load, so
-# this must run before ANY cobaya/cosmolike import in the process.
+# this must run before any cobaya/cosmolike import in the process. "4"
+# is REQUIRED_OMP_THREADS of cocoa_testing, the count of every worker
+# subprocess: a race check needs more than one thread.
 os.environ["OMP_NUM_THREADS"] = "4"
 
 import sys
 import time
 import unittest
 
-# The harness stays in the parent tests/ folder. Add it explicitly so
-# direct execution and worker processes resolve this project's stored inputs.
+# The harness stays in the parent tests/ folder (dirname applied twice to
+# this file's absolute path). Add it explicitly so direct execution and
+# worker processes resolve this project's stored inputs.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import cocoa_test_utils as u
 
@@ -78,8 +83,10 @@ SETTINGS = (
 # magnitude below the measured value, so it only catches a dead flag.
 DCHI2_FLOOR = 1.0e-6
 
-# delta chi2 measured on 2026-10-01 (macOS, arm64), and the relative band
-# assertion 4 allows around it.
+# The delta chi2 of this comparison as measured on macOS (arm64), and the
+# relative band assertion 4 allows around it; a deliberate change of the
+# non-Limber code, the kernels or the covariance requires measuring it
+# again.
 DCHI2_MEASURED = 0.003869
 DCHI2_RTOL = 0.05
 
@@ -94,6 +101,12 @@ class TestNonLimberGGL(unittest.TestCase):
         cls.reference = u.load_reference()
 
     def test_nonlimber_ggl(self):
+        """Build the model three times, compare the vectors, assert 1-5.
+
+        The five assertions are listed in the module docstring; the
+        report prints the two chi2 values, delta^T C^-1 delta and the
+        contribution of each lens-source pair.
+        """
         import numpy as np
         import cosmolike_desy1xplanck_interface as ci
 
@@ -140,6 +153,8 @@ class TestNonLimberGGL(unittest.TestCase):
         dv_limber = vectors[SETTINGS[0][0]]
         dv_nonlimber = vectors[SETTINGS[1][0]]
         delta = dv_nonlimber - dv_limber
+        # @ is numpy's matrix product: delta @ icov @ delta = delta^T C^-1
+        # delta
         dchi2 = float(delta @ icov @ delta)
 
         # the ggl block follows the cosmic shear block in every probe
@@ -161,6 +176,10 @@ class TestNonLimberGGL(unittest.TestCase):
             sl = slice(ggl0 + p*nlen, ggl0 + (p + 1)*nlen)
             block[sl] = delta[sl]
             rows.append((float(block @ icov @ block), p))
+        # largest contribution first (the tuples sort by their first
+        # entry); the list stops below 0.1% of the total. The label names
+        # the bins when the pair list matches the block count, otherwise
+        # the pair index.
         for contribution, p in sorted(rows, reverse=True):
             if contribution < 1.0e-3*max(dchi2, DCHI2_FLOOR):
                 break
@@ -198,5 +217,8 @@ class TestNonLimberGGL(unittest.TestCase):
             f"reference {self.reference[REFERENCE_KEY]:.6f}")
 
 
+# __name__ is "__main__" only when this file runs directly as a
+# script; pytest imports the module instead, so this block stays
+# idle under pytest
 if __name__ == "__main__":
     unittest.main(verbosity=2)

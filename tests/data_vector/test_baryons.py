@@ -1,14 +1,16 @@
 """Baryonic feedback drift tests BD1-BD7: frozen-vector pinning.
 
 Each test evaluates the example1 configuration (NLA) with the bfmt
-theory block computing one feedback method, against that method's
-FROZEN data vector - the default-settings theory prediction written
-at freeze time by generate_frozen_reference.py --baryons, at the
-frozen fiducial point plus the method's cosmology override
+theory block computing one feedback method (the block multiplies the
+nonlinear matter power spectrum by a baryonic suppression factor
+S(k, z)), against that method's frozen data vector: the
+default-settings theory prediction written at freeze time by
+generate_frozen_reference.py --baryons, at the frozen fiducial point
+plus the method's cosmology override
 (cocoa_test_utils.BARYON_POINT_OVERRIDES). At freeze time the chi2
 against that vector was zero by construction, so the assertion
 
-    chi2 <= chi2_tolerance
+    chi2 <= CHI2_TOLERANCE (0.2)
 
 pins the whole feedback pipeline: a failure means cosmolike or the
 bfmt theory block changed its prediction since the freeze. This is
@@ -33,14 +35,17 @@ active, start_cocoa.sh sourced):
 import os
 
 # OpenMP reads OMP_NUM_THREADS when the compiled libraries load, so
-# this must run before ANY cobaya/cosmolike import in the process.
+# this must run before any cobaya/cosmolike import in the process. "4"
+# is REQUIRED_OMP_THREADS of cocoa_testing, the count of every worker
+# subprocess: a race check needs more than one thread.
 os.environ["OMP_NUM_THREADS"] = "4"
 
 import sys
 import unittest
 
-# The harness stays in the parent tests/ folder. Add it explicitly so
-# direct execution and worker processes resolve this project's stored inputs.
+# The harness stays in the parent tests/ folder (dirname applied twice to
+# this file's absolute path). Add it explicitly so direct execution and
+# worker processes resolve this project's stored inputs.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import cocoa_test_utils as u
 
@@ -64,8 +69,16 @@ class TestBaryonDrift(unittest.TestCase):
           name   = the test label (BD1-BD7) for the report.
           baryon = a label of cocoa_test_utils.BARYON_METHODS.
           label  = one line naming the feedback method.
+
+        Returns:
+          nothing; prints the chi2 between two lines of 66 dashes.
+
+        Raises:
+          AssertionError when the chi2 exceeds CHI2_TOLERANCE.
         """
         chi2 = u.baryon_drift_chi2(baryon)
+        # the triple-quoted f-string prints a framed report; {'-' * 66}
+        # inserts a line of 66 dashes
         print(f"""
 {'-' * 66}
 DRIFT: {name}: {label}
@@ -111,5 +124,8 @@ DRIFT: {name}: {label}
         self._baryon_drift_check("BD7", "bcemu2025", "BCemu2025")
 
 
+# __name__ is "__main__" only when this file runs directly as a
+# script; pytest imports the module instead, so this block stays
+# idle under pytest
 if __name__ == "__main__":
     unittest.main(verbosity=2)
