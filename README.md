@@ -5,9 +5,10 @@
 3. [Running Hybrid Cosmolike-ML emulators](#desy1xplanck_examples_emul2)
 4. [Unit tests](#desy1xplanck_unit_tests)
 5. [Minimum accuracy parameters](#desy1xplanck_minimum_accuracy)
-6. [Computing covariances](#computing_covariances)
-7. [Exploring notebooks](#notebooks)
-8. [Appendix: Which accuracy settings are available?](#accuracy)
+6. [Exploring notebooks](#notebooks)
+7. [The notebook wrappers](#desy1xplanck_wrappers)
+8. [Computing covariances](#computing_covariances)
+9. [Appendix: Which accuracy settings are available?](#accuracy)
 
 ## Running Cosmolike projects (Basic instructions) <a name="desy1xplanck_running_cosmolike_projects"></a> 
 
@@ -27,48 +28,27 @@
 From `Cocoa/Readme` instructions:
 
 > [!Note]
-> We provide several cosmolike projects that can be loaded and compiled using `setup_cocoa.sh` and `compile_cocoa.sh` scripts. To activate them, comment the following lines on `set_installation_options.sh` 
+> Cocoa provides several cosmolike projects that can be loaded and compiled using `setup_cocoa.sh` and `compile_cocoa.sh` scripts. Cocoa installs desy1xplanck by default: its line on `set_installation_options.sh` stays commented. To activate a skipped project, comment its line.
 > 
 >     [Adapted from Cocoa/set_installation_options.sh shell script]
 >     (...)
->
 >     # ------------------------------------------------------------------------------
->     # The keys below control which cosmolike projects will be installed and compiled
+>     # The keys below control which cosmolike projects will be installed and compiled 
 >     # ------------------------------------------------------------------------------
 >     #export IGNORE_COSMOLIKE_LSST_Y1_CODE=1
->     #export IGNORE_COSMOLIKE_DES_Y3_CODE=1
+>     export IGNORE_COSMOLIKE_DES_Y3_CODE=1
+>     #export IGNORE_COSMOLIKE_DESXPLANCK_CODE=1
 >     (...)
->     export IGNORE_COSMOLIKE_DESXPLANCK_CODE=1
->
->     (...)
->     # ------------------------------------------------------------------------------
->     # Cosmolike projects below -------------------------------------------
->     # ------------------------------------------------------------------------------
+>     # URL of Cosmolike projects below ----------------------------------------------
 >     (...)
 >     export DESXPLANCK_URL="https://git@github.com/CosmoLike/cocoa_desy1xplanck.git"
 >     export DESXPLANCK_GIT_NAME="desy1xplanck"
->     #Pin the project version with at most one of the keys below (COMMIT, BRANCH, or TAG).
->     #If more than one is set, COMMIT wins over BRANCH, and BRANCH wins over TAG.
->     #If none is set, Cocoa loads the latest commit on the repository default branch.
->     #export DESXPLANCK_GIT_BRANCH="main"
->     #export DESXPLANCK_GIT_COMMIT="abc"
->     export DESXPLANCK_GIT_TAG="v4.10.4"
+>     export DESXPLANCK_GIT_TAG="v5.05"
+>
+> To pin another version, set at most one of `DESXPLANCK_GIT_COMMIT`, `DESXPLANCK_GIT_BRANCH` and `DESXPLANCK_GIT_TAG`: `setup_cosmolike_projects.sh` uses the commit first, then the branch, then the tag, and clones the repository's default branch when none is set.
 
 > [!NOTE]
-> In case users need to rerun `setup_cocoa.sh`, Cocoa will not download previously installed packages, cosmolike projects, or large datasets, unless the following keys are set on `set_installation_options.sh`
->
->     [Adapted from Cocoa/set_installation_options.sh shell script]
->     # ------------------------------------------------------------------------------
->     # OVERWRITE_EXISTING_XXX_CODE=1 -> setup_cocoa overwrites existing PACKAGES ----
->     # overwrite: delete the existing PACKAGE folder and install it again -----------
->     # redownload: delete the compressed file and download data again ---------------
->     # These keys are only relevant if you run setup_cocoa multiple times -----------
->     # ------------------------------------------------------------------------------
->     (...)
->     export OVERWRITE_EXISTING_ALL_PACKAGES=1    # except cosmolike projects
->     #export OVERWRITE_EXISTING_COSMOLIKE_CODE=1 # dangerous (possible loss of uncommitted work)
->                                                 # if unset, users must manually delete cosmolike projects
->     #export REDOWNLOAD_EXISTING_ALL_DATA=1      # warning: some data is many GB
+> When rerunning `setup_cocoa.sh`, Cocoa does not download previously installed packages again. Its flags `--soft`, `--hard`, `--aggressive`, `--extreme` and `--purge` force new downloads of growing sets of script blocks; only `--purge` also replaces `cosmolike_core` and the cosmolike projects, with possible loss of uncommitted work. The [main Cocoa README](https://github.com/CosmoLike/cocoa) lists what each flag downloads.
 
 > [!NOTE]
 > If users want to recompile cosmolike, there is no need to rerun the Cocoa general scripts. Instead, run the following three commands:
@@ -116,7 +96,7 @@ and
 
       source start_cocoa.sh
  
-**Step :two:**: Select the number of OpenMP cores (below, we set it to 8).
+**Step :two:**: Select the number of OpenMP cores (the commands below set it to 8).
 
   - Linux
     
@@ -187,14 +167,17 @@ or BCemu2025). By default, the example runs without feedback.
 
 **Step :one:**: ensure the lines below are commented out in `set_installation_options.sh`
 before running `setup_cocoa.sh` and `compile_cocoa.sh`. *By default, these lines should
-be commented out, but it is worth checking*.
+be commented out, but it is worth checking*. The keys skip, in order, SP(k), BCEmu
+(which also provides BCemu2025), the FLAMINGO baryon response emulator, BACCOemu, and
+the `bfmt` theory block itself.
 
       [Adapted from Cocoa/set_installation_options.sh shell script]
-      #export IGNORE_PYSPK_CODE=1     # SP(k)
-      #export IGNORE_BCEMU_CODE=1     # BCEmu
-      #export IGNORE_FBRE_CODE=1      # FlamingoBaryonResponseEmulator
-      #export IGNORE_BACCOEMU_CODE=1  # BACCOemu
-      #export IGNORE_BFMT_CODE=1      # Baryon Feedback Theory Block
+      #export IGNORE_PYSPK_CODE=1
+      #export IGNORE_BCEMU_CODE=1
+      #export IGNORE_FBRE_CODE=1
+      #export IGNORE_BACCOEMU_CODE=1
+      (...)
+      #export IGNORE_BFMT_CODE=1 # Baryon Feedback Theory Block from Nihar&JVicente
 
 **Step :two:**: in `EXAMPLE_EVALUATE1.yaml`, uncomment the `bfmt` theory block and select
 the model:
@@ -214,6 +197,21 @@ model).
 > For the sampled parameters of each model, their validity ranges, and the `bfmt`
 > options, see `Cocoa/external_modules/code/baryon_suppression/README.md`.
 
+The notebook [EXAMPLE_EVALUATE1.ipynb](EXAMPLE_EVALUATE1.ipynb) runs the same
+`bfmt` block from Python, in its section *Baryonic feedback from the `bfmt`
+theory block*, through the wrappers `get_baryon_suppression` and
+`compute_probes` ([The notebook wrappers](#desy1xplanck_wrappers)). It needs the
+lines of Step :one: above commented out, except the BACCOemu line: BACCOemu's
+baryon-density training box starts above this project's $\Omega_b = 0.04$, so
+the notebook leaves that emulator out. For six methods (the three SP(k)
+relations, BCEmu, Flamingo and BCemu2025) the section computes the suppression
+$S(k,z)$, plots the ratios of $C_\ell^{EE}$ and $\xi_\pm$ to the prediction
+without feedback, and prints a $\chi^2$ table over the 400 $\xi_\pm$ entries the
+mask keeps. Against the measured DES Y3 × Planck PR4 data vector, the prediction
+without feedback scores $\chi^2 = 748.7381$; the $\chi^2$ of the shift between the
+predictions with and without feedback runs from 24.40 (SP(k) power law) down to
+1.22 (BCemu2025).
+
 # Running Hybrid Cosmolike-ML emulators <a name="desy1xplanck_examples_emul2"></a>
 
 > [!NOTE]
@@ -231,7 +229,7 @@ These networks assume **mnu = 0.06 eV**; do not sample neutrino mass. Their
 cold-matter power approximation is not a calibrated massive-neutrino halo
 model. Check their training range before widening cosmological priors.
 
-We assume Cocoa and this project are installed, the Cocoa Conda environment
+These steps assume Cocoa and this project are installed, the Cocoa Conda environment
 is active, the shell is Bash, and the current folder is `cocoa/Cocoa/`.
 
 **Step :one:**: activate Cocoa.
@@ -270,9 +268,13 @@ BLAS limits before importing numerical libraries.
 | Annealed minimization | [EXAMPLE_EMUL2_MINIMIZE1.py](EXAMPLE_EMUL2_MINIMIZE1.py) | [EXAMPLE_EMUL2_MINIMIZE2.py](EXAMPLE_EMUL2_MINIMIZE2.py) |
 | Parameter profile | [EXAMPLE_EMUL2_PROFILE1.py](EXAMPLE_EMUL2_PROFILE1.py) | [EXAMPLE_EMUL2_PROFILE2.py](EXAMPLE_EMUL2_PROFILE2.py) |
 | Nautilus sampling | [EXAMPLE_EMUL2_NAUTILUS1.py](EXAMPLE_EMUL2_NAUTILUS1.py) | [EXAMPLE_EMUL2_NAUTILUS2.py](EXAMPLE_EMUL2_NAUTILUS2.py) |
+| PolyChord | [EXAMPLE_EMUL2_POLY1.yaml](EXAMPLE_EMUL2_POLY1.yaml) | |
 
 Configuration **1** uses `desy1xplanck.cosmic_shear`, NLA, and `Y3xPlanckPR4.dataset`.
 Configuration **2** uses `desy1xplanck.combo_6x2pt`, NLA, and `Y3xPlanckPR4.dataset`.
+The PolyChord example runs `desy1xplanck.cosmic_shear` with TATT (`IA_model: 1`)
+and the baryon PC amplitudes (`use_baryon_pca: True`), and requires PolyChord's
+optional Cocoa installation component.
 
 The minimization, profile and Nautilus scripts read the corresponding
 `EXAMPLE_EMUL2_EVALUATE1.yaml` or `2.yaml`; `--input` selects another evaluate
@@ -295,7 +297,7 @@ mpirun -n 2 --bind-to none cobaya-run ./projects/desy1xplanck/EXAMPLE_EMUL2_MCMC
 
 ### Minimization, profiles and Nautilus
 
-We assume Cocoa and this project are installed, the Cocoa Conda environment
+These steps assume Cocoa and this project are installed, the Cocoa Conda environment
 is active, the shell is Bash, and the current folder is `cocoa/Cocoa/`.
 
 **Step :one:**: check the hybrid setup before a long run.
@@ -348,13 +350,13 @@ accuracy or posterior convergence.
 ### Emulator design and optional approximations
 
 Details on the matter power spectrum emulator designs will be presented in the
-[emulator_code](https://github.com/SBU-COSMOLIKE/emulators_code) repository.
+[emulator_code](https://github.com/CosmoLike/emulators_code) repository.
 
-Basically, we apply standard neural network techniques to generalize
+The emulators apply standard neural network techniques to generalize
 the *syren-new* Eq. 6 of [arXiv:2410.14623](https://arxiv.org/abs/2410.14623)
 formula for the linear power spectrum (w0waCDM with a fixed neutrino mass of $0.06$ eV)
 to new models, extended ranges, or higher precision.
-Similarly, we use networks to generalize the *syren-Halofit* LCDM nonlinear
+Similarly, networks generalize the *syren-Halofit* LCDM nonlinear
 boost fit (Eq. 11 of [arXiv:2402.17492](https://arxiv.org/abs/2402.17492)).
 
 
@@ -457,12 +459,14 @@ project: they compare each likelihood against stored reference
 values, check for race conditions from OpenMP threading, and measure
 the numerical error of the default accuracy settings. The
 tests read nothing from the live project;
-[tests/README.md](tests/README.md) describes every test, the tests'
-own data snapshot, and how to refresh it.
+[tests/README.md](tests/README.md) maps the two test sectors and the
+order in which to read them, and the
+[data-vector test guide](tests/data_vector/README.md) describes every
+test, the tests' own data snapshot, and how to refresh it.
 
-We assume users are in the Conda cocoa environment from a previous
-`conda activate cocoa` command, that the shell is bash, and that the
-current folder is the cocoa main folder `cocoa/Cocoa`.
+The steps below assume the Conda cocoa environment is active
+(`conda activate cocoa`), the shell is bash, and the current folder is
+the cocoa main folder `cocoa/Cocoa`.
 
 **Step :one:**: activate the private Python environment by sourcing
 the script `start_cocoa.sh`
@@ -484,14 +488,15 @@ then every setting at once.
 Each check prints the $\Delta\chi^2$ between the high-accuracy and
 the default evaluations, to compare against the 0.2 band the
 reference tests allow. No measured values are quoted here: rerun
-the checks to measure them on the current code, and see
-[tests/README.md](tests/README.md) for each check, the settings
-raised, and what each setting controls.
+the checks to measure them on the code at hand, and see the
+[data-vector test guide](tests/data_vector/README.md#accuracy_checks)
+for each check, the settings raised, and what each setting controls.
 
-The `accuracyboost <= 3` warnings next to the `accuracyboost` lines
-in this project's yaml files describe cosmolike builds whose FFTLog
-zero-padding stays constant while the boost densifies the chi grid;
-the cosmolike core compiled here scales the padding with the grid
+The comments next to the `accuracyboost` lines of this project's yaml
+files record the convergence of the boost against a synthetic 6x2pt
+data vector computed at boost 16. Values above 3 do not break the
+integration tables: the cosmolike core compiled here scales the FFTLog
+zero-padding with the chi grid
 (`external_modules/code/cosmolike/cosmo2D.c`).
 
 # Exploring notebooks <a name="notebooks"></a>
@@ -502,7 +507,7 @@ arrays called cubes. A small interface layer connects them to NumPy through
 **pybind11**, with **CARMA** handling array conversion. The notebooks expose
 intermediate quantities; production calculations use the CLI interfaces.
 
-We assume Cocoa and this project are installed, the Cocoa Conda environment
+These steps assume Cocoa and this project are installed, the Cocoa Conda environment
 is active, the shell is Bash, and the current folder is `cocoa/Cocoa/`.
 
 Compile the project first; the covariance notebook also needs the optional
@@ -532,12 +537,59 @@ jupyter notebook --no-browser --port=8888
 
 | Notebook | Contents |
 |---|---|
-| [EXAMPLE_EVALUATE1.ipynb](EXAMPLE_EVALUATE1.ipynb) | Data-vector exploration through the project wrappers; inspect the setup cells before running. |
+| [EXAMPLE_EVALUATE1.ipynb](EXAMPLE_EVALUATE1.ipynb) | Cosmic-shear $C_\ell^{EE}$ and $\xi_\pm(\theta)$ through the project wrappers: sweeps of the cosmological, intrinsic-alignment and angular-binning settings; baryonic feedback from tabulated simulations and from the `bfmt` theory block (six methods and their $\chi^2$ table, see [Baryonic feedback](#desy1xplanck_baryonic_feedback)); the accuracy settings; the cosmic-shear $\chi^2$; Halofit versus EuclidEmulator2; response functions; CMB lensing × shear. Inspect the setup cells before running. |
 | [EXAMPLE_EVALUATE_COVARIANCE.ipynb](EXAMPLE_EVALUATE_COVARIANCE.ipynb) | G, SSC, cNG, total, separate 1h–4h matter trispectra and matrix diagnostics. |
+
+```mermaid
+flowchart TD
+  A["Compile the project, start Jupyter"] --> B["EXAMPLE_EVALUATE1.ipynb"]
+  A --> C["Covariance build"]
+  C --> D["EXAMPLE_EVALUATE_COVARIANCE.ipynb"]
+  W["Notebook wrappers: interface/"] --> B
+  F["bfmt block and its emulators"] --> B
+  U["Shared cosmolike_notebook_utils: CAMB run, plots"] --> B
+  U --> D
+  S["Survey adapter: covariance/desy1xplanck_covariance.py"] --> D
+  D --> G["Covariance guide: covariance/README.md"]
+```
+
+Start with `EXAMPLE_EVALUATE1.ipynb`: it needs only the compiled project,
+plus the `bfmt` block for its baryonic-feedback section. The covariance
+notebook needs the optional covariance build and continues in the
+covariance guide.
 
 Choose the Python kernel from the activated Cocoa environment and restart it
 after recompiling. The [covariance guide](covariance/README.md) explains the
 forecast files, figures and refinement workflow.
+
+## The notebook wrappers <a name="desy1xplanck_wrappers"></a>
+
+The module `interface/cosmolike_desy1xplanck_notebook_wrappers.py` drives the
+compiled interface through the same steps as the likelihood: it runs CAMB
+once, pushes the power spectra and distances into the interface, sets the
+nuisance parameters, and reads off an observable. Every wrapper that computes
+a model takes the cosmology, the accuracy settings and the nuisance parameters
+as keyword arguments, falls back to the project fiducial point, and sets the
+complete state of the interface on every call. The docstrings of the module
+document every argument and array layout.
+
+    import cosmolike_desy1xplanck_notebook_wrappers as nw
+    nw.configure(lmax=75000)                  # the notebook's yaml values
+    nw.init_cosmolike(CLprobe="xi", with_data=True)
+    nw.get_chi2(omegam=0.31)
+
+| function | returns |
+|---|---|
+| `configure(**overrides)` | nothing; sets the values that mirror the notebook's yaml (the `lmax` of the $C_\ell$ tables, the angular binning, the nonlinear emulator). Call it before `init_cosmolike` |
+| `init_cosmolike(CLprobe, with_data, lmax)` | the parsed dataset file; runs the init sequence of the likelihood, including the CMB-lensing map filter and bandpower binning. `with_data=True` also loads the data vector, the mask, and the covariance |
+| `C_ss_tomo_limber(ell)` | `(EE, BB)`: cosmic-shear spectra, arrays ($\ell$, source bin, source bin) |
+| `xi()` | `(theta, xi_plus, xi_minus)`: $\theta$ in arcmin, arrays ($\theta$, source bin, source bin) |
+| `C_ks_tomo_limber(ell)`, `w_ks()` | CMB lensing × shear: spectra ($\ell$, source bin), and `(theta, w_ks)` with the lensing-map filter |
+| `dlnC_dlss_tomo_limber`, `dlnxi_dlnk_pm_tomo_limber`, `dlnC_ks_dlnk_tomo_limber`, `dlnw_ks_dlnk_tomo` | log-responses $d\ln X/d\ln k$ at the wavenumbers `k`, in $h/{\rm Mpc}$ |
+| `rf_C_ss_tomo_limber`, `rf_xi_tomo_limber`, `rf_C_ks_tomo_limber`, `rf_w_ks_tomo` | cumulative responses $R(k_{\rm max})$ |
+| `get_chi2()` | the $\chi^2$ of the masked data vector against the loaded data |
+| `get_baryon_suppression(theory_options, point, z_grid, log10k_grid)` | the suppression $S(k,z)$ of the `bfmt` theory block as `{z: S}`, one array over $k$ per redshift, with $k$ in 1/Mpc; it builds a minimal Cobaya model (CAMB, `bfmt`, and the `one` likelihood) at the fiducial cosmology |
+| `compute_probes(sup=None, ell=None)` | a dictionary with `C_ss`, `xip`, `xim`, `C_ks`, `w_ks`, the masked data vector `dv`, its `chi2` and `ndata`, and the grids `z_grid` and `log10k_grid` ($k$ in 1/Mpc) of the CAMB tables; with `sup`, $\ln S$ is added to the nonlinear $\ln P$ table, as the likelihood does |
 
 
 # Computing covariances <a name="computing_covariances"></a>
@@ -547,11 +599,11 @@ The production CLI saves G, SSC, cNG and total before scale cuts. It reads
 The forecast covers the 1,500-entry galaxy/shear block; it does not generate
 the CMB-lensing blocks or the complete supplied 1,809-entry matrix.
 
-We assume Cocoa and this project are installed, the Cocoa Conda environment
+These steps assume Cocoa and this project are installed, the Cocoa Conda environment
 is active, the shell is Bash, and the current folder is `cocoa/Cocoa/`.
 
-**Step :one:**: enable this project in `set_installation_options.sh` by commenting out
-`export IGNORE_COSMOLIKE_DESXPLANCK_CODE=1` before activation.
+**Step :one:**: keep `export IGNORE_COSMOLIKE_DESXPLANCK_CODE=1` commented out in
+`set_installation_options.sh` (the default) before activation.
 
 **Step :two:**: activate Cocoa.
 
@@ -630,6 +682,6 @@ Check interpolation, quadrature, input-power sampling and transform cutoffs
 separately at fixed cosmology and measurement bins. Narrow n(z) overlaps
 particularly require a quadrature check; increasing `accuracyboost` alone
 is not that check. The [data-vector test guide](tests/data_vector/README.md)
-and [covariance test guide](tests/covariance/README.md) state what each suite
+and [covariance test guide](tests/covariance/README.md) state what each sector
 actually verifies. A passing regression or a larger boost is not a general
 claim of survey or Fisher convergence.

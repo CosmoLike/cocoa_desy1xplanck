@@ -1,16 +1,21 @@
 # Unit tests for the likelihoods
 
+The frozen snapshot `frozen/`, its manifest `manifest_sha256.json` and
+`generate_frozen_reference.py` live in the parent `tests/` directory;
+the paths below are relative to it.
+
 These tests catch two kinds of silent breakage: a $\chi^2$ that drifted
 because code or data changed by accident, and a race condition (a bug
 where evaluating several points in a row corrupts a later result
 through leftover internal state or colliding OpenMP threads).
 
-Every model build runs in its own worker subprocess. In this project
-both examples share one data set, so the isolation is preventive: it
-keeps the tests immune to the process abort that different data-set
-dimensions trigger inside cosmolike (desy1xplanck has that layout), and
-every project keeps one architecture. The commands below stay the
-same.
+The reference, race, accuracy, baryonic-feedback and comparison checks
+build each model in a worker subprocess of its own; the photo-z,
+non-Limber and cache-ladder tests build their models in the pytest
+process. Both examples of this project share one data set, so the
+worker isolation is preventive: it keeps the tests immune to the
+process abort that different data-set dimensions trigger inside
+cosmolike, and every project keeps one architecture.
 
 # Table of contents
 
@@ -29,14 +34,14 @@ same.
 3. [Appendix](#appendix)
     1. [FAQ: Do the tests keep their own data?](#frozen_copy)
     2. [FAQ: Why do the tests use their own data vectors?](#synthetic_vectors)
-    3. [FAQ: Why were the references refrozen on 2026-09-28?](#gg_growth_fix)
+    3. [FAQ: Why does the non-Limber galaxy clustering use separable growth?](#gg_growth_fix)
     4. [FAQ: How can maintainers refresh the snapshot?](#refreeze)
 
 ## Running the tests <a name="run_tests"></a>
 
-We assume users are in the Conda cocoa environment from a previous
-`conda activate cocoa` command, that the shell is bash, and that the
-current folder is the cocoa main folder `cocoa/Cocoa`.
+The steps below assume the Conda cocoa environment is active
+(`conda activate cocoa`), the shell is bash, and the current folder is
+the cocoa main folder `cocoa/Cocoa`.
 
 **Step :one:**: activate the private Python environment by sourcing
 the script `start_cocoa.sh`
@@ -49,15 +54,16 @@ the script `start_cocoa.sh`
 
 Without pytest:
 
-    python -m unittest discover -s ./projects/desy1xplanck/tests -v
+    python -m unittest discover -s ./projects/desy1xplanck/tests/data_vector -v
 
 The tests change no project files. Each test prints a progress line
 per model build and per evaluation, then a report with the
 computed $\chi^2$, the stored reference, the difference, and the pass
 limit.
 
-A full run performs about 147 likelihood evaluations and takes a
-few minutes. The test files force `OMP_NUM_THREADS=4` internally.
+A full run performs about 535 likelihood evaluations, half of them in
+the three CFASTPT vs FASTPT sweeps. The test files force
+`OMP_NUM_THREADS=4` internally.
 
 ## The tests <a name="the_tests"></a>
 
@@ -75,11 +81,11 @@ The two checks and their pass limits:
 | check | pass limit                                        | a failure means                    |
 |-------|---------------------------------------------------|------------------------------------|
 | $\Delta\chi^2$ | the recomputed $\chi^2$ must stay within 0.2 of the value stored in `frozen/reference_chi2.json` | code or data changed the numbers |
-| race condition | the fiducial evaluated on its own vs evaluated again after nine other cosmologies; the two must agree within $10^{-4}$ | leftover state or an OpenMP race |
+| race condition | the fiducial evaluated on its own vs evaluated again after nine other cosmologies; the two $\chi^2$ values must agree within $10^{-4}$ | leftover state or an OpenMP race |
 
 Everything the tests compare against lives under `frozen/`: one
-snapshot of configurations, data, and reference values, captured
-together when the references were generated and unchanged since. The
+snapshot of configurations, data, and reference values, pinned
+together by the manifest. The
 [Appendix](#appendix) explains how the snapshot is protected.
 
 The test files and the configurations they cover:
@@ -146,12 +152,12 @@ through galaxy-galaxy lensing alone, under the 2x2pt masked
 inverse covariance.
 
 > [!NOTE]
-> Before the two-grid upgrade of the fastpt theory block (2026-09)
-> there was no upsampling and the difference reached
-> $\Delta\chi^2 = 29.6$ across the prior.
+> With one 1,100-point grid serving both (no upsampling), the
+> difference reaches $\Delta\chi^2 = 29.6$ across the prior (first row
+> of the table below).
 
 The point values, the design, and the decision record live with the
-lsst_y1 project (its tests/README.md carries the full discussion);
+lsst_y1 project (its tests/data_vector/README.md carries the full discussion);
 the table below is this project's own measurement:
 
 | output table (points) | internal grid (points) | max $\Delta\chi^2$ | cost per cosmology |
@@ -166,16 +172,16 @@ Measured on 2026-09-23:
 
 - Test 16 (6x2pt): max $\Delta\chi^2 = 0.000245$ at the defaults,
   $0.000134$ at the pushed camb/cosmolike settings,
-  indistinguishable from cosmic shear's 0.000239 at the same points
-  under the 6x2pt masked covariance.
-- Test 17 (2x2pt): $0.000008$ and $0.000003$, the mildest of the
-  three, with the TATT tables entering through galaxy-galaxy
-  lensing alone.
-- `--mask=ones` (no scale cuts, all 1,809 points weighted): cosmic
-  shear measures max $\Delta\chi^2 = 0.004813$ at the default
-  camb/cosmolike settings and $0.000224$ at the pushed settings;
-  2x2pt measures $0.003061$ and $0.000249$. Every run stays well
-  inside the 0.2 band.
+  indistinguishable from cosmic shear's max $\Delta\chi^2 = 0.000239$
+  at the same points under the 6x2pt masked covariance.
+- Test 17 (2x2pt): max $\Delta\chi^2 = 0.000008$ and $0.000003$, the
+  mildest of the three, with the TATT tables entering through
+  galaxy-galaxy lensing alone.
+- `--mask=ones` (no scale cuts: every entry of the probe's own blocks
+  weighted): cosmic shear measures max $\Delta\chi^2 = 0.004813$ at the
+  default camb/cosmolike settings and $0.000224$ at the pushed
+  settings; 2x2pt measures max $\Delta\chi^2 = 0.003061$ and
+  $0.000249$. Every run stays well inside the $\Delta\chi^2 = 0.2$ band.
 
 > [!Warning]
 > The 6x2pt sweep cannot run under `--mask=ones` (2026-09-23): with
@@ -192,9 +198,9 @@ Measured on 2026-09-23:
 
 #### Running the comparison <a name="run_cfastpt_fastpt"></a>
 
-We assume users are in the Conda cocoa environment from a previous
-`conda activate cocoa` command, that the shell is bash, and that the
-current folder is the cocoa main folder `cocoa/Cocoa`.
+The steps below assume the Conda cocoa environment is active
+(`conda activate cocoa`), the shell is bash, and the current folder is
+the cocoa main folder `cocoa/Cocoa`.
 
 **Step :one:**: activate the private Python environment by sourcing
 the script `start_cocoa.sh`
@@ -258,8 +264,8 @@ Measured on 2026-09-23 (the figure below, frozen mask):
 - NL1 (cosmic shear): per-cosmology $\Delta\chi^2$ between 0.3 and
   42.2 (median 3.4) under the frozen mask, and between 0.4 and 71.2
   (median 6.2) under `--mask=ones`.
-- NL2 (6x2pt): between 1.9 and 137.2 (median 12.7) under the frozen
-  mask, its only measurement; the run under `--mask=ones` ends in
+- NL2 (6x2pt): per-cosmology $\Delta\chi^2$ between 1.9 and 137.2
+  (median 12.7) under the frozen mask, its only measurement; the run under `--mask=ones` ends in
   the abort described above (`IP::set_inv_cov: masked cov not
   positive definite`).
 - Every sweep peaks at the high-omegam draws; at these ten
@@ -271,9 +277,9 @@ Measured on 2026-09-23 (the figure below, frozen mask):
 
 #### Running the Halofit vs EE2 checks <a name="run_halofit_ee2"></a>
 
-We assume users are in the Conda cocoa environment from a previous
-`conda activate cocoa` command, that the shell is bash, and that the
-current folder is the cocoa main folder `cocoa/Cocoa`.
+The steps below assume the Conda cocoa environment is active
+(`conda activate cocoa`), the shell is bash, and the current folder is
+the cocoa main folder `cocoa/Cocoa`.
 
 **Step :one:**: activate the private Python environment by sourcing
 the script `start_cocoa.sh`
@@ -303,11 +309,11 @@ instance, with the nonlinear $P(k)$ from EE2. EE2's compute is
 OpenMP-threaded, so a thread race inside it shifts the second
 fiducial value; the two must agree within $10^{-4}$.
 
-The modification gate - the pre-modification build (commit
-`ff59f66`) compiled side by side and compared against the
-installed one, data vector by data vector - runs as lsst_y1's
-test 18; the modifications do not depend on the project, so one
-gate serves every project.
+The modification gate - the pre-modification build (the
+`EE2_GIT_COMMIT` that `set_installation_options.sh` keeps commented)
+compiled side by side and compared against the installed one, data
+vector by data vector - runs as lsst_y1's test 18; the modifications
+do not depend on the project, so one gate serves every project.
 
 Measured on 2026-09-23:
 
@@ -320,19 +326,19 @@ Measured on 2026-09-23:
 
 ### Accuracy checks (`test_accuracy.py`, A1-A6) <a name="accuracy_checks"></a>
 
-We change one accuracy parameter at a time on the 6x2pt NLA
-configuration, then checks A1-A6 re-evaluate cosmic shear, 6x2pt,
+The checks first change one accuracy parameter at a time on the 6x2pt
+NLA configuration, then checks A1-A6 re-evaluate cosmic shear, 6x2pt,
 and 2x2pt, with NLA and TATT, with every setting pushed far beyond
-the defaults at once. The scan keeps an `accuracyboost: 5` entry as
-a deliberate stress test: in this project it breaks the 6x2pt
-integration tables and produces a $\Delta\chi^2$ of +27, so it
-stays out of the raised-at-once set below.
+the defaults at once. The one-at-a-time scan keeps an
+`accuracyboost: 5` entry as a stress value: it would expose a
+cosmolike table whose size does not follow the boost. The
+raised-at-once set below uses `accuracyboost: 3`.
 
 | setting | raised to | what it controls |
 |---------|-----------|------------------|
-| `accuracyboost` (cosmolike) | 2 | sizes of cosmolike's internal lookup tables, including the dyadic z grid of the power-spectrum tables |
+| `accuracyboost` (cosmolike) | 3 | sizes of cosmolike's internal lookup tables, including the dyadic z grid of the power-spectrum tables |
 | `integration_accuracy` (cosmolike) | 10 | extra refinement passes of cosmolike's numerical integrals |
-| `internal_accuracyboost` (cosmolike) | 2 | density of the C-FAST-PT convolution grid relative to the output table the likelihood interpolates; 1 is the legacy single-grid path |
+| `internal_accuracyboost` (cosmolike) | 2 | density of the C-FAST-PT convolution grid relative to the output table the likelihood interpolates; 1, the default, runs the convolutions on the output grid itself |
 | `lmax` (cosmolike) | 200000 | highest multipole of the internal harmonic-space $C_\ell$ tables that cosmolike transforms into the real-space correlation functions; arcminute scales need very high $\ell$ |
 | `kmax_boltzmann` (cosmolike) | 40 | the k cutoff of the power spectrum the likelihood requests from CAMB |
 | `AccuracyBoost` (CAMB) | 2 | CAMB's overall accuracy multiplier: denser sampling in every internal CAMB grid, the most expensive setting |
@@ -346,12 +352,11 @@ moving the nodes (the construction is commented in
 `likelihood/_cosmolike_prototype_base.py`).
 
 `internal_accuracyboost` scales only the C-FAST-PT convolution
-grid; the output table the likelihood interpolates is unchanged.
-
-- 2026-09-25: the 0.5 default is converged. The lsst_y1 scan
-  measured $\Delta^T C^{-1} \Delta \le 10^{-9}$ against the
-  single-grid path down to 0.27, and `internal_accuracyboost: 1`
-  recovers that path exactly.
+grid; the output table the likelihood interpolates is unchanged. The
+default 1.0 runs the convolutions on the output grid itself, the exact
+reference path; an lsst_y1 scan measured
+$\Delta^T C^{-1} \Delta \le 10^{-9}$ against that path for internal
+grids down to 0.27.
 
 When several settings move the $\chi^2$, settle them in cost order:
 raise cosmolike `accuracyboost` first (cheap), then CAMB
@@ -369,9 +374,9 @@ settings. No pass/fail.
 
 #### Running Accuracy checks <a name="run_accuracy"></a>
 
-We assume users are in the Conda cocoa environment from a previous
-`conda activate cocoa` command, that the shell is bash, and that the
-current folder is the cocoa main folder `cocoa/Cocoa`.
+The steps below assume the Conda cocoa environment is active
+(`conda activate cocoa`), the shell is bash, and the current folder is
+the cocoa main folder `cocoa/Cocoa`.
 
 **Step :one:**: activate the private Python environment by sourcing
 the script `start_cocoa.sh`
@@ -384,7 +389,7 @@ the script `start_cocoa.sh`
 
 To run every other test while skipping these:
 
-    python -m pytest ./projects/desy1xplanck/tests --ignore ./projects/desy1xplanck/tests/data_vector/test_accuracy.py
+    python -m pytest ./projects/desy1xplanck/tests/data_vector --ignore ./projects/desy1xplanck/tests/data_vector/test_accuracy.py
 
 ### Baryonic feedback accuracy checks (`test_accuracy_baryons.py`, BF1-BF7) <a name="baryon_accuracy_checks"></a>
 
@@ -394,9 +399,19 @@ advisory check per feedback method (the three SP(k) fb relations,
 BCEmu, Flamingo, BACCOemu, and BCemu2025), at a fixed parameter
 point per method.
 
-Each check creates its data vector on the fly, by the same
-mechanism as the N-random-models check: the default-settings model
-writes its own theory vector during evaluation, that vector becomes
+These checks, and the drift tests below, need the `bfmt` theory block
+and the emulators of its methods, which Cocoa's setup installs unless
+`IGNORE_BFMT_CODE`, `IGNORE_PYSPK_CODE`, `IGNORE_BCEMU_CODE`,
+`IGNORE_FBRE_CODE` or `IGNORE_BACCOEMU_CODE` is set in
+`set_installation_options.sh` (see the
+[baryonic feedback section](../../README.md#desy1xplanck_baryonic_feedback)
+of the project README). The section *Baryonic feedback from the `bfmt`
+theory block* of [EXAMPLE_EVALUATE1.ipynb](../../EXAMPLE_EVALUATE1.ipynb)
+runs six of these methods outside the tests and tabulates their
+$\chi^2$ against the measured data.
+
+Each check creates its data vector on the fly: the default-settings
+model writes its own theory vector during evaluation, that vector becomes
 the data of a temporary dataset, and the pushed-settings model
 evaluates at the same point against it. The fiducial $\chi^2$ is
 therefore zero by construction, nothing is stored in the snapshot,
@@ -416,9 +431,9 @@ over the full redshift grid.
 
 #### Running the baryonic feedback checks <a name="run_baryon_accuracy"></a>
 
-We assume users are in the Conda cocoa environment from a previous
-`conda activate cocoa` command, that the shell is bash, and that the
-current folder is the cocoa main folder `cocoa/Cocoa`.
+The steps below assume the Conda cocoa environment is active
+(`conda activate cocoa`), the shell is bash, and the current folder is
+the cocoa main folder `cocoa/Cocoa`.
 
 **Step :one:**: activate the private Python environment by sourcing
 the script `start_cocoa.sh`
@@ -446,9 +461,9 @@ the frozen vector still, so they measure drift and nothing else.
 
 #### Running the baryonic feedback drift tests <a name="run_baryon_drift"></a>
 
-We assume users are in the Conda cocoa environment from a previous
-`conda activate cocoa` command, that the shell is bash, and that the
-current folder is the cocoa main folder `cocoa/Cocoa`.
+The steps below assume the Conda cocoa environment is active
+(`conda activate cocoa`), the shell is bash, and the current folder is
+the cocoa main folder `cocoa/Cocoa`.
 
 **Step :one:**: activate the private Python environment by sourcing
 the script `start_cocoa.sh`
@@ -464,8 +479,8 @@ the script `start_cocoa.sh`
 
 The likelihood exposes two runtime knobs for how the n(z) table files
 become the smooth distributions the Limber integrals consume, both
-declared in the likelihood yamls and both defaulting to the
-historical behavior: `photoz_interpolation_type` (0 = cubic spline,
+declared in the likelihood yamls and both defaulting to 0, cosmolike's
+own default: `photoz_interpolation_type` (0 = cubic spline,
 1 = linear, 2+ = Steffen monotone, which cannot overshoot below zero
 around a sharp feature in the table) and `photoz_zmid_convention`
 (0 = the z column of the n(z) file holds Z_LOW left bin edges, so
@@ -481,8 +496,9 @@ $\Delta\chi^2 = \delta^T C^{-1} \delta$, with $\delta$ the
 data-vector difference and $C^{-1}$ the masked inverse covariance.
 The assertions are a dead-flag floor on each alternative (a stale
 n(z) cache would give exactly zero), the frozen-reference check on
-the default, and a bit-identical round trip back to the default (a
-cache that fails to rebuild on the way back would fail loudly).
+the default, and a round trip back to the default that reproduces the
+printed data vector (9 significant digits) entry for entry (a cache
+that fails to rebuild on the way back would fail loudly).
 
 Measured on 2026-09-25:
 
@@ -528,11 +544,7 @@ Measured on 2026-10-01:
 
 - $\Delta\chi^2 = 0.0039$ for the 6x2pt data vector, far below the
   survey's statistical precision; the largest pair, (3,2), contributes
-  0.0019.
-- 0.0037 on 2026-09-27; the lens-bin quadrature changes of 2026-09-30
-  (cosmolike_core e068a28, 7e8f5d6: per-bin node counts, and a
-  split Gauss-Legendre rule where magnification widens the lens
-  range) moved it by 0.0002.
+  $\Delta\chi^2 = 0.0019$.
 
 ### The non-Limber galaxy clustering check (`test_nonlimber_gg.py`) <a name="nonlimber_gg"></a>
 
@@ -556,12 +568,11 @@ the frozen-reference check on the default evaluation.
 
 Measured on 2026-10-01:
 
-- $\Delta\chi^2 = 6.61$ for the 6x2pt data vector, against 0.0039
-  for the same comparison in galaxy-galaxy lensing.
-- Lens bins 3, 2, 1, 0 contribute 4.43, 2.02, 0.18, 0.07 (each bin's
-  block alone).
-- 6.52 on 2026-09-28; the core and likelihood changes since moved it
-  by 1.4% (not separated).
+- $\Delta\chi^2 = 6.61$ for the 6x2pt data vector, against
+  $\Delta\chi^2 = 0.0039$ for the same comparison in galaxy-galaxy
+  lensing.
+- Lens bins 3, 2, 1, 0 contribute $\Delta\chi^2$ = 4.43, 2.02, 0.18,
+  0.07 (each bin's block alone).
 
 
 ### The sector-ladder cache check (`test_cache_consistency.py`) <a name="cache_ladder"></a>
@@ -585,14 +596,15 @@ TATT ladder exercises the FAST-PT rebuild machinery).
 
 ## :interrobang: FAQ: Do the tests keep their own data? <a name="frozen_copy"></a>
 
-The tests read nothing from the live project: not `../data`, not the
-`EXAMPLE_EVALUATE` yaml files, and not the likelihood default yaml
-files. Instead, `frozen/` holds:
+The tests read nothing from the live project: not the project's
+`data/` folder, not the `EXAMPLE_EVALUATE` yaml files, and not the
+likelihood default yaml files. Instead, `frozen/` holds:
 
 | `frozen/` entry | holds |
 |---|---|
-| `frozen_config_example{1,2}.py` | the complete cobaya configuration as a yaml string, plus the exact evaluation point |
-| `data/` | the tests' own copy of the data vectors, covariance, n(z), and masks |
+| `frozen_config_example{1,2,2_2x2pt}.py` | the complete cobaya configuration as a yaml string, plus the exact evaluation point |
+| `data/` | the tests' own copy of the data vectors, covariance, n(z), and masks, plus the generated synthetic and TATT vectors (next FAQ) and the seven baryonic-feedback drift vectors |
+| `reference_chi2.json` | the six reference $\chi^2$ values (three configurations, each with NLA and TATT) |
 | `EXAMPLE_EVALUATE{1,2}.yaml` | snapshots kept only so a human can diff how the live examples drifted since the freeze |
 
 In the configuration modules every option and every parameter is
@@ -624,11 +636,9 @@ Both come from the 6x2pt model, whose full-length vector
 serves every probe; at its own minimum the $\chi^2$ response is quadratic
 and the drift and accuracy numbers stay meaningful.
 
-## :interrobang: FAQ: Why were the references refrozen on 2026-09-28? <a name="gg_growth_fix"></a>
+## :interrobang: FAQ: Why does the non-Limber galaxy clustering use separable growth? <a name="gg_growth_fix"></a>
 
-On 2026-09-28 the non-Limber galaxy clustering spectrum
-$C_\ell^{gg}$ was fixed and the snapshot was refrozen. The bug:
-below $\ell = 150$ cosmolike's `C_cl_tomo` computes
+Below $\ell = 150$ cosmolike's `C_cl_tomo` computes
 
 $$C_\ell = C_\ell^{\rm FFTLog}(P_{\rm lin}) + C_\ell^{\rm Limber}(P_\delta) - C_\ell^{\rm Limber}(P_{\rm lin}),$$
 
@@ -636,37 +646,23 @@ an exact FFTLog projection of the linear power spectrum plus, in the
 Limber approximation, what linear theory misses. Where the Limber
 approximation holds (high $\ell$) the first and third terms must
 converge to the same number and cancel, leaving the Limber
-$C_\ell^{gg}$. The FFTLog term needs separable growth,
-$D(z_1) D(z_2) P_{\rm lin}(k, z=0)$, but the subtracted Limber term
-used CAMB's $P_{\rm lin}(k, z)$, whose growth depends on scale
-(massive neutrinos): the two differ by 0.7% at $z = 0.3$ and 1.6% at
-$z = 1$. The pair never cancelled. Every $C_\ell^{gg}$ below the switch
-to Limber carried a -0.85% to -1.6% offset, and the 1% early exit
-fired near $\ell = 50$, where the decaying non-Limber correction
-happened to cancel the offset, dropping a real 1.3% to 2.2%
-correction for the highest lens bins. With the fix the subtracted
-term uses $D(a)^2 P_{\rm lin}(k, z=0)$, and the two terms agree to
-0.02% to 0.17% at $\ell = 149$.
-
-The fix changes $w(\theta)$ only; cosmic shear and galaxy-galaxy
-lensing are unchanged. Against the pre-fix references, measured on
-2026-09-28 before the refreeze:
-
-- 6x2pt (tests 5, 7): $\chi^2 = 0.0092$ against the reference 0; 2x2pt
-  (tests 11, 13): 0.0086 against 0. All pass (limit 0.2).
-
-The refreeze (next FAQ) regenerated the frozen fiducial model
-vectors with the fixed code and made the new $\chi^2$ values the
-references; the drift is absorbed.
+$C_\ell^{gg}$. The FFTLog term needs separable growth: for each lens
+bin it projects $\left(D(a)/D(a_{\rm piv})\right)^2 P_{\rm lin}(k, a_{\rm piv})$,
+with $a_{\rm piv} = 1/(1+\bar z)$ at the bin's mean redshift, and the
+subtracted Limber term uses the same separable spectrum. CAMB's
+$P_{\rm lin}(k, z)$ has scale-dependent growth (massive neutrinos);
+subtracting it instead would leave a residual that never cancels and
+would offset every $C_\ell^{gg}$ below the switch to Limber. The
+snapshot's reference vectors are computed with the matched terms.
 
 ## :interrobang: FAQ: How can maintainers refresh the snapshot? <a name="refreeze"></a>
 
 A deliberate change to the data vectors, n(z), covariance, examples,
 or likelihood defaults requires a re-freeze.
 
-We assume users are in the Conda cocoa environment from a previous
-`conda activate cocoa` command, that the shell is bash, and that the
-current folder is the cocoa main folder `cocoa/Cocoa`.
+The steps below assume the Conda cocoa environment is active
+(`conda activate cocoa`), the shell is bash, and the current folder is
+the cocoa main folder `cocoa/Cocoa`.
 
 **Step :one:**: activate the private Python environment by sourcing
 the script `start_cocoa.sh`
@@ -677,7 +673,16 @@ the script `start_cocoa.sh`
 
     python ./projects/desy1xplanck/tests/generate_frozen_reference.py --overwrite
 
-It rebuilds `frozen/` from the current project, prints the four new
-reference $\chi^2$ values, and rewrites the manifest. Review the printed
-$\chi^2$ values against the old references before committing: they define
-what every later test run compares against.
+It deletes `frozen/`, rebuilds it from the current project, prints the
+six new reference $\chi^2$ values, and rewrites the manifest. The
+deletion removes the baryonic-feedback drift vectors too, so the drift
+tests have no inputs until the next step.
+
+**Step :three:**: add the baryonic-feedback drift vectors back
+
+    python ./projects/desy1xplanck/tests/generate_frozen_reference.py --baryons
+
+It stores one default-settings vector per feedback method and re-pins
+the manifest. Review the printed $\chi^2$ values against the old
+references before committing: they define what every later test run
+compares against.
