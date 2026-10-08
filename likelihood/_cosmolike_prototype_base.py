@@ -825,7 +825,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
           extrap_kmax=2.5e2*self.accuracyboost).logP(self.z_interp_2D,
           np.power(10.0,self.log10k_interp_2D)).flatten(order='F')+np.log(h**3)   
       else:
-        raise LoggedError(self.log, "non_linear_emul = %d is an invalid option", non_linear_emul)
+        raise LoggedError(self.log, "non_linear_emul = %d is an invalid option", self.non_linear_emul)
 
       # G(z) = D(z)(1 + z), with D the linear growth factor from
       # D(z)/D(0) = sqrt(P_lin(k, z)/P_lin(k, 0)) at k = growth_k; G tends
@@ -1202,8 +1202,8 @@ class _cosmolike_prototype_base(DataSetLikelihood):
     """Return the theory data vector of one point as a numpy array.
 
     For notebooks and scripts; the sampler goes through logp. With
-    use_emulator = 1 the emulator call is commented out below and the
-    method returns the array form of the number 0.0, not a data vector.
+    use_emulator = 1 it raises LoggedError: the emulator data-vector
+    path is not implemented in this project.
 
     Arguments:
       params = the parameters of this point, by name.
@@ -1212,8 +1212,11 @@ class _cosmolike_prototype_base(DataSetLikelihood):
       numpy float64 array, full data-vector length (internal_get_datavector).
     """
     if self.use_emulator == 1:
-      #dv = self.internal_get_datavector_emulator(**params)
-      dv = 0.0
+      # The emulator data-vector path was never ported to this project:
+      # returning a placeholder here would feed a zero data vector to the
+      # likelihood, so refuse the mode instead.
+      raise LoggedError(self.log,
+                        "use_emulator = 1 is not implemented in this project")
     else:
       dv = self.internal_get_datavector(**params)
     return np.array(dv,dtype='float64')
