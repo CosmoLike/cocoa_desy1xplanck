@@ -25,3 +25,6 @@ scripts/.DS_Store
 interface/.DS_Store
 scripts/.DS_Store
 scripts/random_scripts_used_by_dev/.DS_Store
+
+# Finder metadata, anywhere in the tree
+.DS_Store
