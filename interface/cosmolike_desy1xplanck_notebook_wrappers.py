@@ -1012,3 +1012,210 @@ def rf_w_ks_tomo(k, ntheta=None, theta_min_arcmin=None,
                A1=A1, A2=A2, BTA=BTA,
                baryon_sims=baryon_sims, allsims_file=allsims)
     return (ci.get_binning_real_space(), ci.rf_w_ks_tomo(k=k))
+
+
+# ----------------------------------------------------------------------
+# Baryonic feedback via the bfmt theory block
+# ----------------------------------------------------------------------
+def get_baryon_suppression(theory_options, point, z_grid, log10k_grid):
+    """Return the suppression S(k, z) of the bfmt theory block on a grid.
+
+    S = P(k) with baryonic feedback / P(k) without it. Builds a minimal
+    Cobaya model (CAMB + bfmt + the likelihood "one", which returns
+    ln L = 0 and only makes the model complete), requests the
+    baryon_suppression product at the given grid (k in 1/Mpc, as the
+    Cosmolike likelihoods send it; the block converts to h/Mpc
+    internally), evaluates it at this module's fiducial cosmology, and
+    returns {z: S array over k}.
+
+    Arguments:
+      theory_options = bfmt options dict, e.g. {"baryon_model": 2}.
+      point   = {parameter name: value} for the method's feedback
+                parameters, fixed in the model.
+      z_grid  = redshifts of the evaluation grid.
+      log10k_grid = log10 of the wavenumbers, read as k in 1/Mpc.
+
+    Returns:
+      {z: 1D S array over k}, one entry per z_grid value.
+    """
+    from cobaya.model import get_model
+    # Cobaya model description: CAMB at this module's fiducial
+    # cosmology (tau = 0.0543, a Planck 2018 value, only completes
+    # CAMB's input; omch2 subtracts the massive-neutrino density),
+    # bfmt with the caller's options and feedback parameters, and
+    # debug = 50 (logging.CRITICAL: only critical messages print)
+    info = {
+        "likelihood": {"one": None},
+        "theory": {
+            # no "path" for camb: the session already imported it,
+            # and cobaya accepts the loaded module as is
+            "camb": {"extra_args": {"halofit_version": "takahashi",
+                                    "dark_energy_model": "ppf"}},
+            "bfmt": dict({"python_path": os.environ["ROOTDIR"]
+                          + "/external_modules/code/baryon_suppression"},
+                         **theory_options),
+        },
+        "params": dict({
+            "As": {"value": As_1e9*1e-9},
+            "ns": ns, "H0": H0, "mnu": mnu, "tau": 0.0543,
+            "w": w,
+            "ombh2": omegab*(H0/100)**2,
+            "omch2": (omegam-omegab)*(H0/100)**2
+                     - (mnu*(3.046/3)**0.75)/94.0708,
+            "omegam": {"derived": True, "latex": r"\Omega_m"},
+        }, **point),
+        "debug": 50,
+    }
+    model = get_model(info)
+    model.add_requirements({"baryon_suppression": {
+        "z": z_grid, "k": np.power(10.0, log10k_grid)}})
+    # every parameter is fixed, so the point to evaluate is the empty
+    # dictionary; the call runs CAMB and bfmt once
+    model.logposterior({})
+    return model.provider.get_baryon_suppression()
+
+
+def compute_probes(sup=None, ell=None):
+    """Compute the fiducial cosmic-shear statistics, data vector and chi2.
+
+    Returns the shear spectra C_ss, the correlation functions xi_+-,
+    the CMB lensing x shear spectra C_ks and correlation w_ks, the
+    masked data vector and its chi2 at this module's fiducial point,
+    with optional baryonic suppression folded into the nonlinear
+    power. Requires init_cosmolike(CLprobe=..., with_data=True): the
+    probe selection decides which blocks of the data vector enter dv
+    and chi2 (EXAMPLE_EVALUATE1 selects "xi", the cosmic-shear
+    entries). sup = None computes the dark-matter-only prediction;
+    otherwise sup is the {z: S array} dictionary from
+    get_baryon_suppression, applied the way the Cosmolike likelihoods
+    apply it: lnPNL[i :: len(z_grid)] += ln S(z_i).
+
+    Every call rebuilds the interface state with the settings of
+    get_chi2: CAMB with kmax = 7.5 (in 1/Mpc, CAMB's unit) and
+    k_per_logint = 10, the C_ell tables at the configured lmax,
+    accuracy boost 1 and integration level 0, every nuisance group at
+    its fiducial value, and no tabulated hydro-simulation ratio. The
+    call also re-runs init_binning with the configured angular binning
+    (by default the dataset's 30 bins from 0.25 to 250 arcmin), because
+    the real-space outputs and the data vector read the binning and a
+    real-space wrapper called with another ntheta leaves its own
+    binning behind. get_chi2 runs on the binning in effect, so right
+    after init_cosmolike the no-feedback chi2 here equals the fiducial
+    get_chi2() value.
+
+    Arguments:
+      sup = suppression dictionary on the CAMB interpolation grid
+            (one entry per z of z_grid, each an array over the k of
+            log10k_grid), or None.
+      ell = multipoles of the returned harmonic spectra, or None
+            for np.arange(25, 3000, 15).
+
+    Returns:
+      dict with
+        ell         = the multipoles of C_ss and C_ks, [n_ell];
+        C_ss        = the EE spectra, [n_ell, n_bin, n_bin], pairs
+                      i <= j filled, the other entries 0;
+        C_ks        = CMB lensing x shear spectra in the Limber
+                      approximation, without the lensing-map filter,
+                      [n_ell, n_bin];
+        theta       = angular bin centers in arcmin, [n_theta];
+        xip, xim    = xi_plus and xi_minus, [n_theta, n_bin, n_bin],
+                      both orders of a pair filled;
+        w_ks        = CMB lensing x shear correlation, with the
+                      lensing-map filter, [n_theta, n_bin];
+        dv          = the masked data vector, [n_data], zero where the
+                      mask removes an entry;
+        chi2        = (d - dv)^T C^-1 (d - dv) over the entries the
+                      mask keeps, d the measured data vector and C its
+                      covariance;
+        ndata       = number of entries the mask keeps, the data
+                      points chi2 runs over;
+        z_grid      = z nodes of the CAMB power-spectrum tables;
+        log10k_grid = log10 of their k nodes, with k in 1/Mpc, the
+                      unit get_baryon_suppression takes (the notebooks
+                      feed both grids to that function).
+
+      legend: n_ell = len(ell), n_bin = 4 source bins, n_theta = the
+      configured angular bins (30), n_data = 1,809 entries of the
+      6x2pt layout.
+    """
+    if ell is None:
+        ell = np.arange(25., 3000., 15.)
+    # kmax = 7.5 (1/Mpc) and k_per_logint = 10: the CAMB settings of
+    # get_chi2
+    (log10k_interp_2D, z_interp_2D, lnPL, lnPNL,
+     G_growth, z_growth, z_interp_1D, chi,
+     omegan2, lnPL_cb) = cnu.get_camb_cosmology(
+        omegam=omegam, omegab=omegab, H0=H0, ns=ns, As_1e9=As_1e9,
+        w=w, w0pwa=w0pwa, mnu=mnu, kmax=7.5, k_per_logint=10,
+        CAMBAccuracyBoost=1.0,
+        non_linear_emul=_CONFIG["non_linear_emul"])
+    # a private copy of ln P_nonlinear, modified in place below
+    lnPNL = np.array(lnPNL, copy=True)
+    if sup is not None:
+        for i, z_val in enumerate(z_interp_2D):
+            # every k row of redshift z_i sits at stride len(z) in
+            # the flattened table, the layout set_cosmology expects;
+            # sup[z_val] looks the redshift up by exact float equality,
+            # which holds when sup was computed on this same z_grid
+            lnPNL[i :: len(z_interp_2D)] += np.log(sup[z_val])
+    # the C_ell tables follow the law of _set_state,
+    # int(lmax + 20000 (CLAccuracyBoost - 1)), at CLAccuracyBoost = 1
+    ci.init_ntable_lmax(int(_CONFIG["lmax"]))
+    ci.init_photoz_conventions(
+        int(_CONFIG["photoz_interpolation_type"]),
+        int(_CONFIG["photoz_zmid_convention"]))
+    # init_fpt_internal_boost comes first, as in the likelihood and in
+    # _set_state, so the C-FAST-PT internal grid fraction is the
+    # configured one even when this is the first init_accuracy_boost of
+    # the process
+    ci.init_fpt_internal_boost(
+        float(_CONFIG["internal_accuracyboost"]))
+    # accuracy boost 1 and integration level 0, the defaults of get_chi2
+    ci.init_accuracy_boost(1.0, 0)
+    # xi_pm_tomo, w_ks_tomo and the data vector read the angular binning;
+    # the data vector and its mask are laid out on the dataset's binning,
+    # which the configured one mirrors
+    ci.init_binning(ntheta_bins=int(_CONFIG["ntheta"]),
+                    theta_min_arcmin=float(_CONFIG["theta_min_arcmin"]),
+                    theta_max_arcmin=float(_CONFIG["theta_max_arcmin"]))
+    # the galaxy-bias model, selected before the bias amplitudes are set,
+    # as _set_state does (init_cosmolike skips it for the shear-only
+    # probe sets)
+    ci.init_bias(bias_model=_CONFIG["bias_model"])
+    ci.set_cosmology(omegam=omegam, H0=H0,
+                     log10k_2D=log10k_interp_2D, z_2D=z_interp_2D,
+                     lnP_linear=lnPL, lnP_nonlinear=lnPNL,
+                     G=G_growth, z_G=z_growth,
+                     z_1D=z_interp_1D, chi=chi,
+                     omegan2=omegan2)
+    ci.set_nuisance_shear_calib(M=M_FID)
+    ci.set_nuisance_shear_photoz(bias=SHEAR_PHOTOZ_FID)
+    ci.set_nuisance_clustering_photoz(bias=LENS_PHOTOZ_FID,
+                                      stretch=LENS_STRETCH_FID)
+    ci.set_nuisance_bias(B1=B1_FID, B2=ZEROS6, B_MAG=BMAG_FID,
+                         B3nl=ZEROS6, BK=ZEROS6)
+    ci.set_nuisance_ia(A1=A1_FID, A2=A2_FID, B_TA=BTA_FID)
+    ci.set_point_mass(PMV=PM_FID)
+    # no tabulated hydro-simulation ratio: sup is the only feedback
+    ci.reset_bary_struct()
+    # tmp = the BB spectra, not returned
+    (C_ss, tmp) = ci.C_ss_tomo_limber(l=ell)
+    C_ks = ci.C_ks_tomo_limber(l=ell)
+    (xip, xim) = ci.xi_pm_tomo()
+    wks = ci.w_ks_tomo()
+    theta = np.array(ci.get_binning_real_space())
+    dv = np.array(ci.compute_data_vector_masked())
+    chi2 = ci.compute_chi2(dv)
+    # the mask holds one 0/1 flag per entry, and the blocks of the
+    # probes init_probes left out are already 0 in it: its sum is the
+    # number of data points chi2 runs over
+    ndata = int(np.sum(ci.get_mask()))
+    return {"ell": ell, "C_ss": C_ss, "C_ks": C_ks,
+            "theta": theta, "xip": xip, "xim": xim, "w_ks": wks,
+            "dv": dv, "chi2": chi2, "ndata": ndata,
+            "z_grid": z_interp_2D,
+            # get_baryon_suppression takes k in 1/Mpc, but the CAMB helper
+            # returns this grid in h/Mpc: convert here, at the one place
+            # that links the two, so S(k) is evaluated at the physical k.
+            "log10k_grid": log10k_interp_2D + np.log10(H0/100.0)}
