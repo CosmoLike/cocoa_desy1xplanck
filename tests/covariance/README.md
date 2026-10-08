@@ -4,20 +4,20 @@ These tests require the optional covariance build. Follow the
 [project build instructions](../../README.md#computing_covariances): unset
 `IGNORE_COSMOLIKE_DESXPLANCK_COVARIANCE` after activating Cocoa and rebuild.
 With the default data-vector-only build this sector reports skips; the
-separate `tests/data_vector` suite remains available.
+separate `tests/data_vector` sector remains available.
 
 These checks exercise this project's galaxy/shear forecast adapter and
 compiled covariance bindings. They use the project's redshift files and
 catalog inputs, with small numerical grids and three measured rows.
 
-We assume Cocoa is installed, users have run `conda activate cocoa`, the
-shell is Bash and the current folder is `cocoa/Cocoa`.
+These steps assume Cocoa is installed, `conda activate cocoa` has been run,
+the shell is Bash and the current folder is `cocoa/Cocoa`.
 
 **Step :one:**: activate Cocoa's private Python environment.
 
     source start_cocoa.sh
 
-**Step :two:**: compile this project's interface.
+**Step :two:**: enable the installed project.
 
     unset IGNORE_COSMOLIKE_DESXPLANCK_CODE
     unset IGNORE_COSMOLIKE_DESXPLANCK_COVARIANCE
@@ -30,14 +30,15 @@ shell is Bash and the current folder is `cocoa/Cocoa`.
 | Check | Purpose |
 | --- | --- |
 | Project layout | Verify the full angular and Fourier vector lengths from the measured row map. |
-| Accuracy refinement | Keep measurement bins fixed while increasing quadrature resolution. |
-| Real-space components | Check finite, symmetric G, SSC, cNG and total matrices for a measured subset. |
+| Accuracy refinement | At accuracy boost 2, keep the measurement bins, mass panels and 96-node quadrature fixed while the power refinement goes from 8 to 16 and the non-Gaussian multipole grid grows; integration level 1 alone selects 128 nodes. |
+| Real-space components | Check finite, symmetric G, SSC, cNG and total matrices, with total = G + SSC + cNG, for a measured subset. |
 | Fourier components | Check the same properties for bandpowers. |
+| Notebook and CLI bindings | Require identical G, SSC, cNG, total and signal from the notebook bindings and the production bindings. |
 | Thread repeatability | Compare every component bitwise with one and eight OpenMP threads. |
 | Positive total | Check variance positivity for every direction of the tested subset. |
 | Output archive | Read arrays and resolved survey metadata without pickle. |
 
-The [shared component tests](../../../lsst_y1/tests/covariance/README.md)
+The [shared component tests](https://github.com/CosmoLike/cocoa_lsst_y1/blob/main/tests/covariance/README.md)
 contain independent algebra and projection references. This project check
 covers its binding and inputs; it does not duplicate those references.
 Use the [covariance notebook](../../EXAMPLE_EVALUATE_COVARIANCE.ipynb)

@@ -6,23 +6,23 @@ implementation built into the cosmolike interface (`IA_code: 0`, the
 default), and the python FAST-PT package used through the fastpt
 theory block (`IA_code: 1`).
 
-15. example1 (cosmic shear): the SAME 30 hard-coded points
-     across the intrinsic-alignment prior (FASTPT_COMPARISON_POINTS:
-     20 drawn across the prior boxes plus a one-parameter-at-a-time
-     family; cosmology fixed at the frozen fiducial) evaluated three
-     times - with cfastpt, with FASTPT at the pass configuration
-     (FASTPT_LOW_SETTINGS, hard-coded), and with FASTPT at the
-     doubled boosts (FASTPT_HIGH_SETTINGS). Every block prints its theory vector at
-     every point, and the CFASTPT vector is the fiducial of that
-     point: its own chi2 against it is zero by construction, so the
-     pass rule is the chi2 of the FASTPT(low) vector against it
-     (delta^T C^-1 delta, a pure second-order deviation; a chi2
-     difference against the shipped data would ride the slope
-     instead). FASTPT(high)'s deviation is printed as the advisory
-     FAST-PT grid response. Each configuration runs in its own
-     subprocess, so no cache survives from one block to the next;
-     inside a block the shared cosmology makes CAMB run once and the
-     30 points cheap.
+15. example1 (cosmic shear): the same 30 hard-coded points across
+     the intrinsic-alignment prior (FASTPT_COMPARISON_POINTS: 20 drawn
+     across the prior boxes plus a one-parameter-at-a-time family;
+     cosmology fixed at the frozen fiducial), evaluated in three
+     blocks: with cfastpt, with FASTPT at the pass configuration
+     (FASTPT_LOW_SETTINGS, written out in cocoa_test_utils), and with
+     FASTPT at the doubled boosts (FASTPT_HIGH_SETTINGS). Every block
+     prints its theory vector at every point, and the CFASTPT vector
+     is the fiducial of that point: its own chi2 against it is zero by
+     construction, so the pass rule is the chi2 of the FASTPT(low)
+     vector against it (delta^T C^-1 delta, a pure second-order
+     deviation; a chi2 difference against the shipped data would
+     follow the slope of the chi2 instead). FASTPT(high)'s deviation is
+     printed as the advisory FAST-PT grid response. Each block runs in
+     its own worker subprocess, so no cache survives from one block to
+     the next; inside a block the shared cosmology makes CAMB run once
+     and the 30 points cheap.
 16. example2 (6x2pt): the same three-block sweep as test 15 on the
      6x2pt likelihood, so the TATT terms are also scored inside
      galaxy-galaxy lensing and the difference is weighted by the
@@ -51,11 +51,11 @@ without the option and one with it.
 
 The tests also read the --mask option (see conftest.py):
 --mask=frozen (the default) keeps the shipped 6x2pt scale-cut mask
-of the frozen contract, and --mask=ones keeps every data point (no
-scale cuts), the strictest comparison; the 0.2 pass rule applies
+of the frozen configurations, and --mask=ones keeps every data point
+(no scale cuts), the strictest comparison; the 0.2 pass rule applies
 unchanged. The 6x2pt sweep (test 16) aborts under ones: with every
 point unmasked the shipped 6x2pt covariance is not positive
-definite and cosmolike refuses it (see tests/README.md):
+definite and cosmolike refuses it (see tests/data_vector/README.md):
 
     python -m pytest ./projects/desy1xplanck/tests/data_vector/test_fastpt.py --mask=ones
 
@@ -66,14 +66,17 @@ The design and the point values are shared with lsst_y1's tests
 import os
 
 # OpenMP reads OMP_NUM_THREADS when the compiled libraries load, so
-# this must run before ANY cobaya/cosmolike import in the process.
+# this must run before any cobaya/cosmolike import in the process. "4"
+# is REQUIRED_OMP_THREADS of cocoa_testing, the count of every worker
+# subprocess: a race check needs more than one thread.
 os.environ["OMP_NUM_THREADS"] = "4"
 
 import sys
 import unittest
 
-# The harness stays in the parent tests/ folder. Add it explicitly so
-# direct execution and worker processes resolve this project's stored inputs.
+# The harness stays in the parent tests/ folder (dirname applied twice to
+# this file's absolute path). Add it explicitly so direct execution and
+# worker processes resolve this project's stored inputs.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import cocoa_test_utils as u
 
@@ -94,7 +97,11 @@ class TestCfastptVsFastptSweep(unittest.TestCase):
         u.verify_frozen()
 
     def test_x15_cfastpt_vs_fastpt_sweep(self):
-        """Cosmic shear: cfastpt and FASTPT agree at 30 IA points."""
+        """Cosmic shear: cfastpt and FASTPT agree at 30 IA points.
+
+        The method name carries the x prefix only so unittest's
+        alphabetical ordering runs tests 15-17 in their numbered order.
+        """
         # the conftest copies the --high and --mask command line
         # options into these variables; .get with the "0" and
         # "frozen" defaults keeps a run outside pytest on the default
@@ -102,6 +109,10 @@ class TestCfastptVsFastptSweep(unittest.TestCase):
         high = os.environ.get("COCOA_FASTPT_HIGH", "0") == "1"
         setting = "high accuracy" if high else "default settings"
         mask = os.environ.get("COCOA_FASTPT_MASK", "frozen")
+        # five lists with one entry per comparison point, unpacked in
+        # the order the function returns them: the raw chi2 of the three
+        # blocks, then delta^T C^-1 delta of the low and high blocks
+        # against the cfastpt vector
         (chi2_cfastpt, chi2_fastpt_low, chi2_fastpt_high,
          dchi2_low, dchi2_high) = u.cfastpt_vs_fastpt_chi2s(
             "example1", high=high, mask=mask)
@@ -122,7 +133,7 @@ class TestCfastptVsFastptSweep(unittest.TestCase):
         """6x2pt: cfastpt and FASTPT agree at the same 30 IA points.
 
         Test 15 on example2: the same three blocks, the same points,
-        the same pass rule, with the TATT terms now entering
+        the same pass rule, with the TATT terms entering
         galaxy-galaxy lensing as well and the difference weighted by
         the 6x2pt masked inverse covariance. The frozen configuration
         fixes the one-loop bias amplitudes (DES_B2_*) at zero, so the

@@ -75,7 +75,7 @@ The base class applies this block to the defaults before cobaya merges them with
 
 The entries the mask keeps, per block and per lens bin:
 
-| block | entries | kept | lens bin 1 | lens bin 2 | lens bin 3 | lens bin 4 | lens bin 5 | lens bin 6 |
+| block | entries | kept entries | kept, lens bin 1 | kept, lens bin 2 | kept, lens bin 3 | kept, lens bin 4 | kept, lens bin 5 | kept, lens bin 6 |
 |---|---|---|---|---|---|---|---|---|
 | `ss` | 600 | 400 | - | - | - | - | - | - |
 | `gs` | 720 | 192 | 40 | 44 | 52 | 56 | 0 | 0 |
@@ -112,7 +112,7 @@ The fixed values are the fiducial values of `params_lens_maglim.yaml`:
 | `DES_DZ2_L6` | 0.845 | center of the prior and of the `ref` |
 | `DES_PM1` ... `DES_PM6` | 0 | center of the prior and of the `ref` |
 
-`DES_B2_5`, `DES_B2_6`, `DES_BMAG_5`, and `DES_BMAG_6` are constants of `params_lens_maglim.yaml` in every likelihood. As the bins they act on are removed, the fixed values do not change the data vector; they set only the values the chains record.
+`DES_BMAG_5` and `DES_BMAG_6` are constants of `params_lens_maglim.yaml` in every likelihood that includes that file. As the bins they act on are removed, the fixed values do not change the data vector; they set only the values the chains record. `DES_B2_5` and `DES_B2_6` are constants (0) of the same file, but their value matters: see the note below the next table.
 
 # Parameters that should not be varied <a name="desy1xplanck_not_varied"></a>
 
@@ -170,7 +170,9 @@ A `*` in a parameter name stands for every bin number.
 
 `DES_B2_*` are constants (0) of `params_lens_maglim.yaml` but are not in the table: a nonzero value in any lens bin switches on the one-loop bias terms of every lens bin, so even `DES_B2_5` and `DES_B2_6` change the data vector although the mask removes their bins.
 
-The examples declare `DES_BARYON_Q1` and `DES_BARYON_Q2` with priors in their own `params` block, which overrides the constants of `params_source.yaml`. The examples with `use_baryon_pca: false` (`EXAMPLE_EVALUATE1.yaml`, `EXAMPLE_EVALUATE2.yaml`, `EXAMPLE_MCMC2.yaml`, and the matching EMUL2 examples) therefore sample two amplitudes that do not change the data vector. The examples with `IA_model: 0` (`EXAMPLE_EVALUATE1.yaml`, `EXAMPLE_EVALUATE2.yaml`, `EXAMPLE_EMUL2_EVALUATE1.yaml`, `EXAMPLE_EMUL2_EVALUATE2.yaml`, `EXAMPLE_EMUL2_MCMC2.yaml`) sample `DES_A2_1`, `DES_A2_2`, and `DES_BTA_1` as `params_source.yaml` does.
+The likelihood also turns `use_baryon_pca` off when `external_baryon_suppression: True` (the `bfmt` theory block) or `create_baryon_pca: True` is set, so the `DES_BARYON_Q*` rows hold in those runs too.
+
+The examples declare `DES_BARYON_Q1` and `DES_BARYON_Q2` in their own `params` block, which overrides the constants of `params_source.yaml`. The examples with `use_baryon_pca: false` (`EXAMPLE_EVALUATE1.yaml`, `EXAMPLE_EVALUATE2.yaml`, `EXAMPLE_MCMC2.yaml`, and the matching EMUL2 examples) declare them as constants (`value: 0.0`); the examples with `use_baryon_pca: True` (`EXAMPLE_MCMC1.yaml`, `EXAMPLE_EMUL2_MCMC1.yaml`, `EXAMPLE_EMUL2_POLY1.yaml`) sample them with priors. The examples `EXAMPLE_EVALUATE1.yaml`, `EXAMPLE_EVALUATE2.yaml`, `EXAMPLE_EMUL2_EVALUATE1.yaml`, and `EXAMPLE_EMUL2_EVALUATE2.yaml` run `IA_model: 0` and sample `DES_A2_1`, `DES_A2_2`, and `DES_BTA_1` as `params_source.yaml` does; `EXAMPLE_EMUL2_MCMC2.yaml`, also NLA, fixes them in its own `params` block.
 
 # Changing the mask, the scale cuts, or the probes <a name="desy1xplanck_changing"></a>
 
@@ -179,7 +181,7 @@ The examples declare `DES_BARYON_Q1` and `DES_BARYON_Q2` with priors in their ow
 
 A `fixed_params` block in the likelihood block of the user's yaml replaces the combination's block as a whole: `fixed_params: null` samples every parameter again, and a shorter block keeps only the entries it repeats.
 
-We assume users are in the Conda cocoa environment from a previous `conda activate cocoa` command, that the shell is bash, and that the current folder is the cocoa main folder `cocoa/Cocoa`.
+The steps below assume the Conda cocoa environment is active (`conda activate cocoa`), the shell is bash, and the current folder is the cocoa main folder `cocoa/Cocoa`.
 
 **Step :one:**: activate the private Python environment by sourcing the script `start_cocoa.sh`
 

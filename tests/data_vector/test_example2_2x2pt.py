@@ -1,7 +1,8 @@
 """Unit tests 11-14: the 2x2pt likelihood on the frozen test data.
 
-2x2pt combines two of example2's three two-point correlations: galaxy
-clustering and galaxy-galaxy lensing (cosmic shear is dropped). The
+2x2pt combines two of example2's six two-point correlations: galaxy
+clustering and galaxy-galaxy lensing (cosmic shear and the three
+CMB-lensing correlations are dropped). The
 frozen configuration is example2's with the likelihood renamed to
 desy1xplanck.combo_2x2pt: same options, same data files, same evaluation
 point; only the probe selection inside cosmolike changes. The four
@@ -26,14 +27,17 @@ start_cocoa.sh sourced):
 import os
 
 # OpenMP reads OMP_NUM_THREADS when the compiled libraries load, so
-# this must run before ANY cobaya/cosmolike import in the process.
+# this must run before any cobaya/cosmolike import in the process. "4"
+# is REQUIRED_OMP_THREADS of cocoa_testing, the count of every worker
+# subprocess: a race check needs more than one thread.
 os.environ["OMP_NUM_THREADS"] = "4"
 
 import sys
 import unittest
 
-# The harness stays in the parent tests/ folder. Add it explicitly so
-# direct execution and worker processes resolve this project's stored inputs.
+# The harness stays in the parent tests/ folder (dirname applied twice to
+# this file's absolute path). Add it explicitly so direct execution and
+# worker processes resolve this project's stored inputs.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import cocoa_test_utils as u
 

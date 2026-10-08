@@ -150,7 +150,7 @@ theory:
     stop_at_error: True
     provides: ['comoving_radial_distance', 'angular_diameter_distance', 'Hubble']
     extra_args:
-      device: "cuda"
+      device: "cpu"
       file:  [None, 'external_modules/data/emultrf/BAO_SN_RES/w0wa/emul_w0wa_H.pt']
       extra: [None, 'external_modules/data/emultrf/BAO_SN_RES/w0wa/extra_w0wa_H.npy']    
       ord: [None, ['omegam','H0','w','wa']]

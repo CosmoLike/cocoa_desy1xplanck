@@ -1,7 +1,10 @@
 """Unit tests 5-8: the 6x2pt likelihood on the frozen test data.
 
-6x2pt combines three two-point correlations: cosmic shear, galaxy
-clustering, and galaxy-galaxy lensing; here it is the
+6x2pt combines six two-point correlations: the three of the galaxy
+survey (cosmic shear, galaxy-galaxy lensing and galaxy clustering) and
+the three that involve the Planck CMB lensing convergence (its
+cross-correlations with the lens galaxies and with the source shear,
+and its auto-spectrum bandpowers); here it is the
 desy1xplanck.combo_6x2pt likelihood, evaluated on the frozen copy of
 example2's configuration (see cocoa_test_utils for what "frozen"
 means and why). The four tests:
@@ -13,8 +16,9 @@ means and why). The four tests:
      RACE_TOLERANCE (1e-4). A disagreement means state leaked between
      evaluations or OpenMP threads raced.
   7. the same comparison as test 5 with the TATT intrinsic-alignment
-     model (IA_model: 1) and DES_A2_1 = 0.05, DES_BTA_1 = 0.05,
-     DES_A2_2 = -1.51541 replacing the NLA point's zeros.
+     model (IA_model: 1), the amplitudes DES_A2_1 and DES_BTA_1 set to
+     0.05 (zero at the NLA point) and DES_A2_2 = -1.51541 (the
+     redshift index of A2, as at the NLA point).
   8. the same race check as test 6 with the TATT model.
 
 To run (from the Cocoa/ folder, cocoa environment active,
@@ -26,14 +30,17 @@ start_cocoa.sh sourced):
 import os
 
 # OpenMP reads OMP_NUM_THREADS when the compiled libraries load, so
-# this must run before ANY cobaya/cosmolike import in the process.
+# this must run before any cobaya/cosmolike import in the process. "4"
+# is REQUIRED_OMP_THREADS of cocoa_testing, the count of every worker
+# subprocess: a race check needs more than one thread.
 os.environ["OMP_NUM_THREADS"] = "4"
 
 import sys
 import unittest
 
-# The harness stays in the parent tests/ folder. Add it explicitly so
-# direct execution and worker processes resolve this project's stored inputs.
+# The harness stays in the parent tests/ folder (dirname applied twice to
+# this file's absolute path). Add it explicitly so direct execution and
+# worker processes resolve this project's stored inputs.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import cocoa_test_utils as u
 

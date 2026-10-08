@@ -17,9 +17,9 @@ lens galaxy redshift distributions are narrow, so the Limber
 approximation fails at low l for the clustering auto spectra; this
 test measures by how much.
 
-It evaluates the frozen 6x2pt fiducial (NLA) three times IN ONE
-PROCESS: the default, the other setting, the default again, and
-computes
+It evaluates the frozen 6x2pt fiducial (NLA) three times in one
+process (so the caches of the compiled library must follow the flag):
+the default, the other setting, the default again, and computes
 
     delta chi2 = delta^T C^-1 delta,
     delta = dv(non-Limber) - dv(Limber),
@@ -53,15 +53,18 @@ start_cocoa.sh sourced):
 import os
 
 # OpenMP reads OMP_NUM_THREADS when the compiled libraries load, so
-# this must run before ANY cobaya/cosmolike import in the process.
+# this must run before any cobaya/cosmolike import in the process. "4"
+# is REQUIRED_OMP_THREADS of cocoa_testing, the count of every worker
+# subprocess: a race check needs more than one thread.
 os.environ["OMP_NUM_THREADS"] = "4"
 
 import sys
 import time
 import unittest
 
-# The harness stays in the parent tests/ folder. Add it explicitly so
-# direct execution and worker processes resolve this project's stored inputs.
+# The harness stays in the parent tests/ folder (dirname applied twice to
+# this file's absolute path). Add it explicitly so direct execution and
+# worker processes resolve this project's stored inputs.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import cocoa_test_utils as u
 
@@ -71,8 +74,8 @@ REFERENCE_KEY = "example2_nla"
 # adopt_limber_gg of the likelihood yamls of this project
 DEFAULT = 0
 
-# (report tag, adopt_limber_gg): the default, the other setting, the
-# default again
+# (report tag, adopt_limber_gg): the default, the other setting (1 -
+# DEFAULT turns 0 into 1 and 1 into 0), the default again
 _NAME = {0: "non-Limber", 1: "Limber"}
 SETTINGS = (
     (f"{_NAME[DEFAULT]} (default)", DEFAULT),
@@ -85,8 +88,10 @@ SETTINGS = (
 # dead flag.
 DCHI2_FLOOR = 1.0e-6
 
-# delta chi2 measured on 2026-10-01 (macOS, arm64), and the relative band
-# assertion 4 allows around it.
+# The delta chi2 of this comparison as measured on macOS (arm64), and the
+# relative band assertion 4 allows around it; a deliberate change of the
+# non-Limber code, the kernels or the covariance requires measuring it
+# again.
 DCHI2_MEASURED = 6.613
 DCHI2_RTOL = 0.05
 
@@ -101,6 +106,12 @@ class TestNonLimberGG(unittest.TestCase):
         cls.reference = u.load_reference()
 
     def test_nonlimber_gg(self):
+        """Build the model three times, compare the vectors, assert 1-5.
+
+        The five assertions are listed in the module docstring; the
+        report prints the two chi2 values, delta^T C^-1 delta and the
+        contribution of each lens bin.
+        """
         import numpy as np
         import cosmolike_desy1xplanck_interface as ci
 
@@ -136,6 +147,10 @@ class TestNonLimberGG(unittest.TestCase):
                     sizes = ci.compute_data_vector_3x2pt_fourier_sizes()
                     nlen = int(like.ncl)
 
+        # {adopt_limber_gg value: report tag} of the first two settings,
+        # so delta is non-Limber (0) minus Limber (1) whatever the default;
+        # @ is numpy's matrix product, delta @ icov @ delta = delta^T C^-1
+        # delta
         tags = {flag: tag for tag, flag in SETTINGS[:2]}
         dv_default = vectors[SETTINGS[0][0]]
         delta = vectors[tags[0]] - vectors[tags[1]]
@@ -161,6 +176,8 @@ class TestNonLimberGG(unittest.TestCase):
             sl = slice(gg0 + b*nlen, gg0 + (b + 1)*nlen)
             block[sl] = delta[sl]
             rows.append((float(block @ icov @ block), b))
+        # largest contribution first (the tuples sort by their first
+        # entry); the list stops below 0.1% of the total
         for contribution, b in sorted(rows, reverse=True):
             if contribution < 1.0e-3*max(dchi2, DCHI2_FLOOR):
                 break
@@ -198,5 +215,8 @@ class TestNonLimberGG(unittest.TestCase):
             f"reference {self.reference[REFERENCE_KEY]:.6f}")
 
 
+# __name__ is "__main__" only when this file runs directly as a
+# script; pytest imports the module instead, so this block stays
+# idle under pytest
 if __name__ == "__main__":
     unittest.main(verbosity=2)

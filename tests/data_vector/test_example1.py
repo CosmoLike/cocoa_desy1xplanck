@@ -12,8 +12,9 @@ likelihood, evaluated on the frozen copy of example1's configuration
      RACE_TOLERANCE (1e-4). A disagreement means state leaked between
      evaluations or OpenMP threads raced.
   3. the same comparison as test 1 with the TATT intrinsic-alignment
-     model (IA_model: 1) and DES_A2_1 = 0.05, DES_BTA_1 = 0.05,
-     DES_A2_2 = -1.51541 replacing the NLA point's zeros.
+     model (IA_model: 1), the amplitudes DES_A2_1 and DES_BTA_1 set to
+     0.05 (zero at the NLA point) and DES_A2_2 = -1.51541 (the
+     redshift index of A2, as at the NLA point).
   4. the same race check as test 2 with the TATT model.
 
 To run (from the Cocoa/ folder, cocoa environment active,
@@ -25,14 +26,17 @@ start_cocoa.sh sourced):
 import os
 
 # OpenMP reads OMP_NUM_THREADS when the compiled libraries load, so
-# this must run before ANY cobaya/cosmolike import in the process.
+# this must run before any cobaya/cosmolike import in the process. "4"
+# is REQUIRED_OMP_THREADS of cocoa_testing, the count of every worker
+# subprocess: a race check needs more than one thread.
 os.environ["OMP_NUM_THREADS"] = "4"
 
 import sys
 import unittest
 
-# The harness stays in the parent tests/ folder. Add it explicitly so
-# direct execution and worker processes resolve this project's stored inputs.
+# The harness stays in the parent tests/ folder (dirname applied twice to
+# this file's absolute path). Add it explicitly so direct execution and
+# worker processes resolve this project's stored inputs.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import cocoa_test_utils as u
 

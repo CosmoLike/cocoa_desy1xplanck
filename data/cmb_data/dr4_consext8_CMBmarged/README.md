@@ -5,6 +5,9 @@
 - `Ckk_bandpower_covariance.txt`: covariance matrix of Ckk reduced from FFP10 simulations. Hartlap factor has to be applied
 - `Ckk_bandpower_datavector.txt`: Ckk band power
 - `Ckk_bandpower_offset.txt`: Ckk band power offset due to marginalization over primary CMB
-- `binning_matrix_table.txt`: $\mathcal{B}_i^L$, used to calculate cross-cov between 5x2pt and Ckk. Has 9 rows (bin 1 - 9) and 392 columns (L in [8, 400])
+- `bin_definition.txt`: the multipole range of each band, one row per band (columns: first L, last L; bin 1 is L in [8, 40] and bin 9 is L in [355, 400])
+- `binning_matrix_table.txt`: $\mathcal{B}_i^L$, used to calculate cross-cov between 5x2pt and Ckk. Has 9 rows (bin 1 - 9) and 393 columns (L in [8, 400])
 - `binning_matrix_table_extended.txt`: same as `binning_matrix_table.txt` but embedded to shape 9 rows x 2499 (L in [2, 2500])
 - `binning_matrix_with_correction_table.txt`: $\mathrm{B}_i^L + M_i^{\kappa, L}$ with corrections for primary-CMB dependency, used to calculate cross-cov between 5x2pt and Ckk. Has 9 rows (bin 1 - 9) and 2499 columns (L in [2, 2500])
+
+This is the band set that `../../Y3xPlanckPR4.dataset` reads: `binning_matrix_with_correction_table.txt` (`binmat_kk_file`) and `Ckk_bandpower_offset.txt` (`offset_kk_file`). The likelihood applies the Hartlap factor to the kk block of the inverse covariance, with the `hartlap_nvar_kk` = 480 simulations that the dataset declares.

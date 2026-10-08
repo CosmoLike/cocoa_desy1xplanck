@@ -1,25 +1,28 @@
 """Baryonic feedback accuracy checks BF1-BF7: default vs high accuracy.
 
 Each check evaluates the example1 configuration (NLA) with the bfmt
-theory block switched on for one of its feedback methods, using the
-mechanism of the N-random-models check: the default-settings model
-writes its own theory vector during evaluation, that vector becomes
-the data of a temporary dataset (so the default chi2 against it is
-zero by construction, and nothing is stored in frozen/), and the
-pushed-settings model evaluates at the same point against it. Its
-chi2 IS the reported quantity,
+theory block switched on for one of its feedback methods (the block
+multiplies the nonlinear matter power spectrum by a baryonic
+suppression factor S(k, z)). The default-settings model writes its own
+theory vector during evaluation, that vector becomes the data of a
+temporary dataset (so the default chi2 against it is zero by
+construction, and nothing is stored in frozen/), and the
+pushed-settings model evaluates at the same point against it. Its chi2
+is therefore the reported quantity,
 
     delta chi2 = chi2(high accuracy) - chi2(default)
 
 a pure numerics (curvature) response at the minimum. The delta is
 advisory like test_accuracy.py: the question answered is whether the
 numerical error of the default settings stays harmless when the
-nonlinear power spectrum carries a baryonic suppression. BF0
-additionally runs the one-knob-at-a-time scan with the Akino SP(k)
-method on, so a large delta names the knob causing it.
+nonlinear power spectrum carries a baryonic suppression. BF0 also
+runs the one-setting-at-a-time scan (ACCURACY_KNOBS) with
+the Akino SP(k) method on, so a large delta names the setting causing
+it.
 
 The seven checks cover every method the bfmt theory block
-implements:
+implements (an fb relation is the baryon fraction of halos as a
+function of halo mass, the input of SP(k)):
 
   BF1. SP(k), power-law fb relation      BF2. SP(k), Akino et al. 2022
   BF3. SP(k), double power-law relation  BF4. BCEmu
@@ -51,14 +54,17 @@ cocoa environment active, start_cocoa.sh sourced):
 import os
 
 # OpenMP reads OMP_NUM_THREADS when the compiled libraries load, so
-# this must run before ANY cobaya/cosmolike import in the process.
+# this must run before any cobaya/cosmolike import in the process. "4"
+# is REQUIRED_OMP_THREADS of cocoa_testing, the count of every worker
+# subprocess: a race check needs more than one thread.
 os.environ["OMP_NUM_THREADS"] = "4"
 
 import sys
 import unittest
 
-# The harness stays in the parent tests/ folder. Add it explicitly so
-# direct execution and worker processes resolve this project's stored inputs.
+# The harness stays in the parent tests/ folder (dirname applied twice to
+# this file's absolute path). Add it explicitly so direct execution and
+# worker processes resolve this project's stored inputs.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import cocoa_test_utils as u
 
@@ -82,14 +88,25 @@ class TestBaryonAccuracyAdvisory(unittest.TestCase):
           name   = the advisory label (BF1-BF7) for the report.
           baryon = a label of cocoa_test_utils.BARYON_METHODS.
           label  = one line naming the feedback method.
+
+        Returns:
+          nothing; prints the delta between two lines of 66 dashes.
+
+        Raises:
+          AssertionError when the delta is NaN or infinite.
         """
         # the default chi2 is zero by construction (the default
         # model produced the very vector it is compared with), so the
-        # pushed evaluation's chi2 IS the delta; only that is printed
+        # pushed evaluation's chi2 is the delta; only that is printed
         delta = u.baryon_accuracy_delta(baryon)
+        # delta == delta is False only for NaN (NaN differs from every
+        # number, itself included), so the condition requires a finite
+        # delta
         self.assertTrue(
             delta == delta and abs(delta) != float("inf"),
             f"{name}: non-finite delta")
+        # the triple-quoted f-string prints a framed report; {'-' * 66}
+        # inserts a line of 66 dashes
         print(f"""
 {'-' * 66}
 ACCURACY: {name}: {label}
@@ -97,17 +114,18 @@ ACCURACY: {name}: {label}
 {'-' * 66}""", flush=True)
 
     def test_bf0_one_knob_at_a_time(self):
-        """BF0: each accuracy knob alone, Akino SP(k) feedback on.
+        """BF0: each accuracy setting alone, Akino SP(k) feedback on.
 
-        Advisory: the same K-scan as test_accuracy.py, with the bfmt
-        block computing the Akino SP(k) suppression and the chi2
-        measured against that method's own generated vector. A knob
-        whose delta rivals the all-knobs delta of BF2 is the driver
-        of the numerical error under feedback.
+        Advisory: the same one-setting-at-a-time scan as test a0 of
+        test_accuracy.py, with the bfmt block computing the Akino SP(k)
+        suppression and the chi2 measured against that method's own
+        generated vector. A setting whose delta rivals the all-settings
+        delta of BF2 is the driver of the numerical error under
+        feedback.
         """
         print("", flush=True)
         for label, _, _ in u.ACCURACY_KNOBS:
-            # each knob's chi2 against the on-the-fly vector IS its
+            # each setting's chi2 against the on-the-fly vector is its
             # delta (the default against that vector is zero)
             delta = u.baryon_accuracy_delta("spk akino", knob=label)
             print(f"  KNOB {label:30s} delta chi2 = {delta:+12.6f}",
@@ -146,5 +164,8 @@ ACCURACY: {name}: {label}
         self._baryon_accuracy_check("BF7", "bcemu2025", "BCemu2025")
 
 
+# __name__ is "__main__" only when this file runs directly as a
+# script; pytest imports the module instead, so this block stays
+# idle under pytest
 if __name__ == "__main__":
     unittest.main(verbosity=2)

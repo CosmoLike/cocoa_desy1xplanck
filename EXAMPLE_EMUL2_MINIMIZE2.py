@@ -1,33 +1,29 @@
-"""Sample the posterior of the hybrid example 1 with Nautilus.
+"""Search for the minimum of -2 log posterior in the hybrid example 2.
 
 The hybrid examples (the files EXAMPLE_EMUL2_*) use trained emulators in
 place of CAMB for the background expansion and the matter power spectra
 (use_emulator: 2); cosmolike still computes the survey projections, the
 galaxy bias and the intrinsic alignments. This script reads
-EXAMPLE_EMUL2_EVALUATE1.yaml (the likelihood desy1xplanck.cosmic_shear
-with NLA intrinsic alignments on Y3xPlanckPR4.dataset) and runs Nautilus
-nested sampling through cocoa_hybrid_sampling.py: a set of live points
-moves from the whole prior toward high likelihood, which estimates the
-Bayesian evidence and gives weighted posterior samples. That module, in
+EXAMPLE_EMUL2_EVALUATE2.yaml (the likelihood desy1xplanck.combo_6x2pt
+with NLA intrinsic alignments on Y3xPlanckPR4.dataset) and starts, from
+the fiducial point of that file, the annealed emcee minimization of
+cocoa_hybrid_sampling.py. That module, in
 external_modules/code/cosmolike_core, documents the method and every
-command-line option. The run writes chains/<outroot>.json (with a
-converged flag), a checkpoint file and, when posterior samples exist, a
-weighted chain; it refuses to overwrite an existing record. Reaching
---maxfeval likelihood calls is not convergence.
+command-line option. The result goes to chains/<outroot>.json, and the
+run refuses to overwrite an existing one.
 
 From the Cocoa/ folder, with start_cocoa.sh sourced, check the setup
 (evaluate the fiducial point, print the order of the sampled parameters,
 stop):
 
-    python ./projects/desy1xplanck/EXAMPLE_EMUL2_NAUTILUS1.py --check
+    python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE2.py --check
 
-then sample with two MPI processes (one coordinates, the other evaluates
+then search with two MPI processes (one coordinates, the other evaluates
 the model; the project README shows runs on several nodes):
 
     mpirun -n 2 --bind-to none python \\
-        ./projects/desy1xplanck/EXAMPLE_EMUL2_NAUTILUS1.py \\
-        --nlive 1000 --neff 10000 --maxfeval 100000 \\
-        --outroot hybrid_nautilus1
+        ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE2.py \\
+        --nstw 200 --outroot hybrid_min2
 """
 
 from pathlib import Path
@@ -49,4 +45,4 @@ from cocoa_hybrid_sampling import run
 # The block runs only when this file is executed as a script, not when
 # another module imports it.
 if __name__ == "__main__":
-    run(mode="nautilus", project=project, example=1)
+    run(mode="minimize", project=project, example=2)

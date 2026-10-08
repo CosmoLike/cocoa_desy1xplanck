@@ -1,6 +1,7 @@
 """Unit test 18: the race check with EuclidEmulator2 on.
 
-Cocoa pins a modified EuclidEmulator2 (the EE2_GIT_COMMIT of
+EuclidEmulator2 (EE2) emulates the nonlinear boost P_nl/P_lin of the
+matter power spectrum. Cocoa pins a modified EE2 (the EE2_GIT_COMMIT of
 set_installation_options.sh): OpenMP threading, a 1,010-redshift
 capacity, the get_boost2 API with a pre-built emulator, memory-leak
 fixes, and a bilinear interpolation with a border fix
@@ -12,11 +13,11 @@ OpenMP-threaded, so leaked state or a thread race inside it shifts
 the second fiducial value; the two must agree within
 RACE_TOLERANCE (1e-4).
 
-The other half of the EE2 coverage - the modification gate that
-compiles the pre-modification build (commit ff59f66) side by side
-with the installed one and compares their data vectors - runs as
-lsst_y1's test 18; the modifications do not depend on the project,
-so one gate serves every project.
+The other half of the EE2 coverage, the modification gate, runs as
+lsst_y1's test 18: it compiles the pre-modification build (commit
+ff59f66) side by side with the installed one and compares their data
+vectors. The modifications do not depend on the project, so one gate
+serves every project.
 
 To run (from the Cocoa/ folder, cocoa environment active,
 start_cocoa.sh sourced):
@@ -27,14 +28,17 @@ start_cocoa.sh sourced):
 import os
 
 # OpenMP reads OMP_NUM_THREADS when the compiled libraries load, so
-# this must run before ANY cobaya/cosmolike import in the process.
+# this must run before any cobaya/cosmolike import in the process. "4"
+# is REQUIRED_OMP_THREADS of cocoa_testing, the count of every worker
+# subprocess: a race check needs more than one thread.
 os.environ["OMP_NUM_THREADS"] = "4"
 
 import sys
 import unittest
 
-# The harness stays in the parent tests/ folder. Add it explicitly so
-# direct execution and worker processes resolve this project's stored inputs.
+# The harness stays in the parent tests/ folder (dirname applied twice to
+# this file's absolute path). Add it explicitly so direct execution and
+# worker processes resolve this project's stored inputs.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import cocoa_test_utils as u
 

@@ -1,47 +1,88 @@
 # Tests
 
-The two test sectors answer different questions and can be run separately.
+The DES × Planck tests are divided into two sectors.
 
-- [Data-vector and likelihood tests](data_vector/README.md) check predicted
-  signals, frozen likelihood values, numerical accuracy and repeated
-  evaluations. This is the usual choice for likelihood users.
-- [Covariance tests](covariance/README.md) check this project's forecast inputs, real/Fourier
-  assembly, thread repeatability, positivity and saved-output metadata.
+- [Data-vector and likelihood checks](data_vector/README.md) cover the project
+  predictions, frozen inputs and numerical diagnostics.
+- [Covariance checks](covariance/README.md) cover forecast assembly and its
+  documented component checks. Covariance generation must be compiled.
 
-From `cocoa/Cocoa`, with the Cocoa environment active and `start_cocoa.sh`
-available, follow these steps.
+```mermaid
+flowchart TD
+  A["tests/README.md: run the two sectors"] --> B["data_vector/README.md"]
+  A --> C["covariance/README.md"]
+  B --> D["data_vector/test_*.py"]
+  C --> E["covariance/test_forecast.py"]
+  F["generate_frozen_reference.py"] --> G["frozen/ snapshot + manifest_sha256.json"]
+  G --> D
+  H["cocoa_test_utils.py: binds cocoa_testing.py"] --> D
+  I["Covariance build + live survey adapter"] --> E
+```
 
-**Step :one:**: activate Cocoa's private Python environment.
+Read this page first, then the guide of the sector to run. The data-vector
+tests read only the frozen snapshot, which `generate_frozen_reference.py`
+writes and `manifest_sha256.json` protects, through the shared machinery
+that `cocoa_test_utils.py` binds. The covariance tests need the covariance
+build and read the live survey adapter in `covariance/`.
 
-    source start_cocoa.sh
+These steps assume Cocoa and this project are installed, the Cocoa Conda environment
+is active, the shell is Bash, and the current folder is `cocoa/Cocoa/`.
 
-**Step :two:**: run the data-vector tests.
+Run the sectors in separate Python invocations: they initialize different
+compiled-library state. Running one project at a time also avoids importing
+another project's same-named test helpers.
 
-    python -m pytest projects/desy1xplanck/tests/data_vector
+**Step :one:**: activate Cocoa.
 
-For covariance checks, we assume the Conda Cocoa environment, Bash,
-and the current folder `cocoa/Cocoa`.
+```bash
+source start_cocoa.sh
+```
 
-**Step :one:**: activate Cocoa's private Python environment.
+**Step :two:**: run the data-vector sector.
 
-    source start_cocoa.sh
+```bash
+python -m pytest ./projects/desy1xplanck/tests/data_vector
+```
 
-**Step :two:**: run the covariance tests.
+**Step :three:**: enable covariance generation.
 
-    python -m pytest projects/desy1xplanck/tests/covariance
+```bash
+unset IGNORE_COSMOLIKE_DESXPLANCK_COVARIANCE
+```
 
-To check both sectors, we assume the Conda Cocoa environment, Bash,
-and the current folder `cocoa/Cocoa`.
+**Step :four:**: compile the project.
 
-**Step :one:**: activate Cocoa's private Python environment.
+```bash
+source ./projects/desy1xplanck/scripts/compile_desy1xplanck.sh
+```
 
-    source start_cocoa.sh
+**Step :five:**: run the covariance sector.
 
-**Step :two:**: select both test folders.
+```bash
+python -m pytest ./projects/desy1xplanck/tests/covariance
+```
 
-    python -m pytest projects/desy1xplanck/tests/data_vector projects/desy1xplanck/tests/covariance
+The project must be enabled in `set_installation_options.sh` before
+activation. A covariance skip in a deliberately disabled build is expected;
+it is not a successful covariance check. Read the sector guide to distinguish
+asserted regressions from advisory accuracy reports.
 
-The shared data-vector harness, frozen snapshots, their fingerprint
-manifest and reference-generation scripts remain here in `tests/`.
-Moving test modules does not change those snapshots or refreeze any result.
-Covariance tests do not replace the likelihood's stored covariance.
+Frozen configurations and inputs are protected by `manifest_sha256.json`.
+Do not regenerate references to silence an unexplained failure. The
+[data-vector guide](data_vector/README.md#refreeze) documents the deliberate
+reference-update procedure and its limits; the covariance sector stores no
+reference values.
+
+Hybrid examples can be checked without sampling:
+
+**Step :one:**: check configuration 1.
+
+```bash
+python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE1.py --check
+```
+
+**Step :two:**: check configuration 2.
+
+```bash
+python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE2.py --check
+```
