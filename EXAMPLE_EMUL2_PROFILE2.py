@@ -11,4 +11,4 @@ from cocoa_hybrid_sampling import run
 
 
 if __name__ == "__main__":
-    run(mode="profile", project=project, example=1)
+    run(mode="profile", project=project, example=2)

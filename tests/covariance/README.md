@@ -17,7 +17,7 @@ shell is Bash and the current folder is `cocoa/Cocoa`.
 
     source start_cocoa.sh
 
-**Step :two:**: compile this project's interface.
+**Step :two:**: enable the installed project.
 
     unset IGNORE_COSMOLIKE_DESXPLANCK_CODE
     unset IGNORE_COSMOLIKE_DESXPLANCK_COVARIANCE
@@ -37,7 +37,7 @@ shell is Bash and the current folder is `cocoa/Cocoa`.
 | Positive total | Check variance positivity for every direction of the tested subset. |
 | Output archive | Read arrays and resolved survey metadata without pickle. |
 
-The [shared component tests](../../../lsst_y1/tests/covariance/README.md)
+The [shared component tests](https://github.com/CosmoLike/cocoa_lsst_y1/blob/main/tests/covariance/README.md)
 contain independent algebra and projection references. This project check
 covers its binding and inputs; it does not duplicate those references.
 Use the [covariance notebook](../../EXAMPLE_EVALUATE_COVARIANCE.ipynb)
