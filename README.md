@@ -252,9 +252,19 @@ export CUDA_VISIBLE_DEVICES=""
 
 **Step :four:**: evaluate the first hybrid example.
 
-```bash
-cobaya-run ./projects/desy1xplanck/EXAMPLE_EMUL2_EVALUATE1.yaml --force
-```
+- Linux
+
+      "${CONDA_PREFIX}"/bin/mpirun -n 1 --oversubscribe \
+        --mca pml ob1 --mca btl vader,tcp,self \
+        --bind-to core:overload-allowed --report-bindings \
+        --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
+        cobaya-run ./projects/desy1xplanck/EXAMPLE_EMUL2_EVALUATE1.yaml --force
+
+- macOS (arm)
+
+      mpirun -n 1 --oversubscribe \
+        cobaya-run ./projects/desy1xplanck/EXAMPLE_EMUL2_EVALUATE1.yaml --force
+
 
 The YAML selects the CPU for the distance emulator. Keep BLAS at one thread
 per MPI rank (`OPENBLAS_NUM_THREADS=1`, `MKL_NUM_THREADS=1`); on macOS also
@@ -291,9 +301,19 @@ interpreting posterior constraints.
 
 **Step :one:**: start Cobaya's hybrid MCMC.
 
-```bash
-mpirun -n 2 --bind-to none cobaya-run ./projects/desy1xplanck/EXAMPLE_EMUL2_MCMC1.yaml
-```
+- Linux
+
+      "${CONDA_PREFIX}"/bin/mpirun -n 2 --oversubscribe \
+        --mca pml ob1 --mca btl vader,tcp,self \
+        --bind-to core:overload-allowed --report-bindings \
+        --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
+        cobaya-run ./projects/desy1xplanck/EXAMPLE_EMUL2_MCMC1.yaml
+
+- macOS (arm)
+
+      mpirun -n 2 --oversubscribe \
+        cobaya-run ./projects/desy1xplanck/EXAMPLE_EMUL2_MCMC1.yaml
+
 
 ### Minimization, profiles and Nautilus
 
@@ -308,21 +328,56 @@ python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE1.py --check
 
 **Step :two:**: search for a minimum with two MPI ranks.
 
-```bash
-mpirun -n 2 --bind-to none python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE1.py --nstw 200 --outroot hybrid_min1
-```
+- Linux
+
+      "${CONDA_PREFIX}"/bin/mpirun -n 2 --oversubscribe \
+        --mca pml ob1 --mca btl vader,tcp,self \
+        --bind-to core:overload-allowed --report-bindings \
+        --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
+        python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE1.py --nstw 200 --outroot hybrid_min1
+
+- macOS (arm)
+
+      mpirun -n 2 --oversubscribe \
+        python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE1.py --nstw 200 --outroot hybrid_min1
+
 
 **Step :three:**: profile the first sampled parameter using that saved minimum.
 
-```bash
-mpirun -n 2 --bind-to none python ./projects/desy1xplanck/EXAMPLE_EMUL2_PROFILE1.py --profile 0 --nstw 200 --numpts 11 --factor 1 --minfile ./projects/desy1xplanck/chains/hybrid_min1.json --outroot hybrid_profile1
-```
+- Linux
+
+      "${CONDA_PREFIX}"/bin/mpirun -n 2 --oversubscribe \
+        --mca pml ob1 --mca btl vader,tcp,self \
+        --bind-to core:overload-allowed --report-bindings \
+        --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
+        python ./projects/desy1xplanck/EXAMPLE_EMUL2_PROFILE1.py --profile 0 --nstw 200 --numpts 11 --factor 1 --minfile ./projects/desy1xplanck/chains/hybrid_min1.json --outroot hybrid_profile1
+
+- macOS (arm)
+
+      mpirun -n 2 --oversubscribe \
+        python ./projects/desy1xplanck/EXAMPLE_EMUL2_PROFILE1.py --profile 0 --nstw 200 --numpts 11 --factor 1 --minfile ./projects/desy1xplanck/chains/hybrid_min1.json --outroot hybrid_profile1
+
 
 **Step :four:**: run Nautilus as an independent sampling example.
 
-```bash
-mpirun -n 2 --bind-to none python ./projects/desy1xplanck/EXAMPLE_EMUL2_NAUTILUS1.py --nlive 1000 --neff 10000 --maxfeval 100000 --outroot hybrid_nautilus1
-```
+- Linux
+
+      "${CONDA_PREFIX}"/bin/mpirun -n 2 --oversubscribe \
+        --mca pml ob1 --mca btl vader,tcp,self \
+        -x PATH -x LD_LIBRARY_PATH -x PYTHONPATH -x CONDA_PREFIX -x ROOTDIR \
+        -x OMP_NUM_THREADS -x OMP_PROC_BIND -x OMP_PLACES -x OMP_DYNAMIC \
+        -x OPENBLAS_NUM_THREADS -x MKL_NUM_THREADS -x CLIK_PATH -x CLIK_DATA \
+        -x CLIK_PLUGIN --mca mpi_yield_when_idle 1 \
+        --mca btl_tcp_if_exclude lo,docker0,virbr0,ib0 \
+        --bind-to core:overload-allowed --report-bindings \
+        --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
+        python ./projects/desy1xplanck/EXAMPLE_EMUL2_NAUTILUS1.py --nlive 1000 --neff 10000 --maxfeval 100000 --outroot hybrid_nautilus1
+
+- macOS (arm)
+
+      mpirun -n 2 --oversubscribe \
+        python ./projects/desy1xplanck/EXAMPLE_EMUL2_NAUTILUS1.py --nlive 1000 --neff 10000 --maxfeval 100000 --outroot hybrid_nautilus1
+
 
 The annealed Emcee search follows the DES × Planck template. Its objective
 is **−2 log posterior**, including nuisance and cosmological priors; the
