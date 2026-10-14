@@ -714,7 +714,7 @@ names and settings; changing one does not refine the other.
 | Data-vector setting | What it changes |
 |---|---|
 | `accuracyboost` | Overall interpolation-table resolution. |
-| `integration_accuracy` | Quadrature resolution; refine independently of interpolation. |
+| `integration_accuracy` | Quadrature resolution; levels 5/6 allow 2048/4096 points per Limber panel. Refine independently of interpolation. |
 | `internal_accuracyboost` | C-FAST-PT convolution grid. |
 | `nonlimber_accuracyboost` | Non-Limber distance sampling. |
 | `pk_z_refinement` | Nested redshift refinement of matter-power inputs. |
