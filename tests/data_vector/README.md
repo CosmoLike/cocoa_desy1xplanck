@@ -31,6 +31,7 @@ cosmolike, and every project keeps one architecture.
     8. [The non-Limber galaxy-galaxy lensing check](#nonlimber_ggl)
     9. [The non-Limber galaxy clustering check](#nonlimber_gg)
     10. [The sector-ladder cache check](#cache_ladder)
+    11. [Histogram reconstruction comparison](#nz-reconstruction)
 3. [Appendix](#appendix)
     1. [FAQ: Do the tests keep their own data?](#frozen_copy)
     2. [FAQ: Why do the tests use their own data vectors?](#synthetic_vectors)
@@ -591,6 +592,96 @@ land on the same vector. The shear-calibration steps must equal the
 analytic $(1+m_i)(1+m_j)$ block rescale to $10^{-12}$, a no-op update
 must change nothing, and both intrinsic-alignment models run (the
 TATT ladder exercises the FAST-PT rebuild machinery).
+
+<a name="nz-reconstruction"></a>
+### Two interpretations of histogram n(z)
+
+Every likelihood default YAML exposes `photoz_histogram_akima: 0`:
+
+- **0 — original midpoint curve:** keeps the existing reconstruction. With the default `photoz_interpolation_type: 0`, a natural cubic passes through the histogram-bin centres before the uniform lookup is prepared.
+- **1 — 3× histogram + Akima:** first represents each uniform input bin by three equal-density cells, then fits Akima through their centres. For irregular bins, the preparation cells receive overlap-weighted average densities. Both source and lens samples use the choice; the separate cluster-redshift model is unchanged.
+
+**Step :one:**: Set the reconstruction and the tested integration level inside the chosen likelihood's YAML block:
+
+```yaml
+photoz_histogram_akima: 1
+integration_accuracy: 3
+```
+
+The test uses level 3. It was selected by comparison with a saved level-6 reference, using a practical numerical vector-distance target of about 0.1 at this fiducial. The same check covers the original curve and the difference between the curves. This is a practical example setting, not a requirement to run every Akima calculation at 4096 points or an accuracy guarantee throughout parameter space.
+
+The **first factor three is hardcoded** and independent of every accuracy boost. It retains the original centre and adds points at one-sixth and five-sixths of each uniform bin. The default second stage subdivides each Akima polynomial in two; it does not refit a natural cubic. Runtime queries evaluate these same Akima polynomials by direct uniform-grid indexing, without a binary search. `photoz_interpolation_type` controls only mode 0; `photoz_zmid_convention` still controls how input coordinates are interpreted in both modes.
+
+The figure uses this project's **compiled readers and stored input histogram**. The left panel overlays both reconstructions at the same bin edges; the right panel compares original-bin probability redistribution for every source/lens distribution.
+
+![Compiled reconstructions of a project histogram](../nz_reconstruction.png)
+
+**Data-vector comparison.** [`test_nz_reconstruction.py`](test_nz_reconstruction.py) uses the stored NLA fiducial, mask and covariance. The reconstruction difference and the quadrature error are separate measurements:
+
+| Setting | Value |
+|---|---:|
+| `accuracyboost` | 1 |
+| Test `integration_accuracy` | 3 |
+| Reference `integration_accuracy` | 6 (4096 points per Limber panel) |
+
+| Numerical distance from the 4096-point reference | $\Delta\chi^2$ |
+|---|---:|
+| Original curve at the test level | 2.68511e-06 |
+| Akima curve at the test level | 0.0187757 |
+| Difference between the curves at the test level | 0.0186979 |
+
+| Quantity | Result |
+|---|---:|
+| $\Delta\chi^2$ between Akima and original, refined reference | **0.249582** |
+| $\Delta\chi^2$ between Akima and original, test level | 0.232017 |
+| Selected data-vector entries | 738 |
+| Return to mode 0 after 0 → 1 → 0 | Bitwise identical |
+| YAML mode 1 versus live native selection | Bitwise identical |
+
+The model distance is
+
+```math
+\Delta\chi^2 = (d_{\mathrm{Akima}}-d_{\mathrm{original}})^T C^{-1} (d_{\mathrm{Akima}}-d_{\mathrm{original}}).
+```
+
+It is not the difference between the two chi-square values against the observed data. This is a model-vector distance at one fiducial point, with no parameter refit and no covariance regeneration.
+
+At the same fiducial, increasing integration_accuracy from 5 to 6 changes the original vector by Δχ² = 7.39379e-06, and the Akima vector by Δχ² = 3.2912e-06. These are within-interpretation quadrature distances, separate from the model difference above.
+
+**What happens to probability?** Histogram normalization happens before the smooth reconstruction. The original cubic need not preserve its final total area. Three repeated values per uniform bin, with the chosen endpoint padding, make the Akima total agree with one to rounding in this audit; this is not a general guarantee for irregular input grids. Both curves redistribute area between original bins. A smaller redistribution alone does not establish which smooth interpretation is physically correct.
+
+| Maximum over this project's source/lens distributions | Original midpoint cubic | 3× + Akima |
+|---|---:|---:|
+| Probability redistributed among original cells | 0.256822% | 0.105388% |
+| Absolute total-area error | 0.106088% | 8.88e-14% |
+
+For normalized input-bin masses p and integrated reconstructed areas q, the redistribution measure is 50 Σ|q/Σq − p| percent; total-area error is 100 |Σq − 1| percent. The first measure removes overall normalization **only for this diagnostic**. The production reader receives no extra area correction. Areas are integrated with zero photo-z shifts, unit lens stretch and the default final-grid factor five, splitting at every polynomial knot. Two- and four-point rules agree within 2×10⁻¹³ in each cell.
+
+The frozen inputs contain 12 negative density cells across the source/lens tables. This test retains them in both arms; it does not silently clip or rewrite the supplied files. Their signed areas are included in the audit.
+
+
+We assume users are in `Cocoa/` with its Conda environment active.
+
+**Step :one:**: Load the Cocoa environment.
+
+```bash
+source start_cocoa.sh
+```
+
+**Step :two:**: Run the comparison.
+
+```bash
+python -m pytest -s projects/desy1xplanck/tests/data_vector/test_nz_reconstruction.py
+```
+
+**Step :three:**: Recreate the figures from the saved measurements.
+
+```bash
+python projects/desy1xplanck/tests/generate_nz_reconstruction_figures.py
+```
+
+The test asserts selection, finite outputs, unchanged covariance and exact cache round trips; it prints the measured model distance without imposing a preferred physical reconstruction. Set `COCOA_NZ_REPORT_DIR` to save fresh full-precision vectors and the probability audit. To reproduce the refined reference, rerun with `COCOA_NZ_INTEGRATION_ACCURACY=6` and a different output directory; the test defaults to level 3. The figure command reads the committed [measurement record](../nz_reconstruction.json) and [probability arrays](../nz_probability_data.npz), so it does not rerun cosmology. These data-vector checks use a fixed covariance; they do not validate coarse covariance-integration settings for the alternative n(z).
+
 
 # Appendix <a name="appendix"></a>
 

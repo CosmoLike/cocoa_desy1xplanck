@@ -356,6 +356,12 @@ class _cosmolike_prototype_base(DataSetLikelihood):
     # How the n(z) table files are read: interpolation 0 = cubic spline,
     # 1 = linear, 2+ = Steffen (monotone, cannot dip below zero); the z
     # column holds 0 = left bin edges (Z_LOW), 1 = sample points (Z_MID).
+    # Select the reconstruction before loading either histogram.
+    histogram_akima = getattr(self, "photoz_histogram_akima", 0)
+    if histogram_akima not in (0, 1):
+      raise LoggedError(self.log, "photoz_histogram_akima must be 0 or 1")
+    ci.init_photoz_histogram_akima(enabled=int(histogram_akima))
+
     ci.init_photoz_conventions(
         interpolation_type=int(getattr(self, "photoz_interpolation_type", 0)),
         zmid_convention=int(getattr(self, "photoz_zmid_convention", 0)))

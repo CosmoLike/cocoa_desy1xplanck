@@ -726,6 +726,9 @@ names and settings; changing one does not refine the other.
 `photoz_zmid_convention` describes the input coordinates. These are modeling
 or input-convention choices, not interchangeable accuracy boosts.
 
+`photoz_histogram_akima: 0` retains the original midpoint n(z) reconstruction; `1` selects fixed 3× histogram preparation followed by Akima for source and lens samples. See the [refined comparison, Δχ² and area plots](tests/data_vector/README.md#nz-reconstruction). The first factor three never changes with an accuracy boost.
+
+
 The default data-vector power grid has 1,500 wavenumbers at boost 1.
 Covariance alone uses `power_accuracyboost: 8` to prepare 11,993 nodes by
 natural cubic interpolation before C linear lookup. Its `accuracy_boost`
