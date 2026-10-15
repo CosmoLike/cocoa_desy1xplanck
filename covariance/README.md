@@ -88,9 +88,19 @@ From Bash in `cocoa/Cocoa`, with `conda activate cocoa`:
 
     source ./projects/desy1xplanck/scripts/compile_desy1xplanck.sh
 
-**Step :five:**: select the OpenMP team size.
+**Step :five:**: Select the number of OpenMP cores (below, we set it to 8).
 
-    export OMP_NUM_THREADS=8
+  - Linux
+
+        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=close; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
+
+  - macOS (arm)
+
+        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=disabled; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
 
 **Step :six:**: run the CLI.
 
