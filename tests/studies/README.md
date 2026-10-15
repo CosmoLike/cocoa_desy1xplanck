@@ -177,7 +177,21 @@ is `cocoa/Cocoa/`.
 source start_cocoa.sh
 ```
 
-**Step :two:**: run the reconstruction study.
+**Step :two:**: Select the number of OpenMP cores (below, we set it to 8).
+
+  - Linux
+
+        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=close; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
+
+  - macOS (arm)
+
+        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=disabled; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
+
+**Step :three:**: run the reconstruction study.
 
 ```bash
 python -m pytest projects/desy1xplanck/tests/studies/study_nz_reconstruction.py -v -s
@@ -187,10 +201,9 @@ The study computes all four reconstructions, compares the default and
 refined settings, measures cell areas and regenerates the figure. Results
 are saved in the temporary directory printed at completion.
 
-To keep the results in a directory of your choice, replace step two with:
+To keep the results in a directory of your choice, replace the command in step three with:
 
 ```bash
-OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 \
 python projects/desy1xplanck/tests/studies/run_nz_reconstruction.py \
   --output /tmp/desy1xplanck-nz-study
 ```
