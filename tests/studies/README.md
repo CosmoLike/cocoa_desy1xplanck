@@ -23,7 +23,7 @@ The **preparation factor is fixed independently of accuracy**. Raising the
 lookup accuracy subdivides the same Akima polynomial algebraically; it does
 not refit or sharpen the curve. Both reconstructions use uniform-grid lookup.
 
-![Original, 3-, 5- and 7-point preparation on an illustrative histogram](../nz_akima_preparation.png)
+![Original, 3-, 5- and 7-point preparation on an illustrative histogram](results/nz_akima_preparation.png)
 
 This first figure is a **toy histogram**, with coordinates measured in original
 bin widths rather than redshift. Its lower row always shows the prescribed
@@ -203,7 +203,7 @@ preparation factors remain 3, 5 and 7.
 To redraw the committed figure without a cosmology calculation:
 
 ```bash
-python projects/desy1xplanck/tests/generate_nz_reconstruction_figures.py
+python projects/desy1xplanck/tests/studies/generate_nz_reconstruction_figures.py
 ```
 
 [Comparison record](results/comparison.json), [default settings](results/defaults.json),
