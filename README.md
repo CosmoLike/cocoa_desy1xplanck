@@ -279,15 +279,36 @@ Use a new `--outroot` for each run; these scripts refuse to overwrite results.
 
 ### Cobaya MCMC
 
-With the same CPU environment, run the first MCMC example. Use configuration
+With Cocoa activated in Bash from `cocoa/Cocoa/`, run the first MCMC
+example. Use configuration
 2 for the second likelihood listed above. Check chain convergence before
 interpreting posterior constraints.
 
-**Step :one:**: start Cobaya's hybrid MCMC.
+**Step :one:**: Select the number of OpenMP cores (below, we set it to 8).
+
+  - Linux
+
+        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=close; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
+
+  - macOS (arm)
+
+        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=disabled; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
+
+**Step :two:**: remove GPU access on Linux; these examples use the CPU.
+
+```bash
+export CUDA_VISIBLE_DEVICES=""
+```
+
+**Step :three:**: start Cobaya's hybrid MCMC.
 
 - Linux
 
-      "${CONDA_PREFIX}"/bin/mpirun -n 2 --oversubscribe \
+      "${CONDA_PREFIX}"/bin/mpirun -n 4 --oversubscribe \
         --mca pml ob1 --mca btl vader,tcp,self \
         --bind-to core:overload-allowed --report-bindings \
         --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
@@ -295,7 +316,7 @@ interpreting posterior constraints.
 
 - macOS (arm)
 
-      mpirun -n 2 --oversubscribe \
+      mpirun -n 4 --oversubscribe \
         cobaya-run ./projects/desy1xplanck/EXAMPLE_EMUL2_MCMC1.yaml
 
 
@@ -304,54 +325,84 @@ interpreting posterior constraints.
 These steps assume Cocoa and this project are installed, the Cocoa Conda environment
 is active, the shell is Bash, and the current folder is `cocoa/Cocoa/`.
 
-**Step :one:**: check the hybrid setup before a long run.
+**Step :one:**: Select the number of OpenMP cores (below, we set it to 8).
+
+  - Linux
+
+        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=close; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
+
+  - macOS (arm)
+
+        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=disabled; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
+
+**Step :two:**: remove GPU access on Linux; these examples use the CPU.
+
+```bash
+export CUDA_VISIBLE_DEVICES=""
+```
+
+**Step :three:**: check the hybrid setup before a long run.
 
 ```bash
 python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE1.py --check
 ```
 
-**Step :two:**: search for a minimum with two MPI ranks.
+**Step :four:**: search for a minimum.
 
 - Linux
 
-      "${CONDA_PREFIX}"/bin/mpirun -n 2 --oversubscribe \
-        --mca pml ob1 --mca btl vader,tcp,self \
-        --bind-to core:overload-allowed --report-bindings \
-        --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
-        python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE1.py --nstw 200 --outroot hybrid_min1
-
-- macOS (arm)
-
-      mpirun -n 2 --oversubscribe \
-        python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE1.py --nstw 200 --outroot hybrid_min1
-
-
-**Step :three:**: profile the first sampled parameter using that saved minimum.
-
-- Linux
-
-      "${CONDA_PREFIX}"/bin/mpirun -n 2 --oversubscribe \
-        --mca pml ob1 --mca btl vader,tcp,self \
-        --bind-to core:overload-allowed --report-bindings \
-        --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
-        python ./projects/desy1xplanck/EXAMPLE_EMUL2_PROFILE1.py --profile 0 --nstw 200 --numpts 11 --factor 1 --minfile ./projects/desy1xplanck/chains/hybrid_min1.json --outroot hybrid_profile1
-
-- macOS (arm)
-
-      mpirun -n 2 --oversubscribe \
-        python ./projects/desy1xplanck/EXAMPLE_EMUL2_PROFILE1.py --profile 0 --nstw 200 --numpts 11 --factor 1 --minfile ./projects/desy1xplanck/chains/hybrid_min1.json --outroot hybrid_profile1
-
-
-**Step :four:**: run Nautilus as an independent sampling example.
-
-- Linux
-
-      "${CONDA_PREFIX}"/bin/mpirun -n 2 --oversubscribe \
+      "${CONDA_PREFIX}"/bin/mpirun -n 21 --oversubscribe \
         --mca pml ob1 --mca btl vader,tcp,self \
         -x PATH -x LD_LIBRARY_PATH -x PYTHONPATH -x CONDA_PREFIX -x ROOTDIR \
         -x OMP_NUM_THREADS -x OMP_PROC_BIND -x OMP_PLACES -x OMP_DYNAMIC \
         -x OPENBLAS_NUM_THREADS -x MKL_NUM_THREADS -x CLIK_PATH -x CLIK_DATA \
-        -x CLIK_PLUGIN --mca mpi_yield_when_idle 1 \
+        -x CLIK_PLUGIN -x CUDA_VISIBLE_DEVICES --mca mpi_yield_when_idle 1 \
+        --mca btl_tcp_if_exclude lo,docker0,virbr0,ib0 \
+        --bind-to core:overload-allowed --report-bindings \
+        --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
+        python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE1.py --nstw 200 --outroot hybrid_min1
+
+- macOS (arm)
+
+      mpirun -n 12 --oversubscribe \
+        python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE1.py --nstw 200 --outroot hybrid_min1
+
+
+**Step :five:**: profile the first sampled parameter using that saved minimum.
+
+- Linux
+
+      "${CONDA_PREFIX}"/bin/mpirun -n 21 --oversubscribe \
+        --mca pml ob1 --mca btl vader,tcp,self \
+        -x PATH -x LD_LIBRARY_PATH -x PYTHONPATH -x CONDA_PREFIX -x ROOTDIR \
+        -x OMP_NUM_THREADS -x OMP_PROC_BIND -x OMP_PLACES -x OMP_DYNAMIC \
+        -x OPENBLAS_NUM_THREADS -x MKL_NUM_THREADS -x CLIK_PATH -x CLIK_DATA \
+        -x CLIK_PLUGIN -x CUDA_VISIBLE_DEVICES --mca mpi_yield_when_idle 1 \
+        --mca btl_tcp_if_exclude lo,docker0,virbr0,ib0 \
+        --bind-to core:overload-allowed --report-bindings \
+        --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
+        python ./projects/desy1xplanck/EXAMPLE_EMUL2_PROFILE1.py --profile 0 --nstw 200 --numpts 11 --factor 1 --minfile ./projects/desy1xplanck/chains/hybrid_min1.json --outroot hybrid_profile1
+
+- macOS (arm)
+
+      mpirun -n 12 --oversubscribe \
+        python ./projects/desy1xplanck/EXAMPLE_EMUL2_PROFILE1.py --profile 0 --nstw 200 --numpts 11 --factor 1 --minfile ./projects/desy1xplanck/chains/hybrid_min1.json --outroot hybrid_profile1
+
+
+**Step :six:**: run Nautilus as an independent sampling example.
+
+- Linux
+
+      "${CONDA_PREFIX}"/bin/mpirun -n 90 --oversubscribe \
+        --mca pml ob1 --mca btl vader,tcp,self \
+        -x PATH -x LD_LIBRARY_PATH -x PYTHONPATH -x CONDA_PREFIX -x ROOTDIR \
+        -x OMP_NUM_THREADS -x OMP_PROC_BIND -x OMP_PLACES -x OMP_DYNAMIC \
+        -x OPENBLAS_NUM_THREADS -x MKL_NUM_THREADS -x CLIK_PATH -x CLIK_DATA \
+        -x CLIK_PLUGIN -x CUDA_VISIBLE_DEVICES --mca mpi_yield_when_idle 1 \
         --mca btl_tcp_if_exclude lo,docker0,virbr0,ib0 \
         --bind-to core:overload-allowed --report-bindings \
         --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
@@ -359,7 +410,7 @@ python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE1.py --check
 
 - macOS (arm)
 
-      mpirun -n 2 --oversubscribe \
+      mpirun -n 12 --oversubscribe \
         python ./projects/desy1xplanck/EXAMPLE_EMUL2_NAUTILUS1.py --nlive 1000 --neff 10000 --maxfeval 100000 --outroot hybrid_nautilus1
 
 
@@ -400,9 +451,6 @@ boost fit (Eq. 11 of [arXiv:2402.17492](https://arxiv.org/abs/2402.17492)).
 
 
 ### MPI across nodes <a name="mpi_across_nodes"></a>
-
-The two-rank commands above disable MPI binding for a portable local run.
-For a cluster allocation, use the explicit binding and placement below.
 
 > [!NOTE]
 > **Running on more than one node.**
