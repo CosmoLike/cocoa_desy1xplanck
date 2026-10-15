@@ -138,9 +138,22 @@ gain. Moving 10% from one bin to another gives an absolute-change sum of
 $`0.10 + 0.10 = 0.20`$, so $`100 \times \frac{1}{2} \times 0.20 = 10`$,
 meaning 10% redistributed.
 
-Both sums run over the original histogram cells. Normalizing $`q_i`$ separates
-redistribution from the total-area change reported in the table; it only
-affects this diagnostic.
+For one source or lens distribution, use the redshift bins in the input
+histogram file:
+
+- The denominator $`\sum_j q_j`$ adds the reconstructed curve's area in every
+  input bin. Dividing $`q_i`$ by this total gives the reconstructed fraction
+  of probability in bin $`i`$.
+- The outer sum $`\sum_i`$ compares that fraction with the input probability
+  $`p_i`$ in the same bin, takes the absolute difference, and adds these
+  differences over all input bins.
+
+These are the original redshift bins, not the finer cells introduced by
+upsampling or the different tomographic source/lens distributions. Each
+tomographic distribution gets its own value of $`R`$.
+
+Normalizing $`q_i`$ separates redistribution from the total-area change
+reported in the table; it only affects this diagnostic.
 
 Akima preserves total area for these uniform-bin constructions while moving
 probability between cells. This need not hold for irregular bins. Both
