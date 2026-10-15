@@ -4,11 +4,10 @@
 2. [Baryonic feedback on EXAMPLE_EVALUATE1](#desy1xplanck_baryonic_feedback)
 3. [Running Hybrid Cosmolike-ML emulators](#desy1xplanck_examples_emul2)
 4. [Unit tests](#desy1xplanck_unit_tests)
-5. [Minimum accuracy parameters](#desy1xplanck_minimum_accuracy)
-6. [Exploring notebooks](#notebooks)
-7. [The notebook wrappers](#desy1xplanck_wrappers)
-8. [Computing covariances](#computing_covariances)
-9. [Appendix: Which accuracy settings are available?](#accuracy)
+5. [Exploring notebooks](#notebooks)
+6. [The notebook wrappers](#desy1xplanck_wrappers)
+7. [Computing covariances](#computing_covariances)
+8. [Appendix: Which accuracy settings are available?](#accuracy)
 
 ## Running Cosmolike projects (Basic instructions) <a name="desy1xplanck_running_cosmolike_projects"></a> 
 
@@ -457,50 +456,11 @@ supply the hosts and slots with the cluster's `--hostfile` or `--host` recipe.
 
 # Unit tests <a name="desy1xplanck_unit_tests"></a>
 
-The `tests/` folder holds unit tests for the likelihoods of this
-project: they compare each likelihood against stored reference
-values, check for race conditions from OpenMP threading, and measure
-the numerical error of the default accuracy settings. The
-tests read nothing from the live project;
-[tests/README.md](tests/README.md) maps the two test sectors and the
-order in which to read them, and the
-[data-vector test guide](tests/data_vector/README.md) describes every
-test, the tests' own data snapshot, and how to refresh it.
-
-The steps below assume the Conda cocoa environment is active
-(`conda activate cocoa`), the shell is bash, and the current folder is
-the cocoa main folder `cocoa/Cocoa`.
-
-**Step :one:**: activate the private Python environment by sourcing
-the script `start_cocoa.sh`
-
-    source start_cocoa.sh
-
-**Step :two:**: run the tests of this project
-
-    python -m pytest ./projects/desy1xplanck/tests/data_vector
-
-## Minimum accuracy parameters <a name="desy1xplanck_minimum_accuracy"></a>
-
-The advisory checks in `tests/data_vector/test_accuracy.py` measure the
-numerical error of the default accuracy settings: each setting is
-raised one at a time on the 6x2pt configuration, so a large
-$\Delta\chi^2$ can be attributed to the setting causing it, and
-then every setting at once.
-
-Each check prints the $\Delta\chi^2$ between the high-accuracy and
-the default evaluations, to compare against the 0.2 band the
-reference tests allow. No measured values are quoted here: rerun
-the checks to measure them on the code at hand, and see the
-[data-vector test guide](tests/data_vector/README.md#accuracy_checks)
-for each check, the settings raised, and what each setting controls.
-
-The comments next to the `accuracyboost` lines of this project's yaml
-files record the convergence of the boost against a synthetic 6x2pt
-data vector computed at boost 16. Values above 3 do not break the
-integration tables: the cosmolike core compiled here scales the FFTLog
-zero-padding with the chi grid
-(`external_modules/code/cosmolike/cosmo2D.c`).
+The `tests/` folder compares likelihood predictions against stored reference
+values, checks for race conditions from OpenMP threading, and measures the
+numerical error of the default accuracy settings.
+[tests/README.md](tests/README.md) describes the checks, how to run them,
+the input data snapshots, and how to refresh them.
 
 # Exploring notebooks <a name="notebooks"></a>
 
@@ -605,78 +565,10 @@ document every argument and array layout.
 
 # Computing covariances <a name="computing_covariances"></a>
 
-> [!WARNING]
-> **CLI for production; notebook wrappers for exploration.**
->
-> Run production and HPC covariance calculations from YAML through the
-> `_interface` bindings. Notebook `_wrapper` APIs expose intermediate
-> quantities for exploration; copying and rearranging their arrays adds
-> overhead. Both routes call the same C kernels.
->
-> For timing measurements, see
-> [Cocoa's main README](https://github.com/CosmoLike/cocoa#overview).
-
-The production CLI saves G, SSC, cNG and total before scale cuts. It reads
-[the covariance evaluate YAML](EXAMPLE_EVALUATE_COVARIANCE.yaml) and calls the shared C kernels.
-The forecast covers the 1,500-entry galaxy/shear block; it does not generate
-the CMB-lensing blocks or the complete supplied 1,809-entry matrix.
-
-These steps assume Cocoa and this project are installed, the Cocoa Conda environment
-is active, the shell is Bash, and the current folder is `cocoa/Cocoa/`.
-
-**Step :one:**: keep `export IGNORE_COSMOLIKE_DESXPLANCK_CODE=1` commented out in
-`set_installation_options.sh` (the default) before activation.
-
-**Step :two:**: activate Cocoa.
-
-```bash
-source start_cocoa.sh
-```
-
-**Step :three:**: enable covariance generation.
-
-```bash
-unset IGNORE_COSMOLIKE_DESXPLANCK_COVARIANCE
-```
-
-**Step :four:**: compile the project.
-
-```bash
-source ./projects/desy1xplanck/scripts/compile_desy1xplanck.sh
-```
-
-**Step :five:**: Select the number of OpenMP cores (below, we set it to 8).
-
-  - Linux
-
-        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=close; \
-        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
-        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
-
-  - macOS (arm)
-
-        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=disabled; \
-        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
-        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
-
-**Step :six:**: compute the fixed YAML cosmology.
-
-```bash
-python ./projects/desy1xplanck/covariance/compute_covariance.py ./projects/desy1xplanck/EXAMPLE_EVALUATE_COVARIANCE.yaml
-```
-
-Use `--output PATH` for a separate output or `--overwrite` to replace an
-existing computed archive. Paths are relative to `cocoa/Cocoa/`. Threads
-come only from `OMP_NUM_THREADS`, never from the YAML; the runner fixes BLAS
-to one thread. Ordinary likelihoods read their supplied covariance and do
-not generate a new one.
-
-Cobaya's YAML reader supplies the familiar `theory`, `params` and
-`sampler: evaluate` syntax. This runner evaluates one fixed cosmology and
-does not run MCMC. See the [covariance guide](covariance/README.md) for output
-ordering, physics, Gaussian non-Limber/IA limits, plots and test commands,
-and the [accuracy FAQ](#accuracy) for the separate numerical controls.
-
+The covariance tools compute Gaussian (G), super-sample (SSC), connected
+non-Gaussian (cNG) and total matrices before scale cuts.
+[covariance/README.md](covariance/README.md) explains compilation, the production
+CLI, exploratory notebooks, accuracy settings and output files.
 
 # Appendix <a name="appendix"></a>
 

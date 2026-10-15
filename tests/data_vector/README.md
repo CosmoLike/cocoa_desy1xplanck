@@ -372,6 +372,15 @@ settings. No pass/fail.
 > [!NOTE]
 > High-accuracy evaluations take minutes.
 
+#### Why these accuracy defaults? <a name="accuracy_defaults"></a>
+
+The comments next to the `accuracyboost` lines of this project's yaml
+files record the convergence of the boost against a synthetic 6x2pt
+data vector computed at boost 16. Values above 3 do not break the
+integration tables: the cosmolike core compiled here scales the FFTLog
+zero-padding with the chi grid
+(`external_modules/code/cosmolike/cosmo2D.c`).
+
 #### Running Accuracy checks <a name="run_accuracy"></a>
 
 The steps below assume the Conda cocoa environment is active
