@@ -14,9 +14,11 @@ nonlimber_accuracyboost: 1.0
 pk_z_refinement: 1
 integration_accuracy: 0 # integer 0, 1 or 2
 # n(z) interpolation: 0 = cubic spline, 1 = linear, 2+ = Steffen (monotone)
-# 0: original midpoint curve (default); 1: fixed 3x histogram + Akima.
-# Akima ignores photoz_interpolation_type; its first factor is always 3.
+# 0: original midpoint curve (default); 1: histogram + Akima.
+# Akima ignores photoz_interpolation_type; select its fixed first factor below.
 photoz_histogram_akima: 0
+# Reconstruction choice: 3, 5 or 7; accuracy boosts never change this factor.
+photoz_histogram_akima_factor: 3
 
 photoz_interpolation_type: 0
 # n(z) file z column: 0 = Z_LOW (left bin edges), 1 = Z_MID (sample points)

@@ -360,7 +360,12 @@ class _cosmolike_prototype_base(DataSetLikelihood):
     histogram_akima = getattr(self, "photoz_histogram_akima", 0)
     if histogram_akima not in (0, 1):
       raise LoggedError(self.log, "photoz_histogram_akima must be 0 or 1")
-    ci.init_photoz_histogram_akima(enabled=int(histogram_akima))
+    # The first factor defines the n(z) model, independently of accuracy.
+    preparation_factor = getattr(self, "photoz_histogram_akima_factor", 3)
+    if preparation_factor not in (3, 5, 7):
+      raise LoggedError(self.log, "photoz_histogram_akima_factor must be 3, 5 or 7")
+    ci.init_photoz_histogram_akima(
+        enabled=int(histogram_akima), preparation_factor=int(preparation_factor))
 
     ci.init_photoz_conventions(
         interpolation_type=int(getattr(self, "photoz_interpolation_type", 0)),
