@@ -392,15 +392,13 @@ Similarly, networks generalize the *syren-Halofit* LCDM nonlinear
 boost fit (Eq. 11 of [arXiv:2402.17492](https://arxiv.org/abs/2402.17492)).
 
 
-### MPI across nodes
+### MPI across nodes <a name="mpi_across_nodes"></a>
 
 The two-rank commands above disable MPI binding for a portable local run.
 For a cluster allocation, use the explicit binding and placement below.
 
 > [!NOTE]
-> **Running on more than one node.** With the Open MPI 4 launcher used here,
-> `--mca pml ob1 --mca btl vader,tcp,self` selects shared memory within a node
-> and TCP between nodes. The same transport list works across nodes.
+> **Running on more than one node.**
 >
 > 1. **Network interface.** TCP must use an interface routable between compute
 >    nodes. A common exclusion list is
@@ -420,11 +418,6 @@ For a cluster allocation, use the explicit binding and placement below.
 >    `SLURM_CPUS_PER_TASK` and use `--map-by numa:pe=${OMP_NUM_THREADS}`.
 >    The minimization, profile and Nautilus pool reserves one MPI rank as
 >    coordinator; the remaining ranks evaluate the model.
->
-> Open MPI 5 calls the shared-memory transport `sm`; use `sm,tcp,self` there.
-> See the [Open MPI transport guide](https://docs.open-mpi.org/en/main/tuning-apps/networking/shared-memory.html),
-> [TCP interface guidance](https://www.open-mpi.org/faq/?category=tcp), and
-> [Slurm environment options](https://slurm.schedmd.com/sbatch.html#OPT_export).
 
 Within a Slurm allocation, first activate Cocoa in Bash on the launch node.
 The following steps assume Open MPI 4 and shared installation/data paths.
@@ -432,41 +425,11 @@ Omit optional CLIK exports if those variables are not set.
 
 **Step :one:**: match OpenMP threads to the scheduler allocation.
 
-```bash
-export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK}"
-```
+    export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK}"; export OMP_PROC_BIND=close; \
+    export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+    export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
 
-**Step :two:**: bind each OpenMP team to its allocated cores.
-
-```bash
-export OMP_PROC_BIND=close
-```
-
-**Step :three:**: select core placement.
-
-```bash
-export OMP_PLACES=cores
-```
-
-**Step :four:**: disable dynamic team resizing.
-
-```bash
-export OMP_DYNAMIC=FALSE
-```
-
-**Step :five:**: keep OpenBLAS serial.
-
-```bash
-export OPENBLAS_NUM_THREADS=1
-```
-
-**Step :six:**: keep MKL serial.
-
-```bash
-export MKL_NUM_THREADS=1
-```
-
-**Step :seven:**: launch the hybrid minimizer across the allocated ranks.
+**Step :two:**: launch the hybrid minimizer across the allocated ranks.
 
 ```bash
 "${CONDA_PREFIX}"/bin/mpirun -n "${SLURM_NTASKS}" \
