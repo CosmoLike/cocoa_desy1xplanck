@@ -9,7 +9,7 @@ fractional data-vector differences against the default,
 
 per tomographic pair and per angular bin, for xi_plus (solid) and
 xi_minus (dashed). Masked angular bins are left out. Two figures,
-written to the tests/ folder, because the two settings act on
+written to the tests/data_vector/ folder, because the two settings act on
 different scales:
 
     photoz_zmid_dxi.png   - the Z_LOW vs Z_MID reading of the n(z)
@@ -20,7 +20,7 @@ different scales:
 To run (from the Cocoa/ folder, cocoa environment active,
 start_cocoa.sh sourced):
 
-    python ./projects/desy1xplanck/tests/generate_photoz_convention_figure.py
+    python ./projects/desy1xplanck/tests/data_vector/generate_photoz_convention_figure.py
 """
 
 import os
@@ -40,8 +40,12 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-# the folder of this file (tests/) holds cocoa_test_utils
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# Figures belong beside these data-vector checks. The shared harness and
+# frozen inputs remain one folder above, in tests/. Resolve both from
+# this script so it can be launched from any working directory.
+FIGURES = os.path.dirname(os.path.abspath(__file__))
+TESTS = os.path.dirname(FIGURES)
+sys.path.insert(0, TESTS)
 import cocoa_test_utils as u
 
 # The cosmic-shear configuration and its layout: 4 source bins, 30
@@ -52,7 +56,7 @@ EXAMPLE = "example1"
 NTOMO = 4
 NTHETA = 30
 THETA_MIN, THETA_MAX = 0.25, 250.0
-MASK_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+MASK_FILE = os.path.join(TESTS,
                          "frozen", "data",
                          "DESY3xPlanckR4_6x2pt_Maglim_baseline_archive.mask")
 
@@ -107,7 +111,7 @@ def plot(curves, fname, title, scale=100.0, unit="%", ylim=None):
     Arguments:
       curves = as above; npair = 10 source pairs (i <= j), one panel
                each.
-      fname  = the PNG file name, written into the tests/ folder.
+      fname  = the PNG file name, written into the tests/data_vector/ folder.
       title  = the figure title.
       scale  = factor applied to the fractional differences before
                plotting (100 for percent, 1e4 for units of 1e-4).
@@ -155,7 +159,7 @@ def plot(curves, fname, title, scale=100.0, unit="%", ylim=None):
         axes.ravel()[0].set_ylim(-ylim, ylim)
     axes.ravel()[0].legend(fontsize=9, loc="lower left")
     fig.suptitle(title, fontsize=17)
-    fig.savefig(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+    fig.savefig(os.path.join(FIGURES,
                              fname), dpi=120, bbox_inches="tight")
     plt.close(fig)
     print(f"wrote {fname}")

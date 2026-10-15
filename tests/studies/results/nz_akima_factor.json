@@ -1,0 +1,223 @@
+{
+  "project": "desy1xplanck",
+  "example": "example2",
+  "point": {
+    "As_1e9": 2.1,
+    "DES_A1_1": -0.7,
+    "DES_A1_2": -1.7,
+    "DES_A2_1": 0.0,
+    "DES_A2_2": -1.51541,
+    "DES_B1_1": 1.5,
+    "DES_B1_2": 1.8,
+    "DES_B1_3": 1.8,
+    "DES_B1_4": 1.9,
+    "DES_B1_5": 2.3,
+    "DES_B1_6": 2.3,
+    "DES_BARYON_Q1": 0.0,
+    "DES_BARYON_Q2": 0.0,
+    "DES_BTA_1": 0.0,
+    "DES_DZ2_L1": 0.98,
+    "DES_DZ2_L2": 1.31,
+    "DES_DZ2_L3": 0.87,
+    "DES_DZ2_L4": 0.92,
+    "DES_DZ2_L5": 1.08,
+    "DES_DZ2_L6": 0.845,
+    "DES_DZ_L1": -0.009,
+    "DES_DZ_L2": -0.035,
+    "DES_DZ_L3": -0.005,
+    "DES_DZ_L4": -0.007,
+    "DES_DZ_L5": 0.002,
+    "DES_DZ_L6": 0.002,
+    "DES_DZ_S1": 0.0,
+    "DES_DZ_S2": 0.0,
+    "DES_DZ_S3": 0.0,
+    "DES_DZ_S4": 0.0,
+    "DES_M1": -0.0063,
+    "DES_M2": -0.0198,
+    "DES_M3": -0.0241,
+    "DES_M4": -0.0369,
+    "DES_PM1": 0.0,
+    "DES_PM2": 0.0,
+    "DES_PM3": 0.0,
+    "DES_PM4": 0.0,
+    "DES_PM5": 0.0,
+    "DES_PM6": 0.0,
+    "H0": 67.32,
+    "mnu": 0.06,
+    "ns": 0.96605,
+    "omegab": 0.04,
+    "omegam": 0.3,
+    "w": -1.0,
+    "w0pwa": -1.0
+  },
+  "input_files": {
+    "source_file": {
+      "name": "nz_source_Y3_unblinded_02_26_21.txt",
+      "sha256": "c0dc83ea8dc125b2c8c6a9a852fda37fddff6c49ed41322119d7f7cb98880abb"
+    },
+    "lens_file": {
+      "name": "nz_maglim_Y3_unblinded_02_26_21.txt",
+      "sha256": "6981a3679c4f223c94d679146cbb4ec8987b11c3505f10ed5dc93ff78daeb862"
+    },
+    "cov_file": {
+      "name": "DESY3xPlanckPR4_6x2pt_baseline_archive.covmat",
+      "sha256": "67fb19b6df5e2b5be76639cde49ee6f0548f96d57109532ce1ad0029c365b157"
+    },
+    "mask_file": {
+      "name": "DESY3xPlanckR4_6x2pt_Maglim_baseline_archive.mask",
+      "sha256": "fd9a3b27df82ca8f2dfce8f482596569e6fe13cb7109d38e05cce552a8836c16"
+    },
+    "data_vector_file": {
+      "name": "synthetic_desy1xplanck.modelvector",
+      "sha256": "eee97034c618d3f6d52d78afd8fc7f88ef8963b3453adf91aef421afd28062af"
+    }
+  },
+  "accuracyboost": 1.0,
+  "physical_covariance": true,
+  "reference_integration_accuracy": 6,
+  "pairwise_delta_chi2": {
+    "original_to_three": 0.24958229379780367,
+    "original_to_five": 0.27428570402124675,
+    "original_to_seven": 0.26874163445039023,
+    "three_to_five": 0.00984154996102264,
+    "three_to_seven": 0.014613287795976178,
+    "five_to_seven": 0.001274634855181451
+  },
+  "practical_levels": {
+    "three": 4,
+    "five": 4,
+    "seven": 4
+  },
+  "quadrature_scans": {
+    "five": [
+      {
+        "integration_accuracy": 5,
+        "five_numerical_delta_chi2": 6.349344963739167e-06,
+        "distance_to_refined_three": 0.009862373897386909,
+        "three_to_five_at_level5": 0.00983317527646803,
+        "model_displacement_refinement_delta_chi2": 1.549104719073912e-05
+      },
+      {
+        "integration_accuracy": 0,
+        "five_numerical_delta_chi2": 3.9202256888628004,
+        "distance_to_refined_three": 3.877697380063768
+      },
+      {
+        "integration_accuracy": 1,
+        "five_numerical_delta_chi2": 6.195074036624215,
+        "distance_to_refined_three": 6.266938756115662
+      },
+      {
+        "integration_accuracy": 2,
+        "five_numerical_delta_chi2": 0.9297500176166887,
+        "distance_to_refined_three": 0.9414422400806108
+      },
+      {
+        "integration_accuracy": 3,
+        "five_numerical_delta_chi2": 0.051118145153551696,
+        "distance_to_refined_three": 0.058563206182142856
+      },
+      {
+        "integration_accuracy": 4,
+        "five_numerical_delta_chi2": 0.017971791182682686,
+        "distance_to_refined_three": 0.027799934478800928
+      }
+    ],
+    "seven": [
+      {
+        "integration_accuracy": 5,
+        "seven_numerical_delta_chi2": 0.00010829870901315462,
+        "distance_to_refined_three": 0.015013282517028617,
+        "three_to_seven_at_level5": 0.014938683123199075,
+        "model_displacement_refinement_delta_chi2": 8.760545558725877e-05
+      },
+      {
+        "integration_accuracy": 0,
+        "seven_numerical_delta_chi2": 4.228879588301506,
+        "distance_to_refined_three": 4.172987516696658
+      },
+      {
+        "integration_accuracy": 1,
+        "seven_numerical_delta_chi2": 6.43506569905374,
+        "distance_to_refined_three": 6.531705677702417
+      },
+      {
+        "integration_accuracy": 2,
+        "seven_numerical_delta_chi2": 0.9816438076153454,
+        "distance_to_refined_three": 0.9947667153785028
+      },
+      {
+        "integration_accuracy": 3,
+        "seven_numerical_delta_chi2": 0.0881240505916851,
+        "distance_to_refined_three": 0.1029570500629589
+      },
+      {
+        "integration_accuracy": 4,
+        "seven_numerical_delta_chi2": 0.05018371806102181,
+        "distance_to_refined_three": 0.06823300606615121
+      }
+    ]
+  },
+  "budget_delta_chi2": 0.1,
+  "checks": {
+    "three_reference_bitwise_unchanged": true,
+    "roundtrips_3_5_3_and_3_7_3_bitwise": true,
+    "fresh_yaml_matches_live": true,
+    "inverse_covariance_unchanged": true
+  },
+  "initial_practical_levels": {
+    "three": 3,
+    "five": 3,
+    "seven": 3
+  },
+  "raised_accuracy": {
+    "integration_accuracy": 4,
+    "reference_integration_accuracy": 6,
+    "numerical_delta_chi2": {
+      "three": 0.00034386855506469917,
+      "five": 0.01797179118268271,
+      "seven": 0.050183718061021815,
+      "original": 6.398288473918578e-06
+    },
+    "pairwise": {
+      "three_to_five": {
+        "raised_delta_chi2": 0.023152432690412575,
+        "reference_delta_chi2": 0.00984154996102264,
+        "displacement_error_delta_chi2": 0.013442810683942555
+      },
+      "three_to_seven": {
+        "raised_delta_chi2": 0.060360520697059196,
+        "reference_delta_chi2": 0.014613287795976178,
+        "displacement_error_delta_chi2": 0.04252309426637024
+      },
+      "five_to_seven": {
+        "raised_delta_chi2": 0.012034404997739924,
+        "reference_delta_chi2": 0.001274634855181451,
+        "displacement_error_delta_chi2": 0.009343471949781069
+      },
+      "original_to_three": {
+        "raised_delta_chi2": 0.24778781733929478,
+        "reference_delta_chi2": 0.24958229379780367,
+        "displacement_error_delta_chi2": 0.00034694684378363606
+      }
+    },
+    "tests": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "fresh_vectors_match_previous_scans_bitwise": true,
+    "three_vectors_agree_between_factor_tests_bitwise": true,
+    "vector_sha256": {
+      "5": "eb77753772da7e14ad78ab1ca93851638a986ff952269c723eea72ee65ce2dcd",
+      "7": "f763cac492ab2032151393b89a1e99ad6de2ebd613517edd945f88dd20d3df67"
+    },
+    "original_vector_source": {
+      "project": "desy1xplanck",
+      "level": 4,
+      "status": "passed",
+      "returncode": 0
+    }
+  }
+}

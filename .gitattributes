@@ -2,3 +2,4 @@
 *.emul filter=lfs diff=lfs merge=lfs -text
 *.h5 filter=lfs diff=lfs merge=lfs -text
 DESY3xPlanckPR4_6x2pt_baseline_archive.covmat filter=lfs diff=lfs merge=lfs -text
+tests/studies/results/inverse_covariance.npz filter=lfs diff=lfs merge=lfs -text

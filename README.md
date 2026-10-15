@@ -4,26 +4,12 @@
 2. [Baryonic feedback on EXAMPLE_EVALUATE1](#desy1xplanck_baryonic_feedback)
 3. [Running Hybrid Cosmolike-ML emulators](#desy1xplanck_examples_emul2)
 4. [Unit tests](#desy1xplanck_unit_tests)
-5. [Minimum accuracy parameters](#desy1xplanck_minimum_accuracy)
-6. [Exploring notebooks](#notebooks)
-7. [The notebook wrappers](#desy1xplanck_wrappers)
-8. [Computing covariances](#computing_covariances)
-9. [Appendix: Which accuracy settings are available?](#accuracy)
+5. [Exploring notebooks](#notebooks)
+6. [The notebook wrappers](#desy1xplanck_wrappers)
+7. [Computing covariances](#computing_covariances)
+8. [Appendix: Which accuracy settings are available?](#accuracy)
 
 ## Running Cosmolike projects (Basic instructions) <a name="desy1xplanck_running_cosmolike_projects"></a> 
-
-> [!WARNING]
-> **CLI for production; notebook wrappers for exploration.**
->
-> Run production and HPC calculations from YAML through the optimized
-> `_interface` bindings. Notebook `_wrapper` APIs expose intermediate
-> quantities for exploration; copying and rearranging their arrays adds
-> overhead. Both routes call the same C kernels.
->
-> In a matched **LSST Y1 covariance** test on an M2 Pro with eight threads,
-> the CLI averaged **50.23 s** (three runs); one wrapper run took **173.38 s**.
-> The CLI was **3.45× faster**, with bitwise-identical covariance components.
-> See [the production covariance CLI](#computing_covariances).
 
 From `Cocoa/Readme` instructions:
 
@@ -149,16 +135,6 @@ and
 The likelihoods of the examples, the parameter files they include, and the parameters each likelihood fixes or must not vary are described in [likelihood/README.md](likelihood/README.md).
 
 
-> [!Warning]
-> CosmoLike supports the optimized strict-IEEE default build and
-> `COSMOLIKE_DEBUG_MODE`. The compiler mode `COSMOLIKE_AGGRESSIVE_MODE`
-> is retired because its fast-math configuration produced incorrect
-> covariance inverses. Unset that variable before compiling.
-> Do not enable `-ffast-math`, `-Ofast`, `-funsafe-math-optimizations`,
-> `-fassociative-math`, `-ffinite-math-only`, `-freciprocal-math`,
-> `-fno-signed-zeros`, or `-fno-trapping-math` in CosmoLike builds.
-> This does not change Cocoa's separate `--aggressive` download option.
-
 # Baryonic feedback on EXAMPLE_EVALUATE1 <a name="desy1xplanck_baryonic_feedback"></a>
 
 `EXAMPLE_EVALUATE1.yaml` can apply an external baryonic feedback suppression to the
@@ -238,11 +214,19 @@ is active, the shell is Bash, and the current folder is `cocoa/Cocoa/`.
 source start_cocoa.sh
 ```
 
-**Step :two:**: select the OpenMP threads per process.
+**Step :two:**: Select the number of OpenMP cores (below, we set it to 4).
 
-```bash
-export OMP_NUM_THREADS=4
-```
+  - Linux
+
+        export OMP_NUM_THREADS=4; export OMP_PROC_BIND=close; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
+
+  - macOS (arm)
+
+        export OMP_NUM_THREADS=4; export OMP_PROC_BIND=disabled; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
 
 **Step :three:**: remove GPU access on Linux; these examples use the CPU.
 
@@ -295,15 +279,36 @@ Use a new `--outroot` for each run; these scripts refuse to overwrite results.
 
 ### Cobaya MCMC
 
-With the same CPU environment, run the first MCMC example. Use configuration
+With Cocoa activated in Bash from `cocoa/Cocoa/`, run the first MCMC
+example. Use configuration
 2 for the second likelihood listed above. Check chain convergence before
 interpreting posterior constraints.
 
-**Step :one:**: start Cobaya's hybrid MCMC.
+**Step :one:**: Select the number of OpenMP cores (below, we set it to 8).
+
+  - Linux
+
+        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=close; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
+
+  - macOS (arm)
+
+        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=disabled; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
+
+**Step :two:**: remove GPU access on Linux; these examples use the CPU.
+
+```bash
+export CUDA_VISIBLE_DEVICES=""
+```
+
+**Step :three:**: start Cobaya's hybrid MCMC.
 
 - Linux
 
-      "${CONDA_PREFIX}"/bin/mpirun -n 2 --oversubscribe \
+      "${CONDA_PREFIX}"/bin/mpirun -n 4 --oversubscribe \
         --mca pml ob1 --mca btl vader,tcp,self \
         --bind-to core:overload-allowed --report-bindings \
         --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
@@ -311,7 +316,7 @@ interpreting posterior constraints.
 
 - macOS (arm)
 
-      mpirun -n 2 --oversubscribe \
+      mpirun -n 4 --oversubscribe \
         cobaya-run ./projects/desy1xplanck/EXAMPLE_EMUL2_MCMC1.yaml
 
 
@@ -320,54 +325,84 @@ interpreting posterior constraints.
 These steps assume Cocoa and this project are installed, the Cocoa Conda environment
 is active, the shell is Bash, and the current folder is `cocoa/Cocoa/`.
 
-**Step :one:**: check the hybrid setup before a long run.
+**Step :one:**: Select the number of OpenMP cores (below, we set it to 8).
+
+  - Linux
+
+        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=close; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
+
+  - macOS (arm)
+
+        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=disabled; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
+
+**Step :two:**: remove GPU access on Linux; these examples use the CPU.
+
+```bash
+export CUDA_VISIBLE_DEVICES=""
+```
+
+**Step :three:**: check the hybrid setup before a long run.
 
 ```bash
 python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE1.py --check
 ```
 
-**Step :two:**: search for a minimum with two MPI ranks.
+**Step :four:**: search for a minimum.
 
 - Linux
 
-      "${CONDA_PREFIX}"/bin/mpirun -n 2 --oversubscribe \
-        --mca pml ob1 --mca btl vader,tcp,self \
-        --bind-to core:overload-allowed --report-bindings \
-        --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
-        python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE1.py --nstw 200 --outroot hybrid_min1
-
-- macOS (arm)
-
-      mpirun -n 2 --oversubscribe \
-        python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE1.py --nstw 200 --outroot hybrid_min1
-
-
-**Step :three:**: profile the first sampled parameter using that saved minimum.
-
-- Linux
-
-      "${CONDA_PREFIX}"/bin/mpirun -n 2 --oversubscribe \
-        --mca pml ob1 --mca btl vader,tcp,self \
-        --bind-to core:overload-allowed --report-bindings \
-        --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
-        python ./projects/desy1xplanck/EXAMPLE_EMUL2_PROFILE1.py --profile 0 --nstw 200 --numpts 11 --factor 1 --minfile ./projects/desy1xplanck/chains/hybrid_min1.json --outroot hybrid_profile1
-
-- macOS (arm)
-
-      mpirun -n 2 --oversubscribe \
-        python ./projects/desy1xplanck/EXAMPLE_EMUL2_PROFILE1.py --profile 0 --nstw 200 --numpts 11 --factor 1 --minfile ./projects/desy1xplanck/chains/hybrid_min1.json --outroot hybrid_profile1
-
-
-**Step :four:**: run Nautilus as an independent sampling example.
-
-- Linux
-
-      "${CONDA_PREFIX}"/bin/mpirun -n 2 --oversubscribe \
+      "${CONDA_PREFIX}"/bin/mpirun -n 21 --oversubscribe \
         --mca pml ob1 --mca btl vader,tcp,self \
         -x PATH -x LD_LIBRARY_PATH -x PYTHONPATH -x CONDA_PREFIX -x ROOTDIR \
         -x OMP_NUM_THREADS -x OMP_PROC_BIND -x OMP_PLACES -x OMP_DYNAMIC \
         -x OPENBLAS_NUM_THREADS -x MKL_NUM_THREADS -x CLIK_PATH -x CLIK_DATA \
-        -x CLIK_PLUGIN --mca mpi_yield_when_idle 1 \
+        -x CLIK_PLUGIN -x CUDA_VISIBLE_DEVICES --mca mpi_yield_when_idle 1 \
+        --mca btl_tcp_if_exclude lo,docker0,virbr0,ib0 \
+        --bind-to core:overload-allowed --report-bindings \
+        --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
+        python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE1.py --nstw 200 --outroot hybrid_min1
+
+- macOS (arm)
+
+      mpirun -n 12 --oversubscribe \
+        python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE1.py --nstw 200 --outroot hybrid_min1
+
+
+**Step :five:**: profile the first sampled parameter using that saved minimum.
+
+- Linux
+
+      "${CONDA_PREFIX}"/bin/mpirun -n 21 --oversubscribe \
+        --mca pml ob1 --mca btl vader,tcp,self \
+        -x PATH -x LD_LIBRARY_PATH -x PYTHONPATH -x CONDA_PREFIX -x ROOTDIR \
+        -x OMP_NUM_THREADS -x OMP_PROC_BIND -x OMP_PLACES -x OMP_DYNAMIC \
+        -x OPENBLAS_NUM_THREADS -x MKL_NUM_THREADS -x CLIK_PATH -x CLIK_DATA \
+        -x CLIK_PLUGIN -x CUDA_VISIBLE_DEVICES --mca mpi_yield_when_idle 1 \
+        --mca btl_tcp_if_exclude lo,docker0,virbr0,ib0 \
+        --bind-to core:overload-allowed --report-bindings \
+        --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
+        python ./projects/desy1xplanck/EXAMPLE_EMUL2_PROFILE1.py --profile 0 --nstw 200 --numpts 11 --factor 1 --minfile ./projects/desy1xplanck/chains/hybrid_min1.json --outroot hybrid_profile1
+
+- macOS (arm)
+
+      mpirun -n 12 --oversubscribe \
+        python ./projects/desy1xplanck/EXAMPLE_EMUL2_PROFILE1.py --profile 0 --nstw 200 --numpts 11 --factor 1 --minfile ./projects/desy1xplanck/chains/hybrid_min1.json --outroot hybrid_profile1
+
+
+**Step :six:**: run Nautilus as an independent sampling example.
+
+- Linux
+
+      "${CONDA_PREFIX}"/bin/mpirun -n 90 --oversubscribe \
+        --mca pml ob1 --mca btl vader,tcp,self \
+        -x PATH -x LD_LIBRARY_PATH -x PYTHONPATH -x CONDA_PREFIX -x ROOTDIR \
+        -x OMP_NUM_THREADS -x OMP_PROC_BIND -x OMP_PLACES -x OMP_DYNAMIC \
+        -x OPENBLAS_NUM_THREADS -x MKL_NUM_THREADS -x CLIK_PATH -x CLIK_DATA \
+        -x CLIK_PLUGIN -x CUDA_VISIBLE_DEVICES --mca mpi_yield_when_idle 1 \
         --mca btl_tcp_if_exclude lo,docker0,virbr0,ib0 \
         --bind-to core:overload-allowed --report-bindings \
         --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
@@ -375,7 +410,7 @@ python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE1.py --check
 
 - macOS (arm)
 
-      mpirun -n 2 --oversubscribe \
+      mpirun -n 12 --oversubscribe \
         python ./projects/desy1xplanck/EXAMPLE_EMUL2_NAUTILUS1.py --nlive 1000 --neff 10000 --maxfeval 100000 --outroot hybrid_nautilus1
 
 
@@ -415,15 +450,10 @@ Similarly, networks generalize the *syren-Halofit* LCDM nonlinear
 boost fit (Eq. 11 of [arXiv:2402.17492](https://arxiv.org/abs/2402.17492)).
 
 
-### MPI across nodes
-
-The two-rank commands above disable MPI binding for a portable local run.
-For a cluster allocation, use the explicit binding and placement below.
+### MPI across nodes <a name="mpi_across_nodes"></a>
 
 > [!NOTE]
-> **Running on more than one node.** With the Open MPI 4 launcher used here,
-> `--mca pml ob1 --mca btl vader,tcp,self` selects shared memory within a node
-> and TCP between nodes. The same transport list works across nodes.
+> **Running on more than one node.**
 >
 > 1. **Network interface.** TCP must use an interface routable between compute
 >    nodes. A common exclusion list is
@@ -443,11 +473,6 @@ For a cluster allocation, use the explicit binding and placement below.
 >    `SLURM_CPUS_PER_TASK` and use `--map-by numa:pe=${OMP_NUM_THREADS}`.
 >    The minimization, profile and Nautilus pool reserves one MPI rank as
 >    coordinator; the remaining ranks evaluate the model.
->
-> Open MPI 5 calls the shared-memory transport `sm`; use `sm,tcp,self` there.
-> See the [Open MPI transport guide](https://docs.open-mpi.org/en/main/tuning-apps/networking/shared-memory.html),
-> [TCP interface guidance](https://www.open-mpi.org/faq/?category=tcp), and
-> [Slurm environment options](https://slurm.schedmd.com/sbatch.html#OPT_export).
 
 Within a Slurm allocation, first activate Cocoa in Bash on the launch node.
 The following steps assume Open MPI 4 and shared installation/data paths.
@@ -455,41 +480,11 @@ Omit optional CLIK exports if those variables are not set.
 
 **Step :one:**: match OpenMP threads to the scheduler allocation.
 
-```bash
-export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK}"
-```
+    export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK}"; export OMP_PROC_BIND=close; \
+    export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+    export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
 
-**Step :two:**: bind each OpenMP team to its allocated cores.
-
-```bash
-export OMP_PROC_BIND=close
-```
-
-**Step :three:**: select core placement.
-
-```bash
-export OMP_PLACES=cores
-```
-
-**Step :four:**: disable dynamic team resizing.
-
-```bash
-export OMP_DYNAMIC=FALSE
-```
-
-**Step :five:**: keep OpenBLAS serial.
-
-```bash
-export OPENBLAS_NUM_THREADS=1
-```
-
-**Step :six:**: keep MKL serial.
-
-```bash
-export MKL_NUM_THREADS=1
-```
-
-**Step :seven:**: launch the hybrid minimizer across the allocated ranks.
+**Step :two:**: launch the hybrid minimizer across the allocated ranks.
 
 ```bash
 "${CONDA_PREFIX}"/bin/mpirun -n "${SLURM_NTASKS}" \
@@ -509,50 +504,11 @@ supply the hosts and slots with the cluster's `--hostfile` or `--host` recipe.
 
 # Unit tests <a name="desy1xplanck_unit_tests"></a>
 
-The `tests/` folder holds unit tests for the likelihoods of this
-project: they compare each likelihood against stored reference
-values, check for race conditions from OpenMP threading, and measure
-the numerical error of the default accuracy settings. The
-tests read nothing from the live project;
-[tests/README.md](tests/README.md) maps the two test sectors and the
-order in which to read them, and the
-[data-vector test guide](tests/data_vector/README.md) describes every
-test, the tests' own data snapshot, and how to refresh it.
-
-The steps below assume the Conda cocoa environment is active
-(`conda activate cocoa`), the shell is bash, and the current folder is
-the cocoa main folder `cocoa/Cocoa`.
-
-**Step :one:**: activate the private Python environment by sourcing
-the script `start_cocoa.sh`
-
-    source start_cocoa.sh
-
-**Step :two:**: run the tests of this project
-
-    python -m pytest ./projects/desy1xplanck/tests/data_vector
-
-## Minimum accuracy parameters <a name="desy1xplanck_minimum_accuracy"></a>
-
-The advisory checks in `tests/data_vector/test_accuracy.py` measure the
-numerical error of the default accuracy settings: each setting is
-raised one at a time on the 6x2pt configuration, so a large
-$\Delta\chi^2$ can be attributed to the setting causing it, and
-then every setting at once.
-
-Each check prints the $\Delta\chi^2$ between the high-accuracy and
-the default evaluations, to compare against the 0.2 band the
-reference tests allow. No measured values are quoted here: rerun
-the checks to measure them on the code at hand, and see the
-[data-vector test guide](tests/data_vector/README.md#accuracy_checks)
-for each check, the settings raised, and what each setting controls.
-
-The comments next to the `accuracyboost` lines of this project's yaml
-files record the convergence of the boost against a synthetic 6x2pt
-data vector computed at boost 16. Values above 3 do not break the
-integration tables: the cosmolike core compiled here scales the FFTLog
-zero-padding with the chi grid
-(`external_modules/code/cosmolike/cosmo2D.c`).
+The `tests/` folder compares likelihood predictions against stored reference
+values, checks for race conditions from OpenMP threading, and measures the
+numerical error of the default accuracy settings.
+[tests/README.md](tests/README.md) describes the checks, how to run them,
+the input data snapshots, and how to refresh them.
 
 # Exploring notebooks <a name="notebooks"></a>
 
@@ -574,11 +530,19 @@ covariance build described [below](#computing_covariances).
 source start_cocoa.sh
 ```
 
-**Step :two:**: select the OpenMP team.
+**Step :two:**: Select the number of OpenMP cores (below, we set it to 8).
 
-```bash
-export OMP_NUM_THREADS=8
-```
+  - Linux
+
+        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=close; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
+
+  - macOS (arm)
+
+        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=disabled; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
 
 **Step :three:**: start Jupyter.
 
@@ -649,59 +613,10 @@ document every argument and array layout.
 
 # Computing covariances <a name="computing_covariances"></a>
 
-The production CLI saves G, SSC, cNG and total before scale cuts. It reads
-[the covariance evaluate YAML](EXAMPLE_EVALUATE_COVARIANCE.yaml) and calls the shared C kernels.
-The forecast covers the 1,500-entry galaxy/shear block; it does not generate
-the CMB-lensing blocks or the complete supplied 1,809-entry matrix.
-
-These steps assume Cocoa and this project are installed, the Cocoa Conda environment
-is active, the shell is Bash, and the current folder is `cocoa/Cocoa/`.
-
-**Step :one:**: keep `export IGNORE_COSMOLIKE_DESXPLANCK_CODE=1` commented out in
-`set_installation_options.sh` (the default) before activation.
-
-**Step :two:**: activate Cocoa.
-
-```bash
-source start_cocoa.sh
-```
-
-**Step :three:**: enable covariance generation.
-
-```bash
-unset IGNORE_COSMOLIKE_DESXPLANCK_COVARIANCE
-```
-
-**Step :four:**: compile the project.
-
-```bash
-source ./projects/desy1xplanck/scripts/compile_desy1xplanck.sh
-```
-
-**Step :five:**: set the OpenMP team size.
-
-```bash
-export OMP_NUM_THREADS=8
-```
-
-**Step :six:**: compute the fixed YAML cosmology.
-
-```bash
-python ./projects/desy1xplanck/covariance/compute_covariance.py ./projects/desy1xplanck/EXAMPLE_EVALUATE_COVARIANCE.yaml
-```
-
-Use `--output PATH` for a separate output or `--overwrite` to replace an
-existing computed archive. Paths are relative to `cocoa/Cocoa/`. Threads
-come only from `OMP_NUM_THREADS`, never from the YAML; the runner fixes BLAS
-to one thread. Ordinary likelihoods read their supplied covariance and do
-not generate a new one.
-
-Cobaya's YAML reader supplies the familiar `theory`, `params` and
-`sampler: evaluate` syntax. This runner evaluates one fixed cosmology and
-does not run MCMC. See the [covariance guide](covariance/README.md) for output
-ordering, physics, Gaussian non-Limber/IA limits, plots and test commands,
-and the [accuracy FAQ](#accuracy) for the separate numerical controls.
-
+The covariance tools compute Gaussian (G), super-sample (SSC), connected
+non-Gaussian (cNG) and total matrices before scale cuts.
+[covariance/README.md](covariance/README.md) explains compilation, the production
+CLI, exploratory notebooks, accuracy settings and output files.
 
 # Appendix <a name="appendix"></a>
 
@@ -714,7 +629,7 @@ names and settings; changing one does not refine the other.
 | Data-vector setting | What it changes |
 |---|---|
 | `accuracyboost` | Overall interpolation-table resolution. |
-| `integration_accuracy` | Quadrature resolution; refine independently of interpolation. |
+| `integration_accuracy` | Quadrature resolution; levels 5/6/7 allow 2048/4096/8192 points per Limber panel. Refine independently of interpolation. |
 | `internal_accuracyboost` | C-FAST-PT convolution grid. |
 | `nonlimber_accuracyboost` | Non-Limber distance sampling. |
 | `pk_z_refinement` | Nested redshift refinement of matter-power inputs. |
@@ -725,6 +640,9 @@ names and settings; changing one does not refine the other.
 `photoz_interpolation_type` chooses how n(z) is interpolated, while
 `photoz_zmid_convention` describes the input coordinates. These are modeling
 or input-convention choices, not interchangeable accuracy boosts.
+
+`photoz_histogram_akima: 0` retains the original midpoint n(z) reconstruction; `1` selects histogram preparation followed by Akima for source and lens samples. `photoz_histogram_akima_factor` chooses 3 (default), 5 or 7 preparation cells per original uniform bin. See the [reconstruction comparisons and area plots](tests/README.md#optional_studies). The selected first factor never changes with an accuracy boost.
+
 
 The default data-vector power grid has 1,500 wavenumbers at boost 1.
 Covariance alone uses `power_accuracyboost: 8` to prepare 11,993 nodes by

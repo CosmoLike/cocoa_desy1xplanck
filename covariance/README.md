@@ -63,12 +63,10 @@ using the optimized production interface. It saves G, SSC, cNG and their
 sum without plotting or opening a notebook. Numerical kernels and survey
 settings are shared with the notebook calculation.
 
-The [production timing table](https://github.com/CosmoLike/cocoa)
-reports a construction time of **52.3 seconds** for this project on an
-Apple M2 Pro with eight OpenMP threads (mean of three sequential CLI runs,
-2026-10-07).
+Construction timings and measurement conditions are maintained in
+[Cocoa's main README](https://github.com/CosmoLike/cocoa#overview).
 
-This interval includes first-use CosmoLike tables, spectra, halo
+The construction interval includes first-use CosmoLike tables, spectra, halo
 calculations, transforms and complete G + SSC + cNG matrix assembly.
 Initial survey/CAMB setup, diagnostics and file writing are excluded.
 
@@ -90,9 +88,19 @@ From Bash in `cocoa/Cocoa`, with `conda activate cocoa`:
 
     source ./projects/desy1xplanck/scripts/compile_desy1xplanck.sh
 
-**Step :five:**: select the OpenMP team size.
+**Step :five:**: Select the number of OpenMP cores (below, we set it to 8).
 
-    export OMP_NUM_THREADS=8
+  - Linux
+
+        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=close; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
+
+  - macOS (arm)
+
+        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=disabled; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
 
 **Step :six:**: run the CLI.
 
@@ -217,35 +225,62 @@ boosts = [1, 2]
 settings = survey.configuration(accuracy_boost=boosts[0], gaussian=gaussian)
 ```
 
-The numerical baseline is in [`default.yaml`](default.yaml). The notebook
-loads that file through `survey.configuration`. Its internal refinements
-multiply the global boost: factors 2 and 3 at boost 1 become 4 and 6 at
-boost 2. Resolved settings save both the base controls and effective grids.
-`integration_accuracy` is independent of the global boost. Its levels
-0/1/2/3/4 select precomputed GSL rules with 96/128/256/512/1024 nodes per
-panel for radial, mass and angular integrals. Wide angular bins are split
-into panels to resolve high-multipole oscillations. The low-mass Wynn tail
-uses 32/64/128/256/512 nodes at the same levels; other rules retain a
-64-node minimum. To check quadrature alone, use
-`survey.configuration(accuracy_boost=1, integration_accuracy=1)` and compare
-with level zero. A convergence scan should include levels 2, 3 and 4:
-compare the default directly with level 4, then check that the final 3-to-4
-refinement is small. Keep interpolation settings fixed in this scan and
-check them separately. A higher level alone is not a convergence certificate.
+The notebook loads the numerical baseline from [`default.yaml`](default.yaml).
+The three controls below refine different parts of the calculation.
 
-`power_accuracyboost: 8` prepares all three matter-power tables with
-11,993 wavenumber samples from the original 1,500 CAMB samples. Natural
-cubic interpolation fills the dense tables once; the C calculations
-use linear lookups. This reduces interpolation errors
-amplified by cancellation in the four-halo trispectrum. The global boost
-also multiplies this refinement: boost 2 gives 23,985 samples, retaining
-every boost-1 node. The notebook reinitializes these inputs for each
-boost; custom scripts must likewise initialize after changing settings.
+**Interpolation and cutoffs: `accuracy_boost`**
 
-`accuracy_boost` controls interpolation and cutoffs. Supported values are
-1, 2, 4 and 8. It raises the covariance multipole cutoffs and refines the non-Gaussian,
-lensing-window and shared core interpolation tables. It leaves
-CAMB and data-vector accuracy settings unchanged.
+Allowed values are 1, 2, 4 and 8. The boost raises covariance multipole
+cutoffs and refines the non-Gaussian, lensing-window and shared core tables.
+CAMB and ordinary data-vector accuracy settings are unchanged.
+
+The boost multiplies the base refinement factors: factors 2 and 3 become
+4 and 6 at boost 2. Saved settings record both the base controls and the
+resulting grids.
+
+**Numerical integration: `integration_accuracy`**
+
+This setting controls integration points independently of `accuracy_boost`.
+Wide angular bins are divided into panels to resolve high-multipole
+oscillations. The [accuracy FAQ](#accuracy-settings) lists the rules and
+node counts.
+
+To change integration accuracy while keeping interpolation fixed:
+
+```python
+settings = survey.configuration(
+    accuracy_boost=1,
+    integration_accuracy=1,
+)
+```
+
+Compare this result with level 0. For a convergence scan:
+
+- Compare the default with the highest completed level.
+- Check that the last refinement is small.
+- Keep interpolation settings fixed; test them separately.
+
+Include levels 2, 3 and 4: compare the default with level 4 and inspect
+the final 3-to-4 refinement.
+
+**Matter-power sampling: `power_accuracyboost`**
+
+The default factor of 8 refines all three matter-power tables. With the
+original 1,500 CAMB samples, the resulting grids are:
+
+| Global `accuracy_boost` | Wavenumber samples per table |
+|---|---:|
+| 1 | 11,993 |
+| 2 | 23,985 |
+
+The finer grid retains every boost-1 node. Natural cubic interpolation
+prepares these tables once; the C calculations use linear lookups. This
+reduces interpolation errors amplified by cancellation in the four-halo
+trispectrum.
+
+> [!NOTE]
+> The notebook reinitializes inputs for each boost. Custom scripts must
+> also reinitialize after changing the settings.
 
 **Step :four:**: list the boosts to compare in the same configuration cell.
 
@@ -365,7 +400,7 @@ Reinitialize notebook inputs after changing the settings.
 | Control | Baseline | Purpose |
 |---|---:|---|
 | `accuracy_boost` | `1` | Overall table and cutoff refinement; 1, 2, 4 or 8. |
-| `integration_accuracy` | `0` | Independent quadrature level, 0 through 4. |
+| `integration_accuracy` | `0` | Independent quadrature level, 0 through 6. |
 | `power_accuracyboost` | `8` | Subdivisions of input log-k intervals; multiplied by the global boost. |
 | `ell_max` | `100000` | Real-space transform cutoff; Fourier measurement bands stay fixed. |
 | `mask_ell_max` | `32768` | Survey-footprint spectrum cutoff. |
@@ -384,6 +419,13 @@ Reinitialize notebook inputs after changing the settings.
 | 2 | 256 | 128 |
 | 3 | 512 | 256 |
 | 4 | 1024 | 512 |
+| 5 | 2048 | 1024 |
+| 6 | 4096 | 2048 |
+
+The 2048- and 4096-point rules apply GSL’s stored 1024-point rule on
+two and four equal subintervals of each physical panel. They increase
+resolution without generating higher-order weights. Defaults and levels
+0 through 4 retain their existing behavior.
 
 The default power refinement prepares 11,993 samples from 1,500 inputs for
 linear, nonlinear and cold-matter power. It refines interpolation, not the

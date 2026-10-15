@@ -1,0 +1,21 @@
+{
+  "project": "desy1xplanck",
+  "default_accuracyboost": 1.0,
+  "default_integration_accuracy": 0,
+  "refined_accuracyboost": 5.0,
+  "refined_integration_accuracy": 7,
+  "original_default_to_refined": 0.02212658147715019,
+  "reconstruction_distances": {
+    "original_to_three": 0.13046520404902306,
+    "three_to_five": 0.0022286244725531444,
+    "three_to_seven": 0.0029728510159583877,
+    "five_to_seven": 0.00013594516268500276
+  },
+  "redshift_moment_refinement_delta_chi2": {
+    "original": 3.8210116808552133e-10,
+    "three": 9.728755622228201e-08,
+    "five": 9.338829162642401e-07,
+    "seven": 4.213739157344974e-06
+  },
+  "default_vector_unchanged_bitwise": true
+}
