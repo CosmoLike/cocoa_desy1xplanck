@@ -225,35 +225,62 @@ boosts = [1, 2]
 settings = survey.configuration(accuracy_boost=boosts[0], gaussian=gaussian)
 ```
 
-The numerical baseline is in [`default.yaml`](default.yaml). The notebook
-loads that file through `survey.configuration`. Its internal refinements
-multiply the global boost: factors 2 and 3 at boost 1 become 4 and 6 at
-boost 2. Resolved settings save both the base controls and effective grids.
-`integration_accuracy` is independent of the global boost. Its levels
-0/1/2/3/4/5/6 select fixed rules with 96/128/256/512/1024/2048/4096 nodes per
-panel for radial, mass and angular integrals. Wide angular bins are split
-into panels to resolve high-multipole oscillations. The low-mass Wynn tail
-uses 32/64/128/256/512 nodes at the same levels; other rules retain a
-64-node minimum. To check quadrature alone, use
-`survey.configuration(accuracy_boost=1, integration_accuracy=1)` and compare
-with level zero. A convergence scan should include levels 2, 3 and 4:
-compare the default directly with level 4, then check that the final 3-to-4
-refinement is small. Keep interpolation settings fixed in this scan and
-check them separately. A higher level alone is not a convergence certificate.
+The notebook loads the numerical baseline from [`default.yaml`](default.yaml).
+The three controls below refine different parts of the calculation.
 
-`power_accuracyboost: 8` prepares all three matter-power tables with
-11,993 wavenumber samples from the original 1,500 CAMB samples. Natural
-cubic interpolation fills the dense tables once; the C calculations
-use linear lookups. This reduces interpolation errors
-amplified by cancellation in the four-halo trispectrum. The global boost
-also multiplies this refinement: boost 2 gives 23,985 samples, retaining
-every boost-1 node. The notebook reinitializes these inputs for each
-boost; custom scripts must likewise initialize after changing settings.
+**Interpolation and cutoffs: `accuracy_boost`**
 
-`accuracy_boost` controls interpolation and cutoffs. Supported values are
-1, 2, 4 and 8. It raises the covariance multipole cutoffs and refines the non-Gaussian,
-lensing-window and shared core interpolation tables. It leaves
-CAMB and data-vector accuracy settings unchanged.
+Allowed values are 1, 2, 4 and 8. The boost raises covariance multipole
+cutoffs and refines the non-Gaussian, lensing-window and shared core tables.
+CAMB and ordinary data-vector accuracy settings are unchanged.
+
+The boost multiplies the base refinement factors: factors 2 and 3 become
+4 and 6 at boost 2. Saved settings record both the base controls and the
+resulting grids.
+
+**Numerical integration: `integration_accuracy`**
+
+This setting controls integration points independently of `accuracy_boost`.
+Wide angular bins are divided into panels to resolve high-multipole
+oscillations. The [accuracy FAQ](#accuracy-settings) lists the rules and
+node counts.
+
+To change integration accuracy while keeping interpolation fixed:
+
+```python
+settings = survey.configuration(
+    accuracy_boost=1,
+    integration_accuracy=1,
+)
+```
+
+Compare this result with level 0. For a convergence scan:
+
+- Compare the default with the highest completed level.
+- Check that the last refinement is small.
+- Keep interpolation settings fixed; test them separately.
+
+Include levels 2, 3 and 4: compare the default with level 4 and inspect
+the final 3-to-4 refinement.
+
+**Matter-power sampling: `power_accuracyboost`**
+
+The default factor of 8 refines all three matter-power tables. With the
+original 1,500 CAMB samples, the resulting grids are:
+
+| Global `accuracy_boost` | Wavenumber samples per table |
+|---|---:|
+| 1 | 11,993 |
+| 2 | 23,985 |
+
+The finer grid retains every boost-1 node. Natural cubic interpolation
+prepares these tables once; the C calculations use linear lookups. This
+reduces interpolation errors amplified by cancellation in the four-halo
+trispectrum.
+
+> [!NOTE]
+> The notebook reinitializes inputs for each boost. Custom scripts must
+> also reinitialize after changing the settings.
 
 **Step :four:**: list the boosts to compare in the same configuration cell.
 
