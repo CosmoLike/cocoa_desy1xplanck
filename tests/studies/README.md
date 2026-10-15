@@ -21,6 +21,12 @@ lookup; the former compile-time GSL bypass has been retired.
 
 ![Original, 3-, 5- and 7-point preparation on an illustrative histogram](../nz_akima_preparation.png)
 
+This first figure is a **toy histogram**, with coordinates measured in original
+bin widths rather than redshift. Its lower row always shows the prescribed
+edge at coordinate 3, from 2.45 to 3.55, including both neighbouring cell
+centres. Each row uses the same axes across all four columns. This fixed
+illustration is separate from the automatic survey close-up explained below.
+
 The next figure has only two panels: an actual survey histogram edge, and
 redistribution of probability among original cells for every source/lens bin.
 It samples the compiled C readers at zero photo-z shift, unit stretch and
@@ -30,11 +36,26 @@ The study regenerates this figure automatically after measuring the curves.
 
 ![Four compiled reconstructions and their bin-area changes](results/reconstructions.png)
 
-The close-up is selected automatically: first choose the source/lens
-distribution with the largest original-cubic probability redistribution,
-then its largest adjacent histogram-height jump. Show two cells before
-that edge and three after it, clipped to the input bounds. The right panel
-includes all distributions, independently of this illustrative selection.
+**How the panels are constructed.** The left close-up follows the same
+rule for every project:
+
+1. Among all source/lens distributions, select the one with the largest
+   probability redistribution under the **original cubic**. This selection
+   does not depend on which Akima curve differs most.
+2. Divide each input cell's normalized probability by its width to obtain
+   histogram heights, then find the largest absolute jump between adjacent
+   heights. This chooses an interior **bin edge**, not a bin centre.
+3. Show two input cells before that edge and three after it, clipping the
+   window to the supplied histogram bounds. Exact ties use the first
+   distribution or edge in the saved order.
+4. Overlay the saved compiled-reader samples for all four reconstructions
+   on that same window. No new spline is fitted for display. The vertical
+   range includes the histogram and all four curves, including negative
+   ringing or boundary cutoffs, with a small margin.
+
+The right panel includes **every** source/lens distribution, independently
+of the close-up selection. Its bars show movement of normalized probability
+between original cells; total-area changes are reported separately below.
 
 ## Model-vector distances
 
