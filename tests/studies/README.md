@@ -1,7 +1,14 @@
 # DES × Planck: optional n(z) reconstruction study
 
-This optional study measures how reconstructing the same input histogram
-changes the predicted data vector. Run it separately from routine tests.
+## :interrobang: FAQ: What are optional studies? <a name="optional_studies"></a>
+
+Optional studies explore how numerical settings and modeling choices affect
+predictions. These comparisons can be expensive, so run them separately
+from the routine tests.
+
+The n(z) study compares the original cubic with fixed 3-, 5- and 7-point
+Akima reconstructions. It also compares the original reconstruction at
+default and refined accuracy. See [Run the study](#run_study) for commands.
 
 ## Four reconstructions of the same histogram
 
@@ -159,7 +166,7 @@ Akima preserves total area for these uniform-bin constructions while moving
 probability between cells. This need not hold for irregular bins. Both
 reconstructions retain signed input values without clipping or area corrections.
 
-## Run the study
+## Run the study <a name="run_study"></a>
 
 We assume the Cocoa Conda environment is active and the current directory
 is `cocoa/Cocoa/`.

@@ -701,7 +701,7 @@ names and settings; changing one does not refine the other.
 `photoz_zmid_convention` describes the input coordinates. These are modeling
 or input-convention choices, not interchangeable accuracy boosts.
 
-`photoz_histogram_akima: 0` retains the original midpoint n(z) reconstruction; `1` selects histogram preparation followed by Akima for source and lens samples. `photoz_histogram_akima_factor` chooses 3 (default), 5 or 7 preparation cells per original uniform bin. See the [3/5/7 comparison](tests/data_vector/README.md#nz-akima-factor) and the [refined midpoint comparison, Δχ² and area plots](tests/data_vector/README.md#nz-reconstruction). The selected first factor never changes with an accuracy boost.
+`photoz_histogram_akima: 0` retains the original midpoint n(z) reconstruction; `1` selects histogram preparation followed by Akima for source and lens samples. `photoz_histogram_akima_factor` chooses 3 (default), 5 or 7 preparation cells per original uniform bin. See the [reconstruction comparisons and area plots](tests/README.md#optional_studies). The selected first factor never changes with an accuracy boost.
 
 
 The default data-vector power grid has 1,500 wavenumbers at boost 1.

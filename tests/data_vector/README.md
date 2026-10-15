@@ -31,8 +31,6 @@ cosmolike, and every project keeps one architecture.
     8. [The non-Limber galaxy-galaxy lensing check](#nonlimber_ggl)
     9. [The non-Limber galaxy clustering check](#nonlimber_gg)
     10. [The sector-ladder cache check](#cache_ladder)
-    11. [Histogram reconstruction comparison](#nz-reconstruction)
-    12. [Three-, five- and seven-point Akima](#nz-akima-factor)
 3. [Appendix](#appendix)
     1. [FAQ: Do the tests keep their own data?](#frozen_copy)
     2. [FAQ: Why do the tests use their own data vectors?](#synthetic_vectors)
@@ -593,18 +591,6 @@ land on the same vector. The shear-calibration steps must equal the
 analytic $(1+m_i)(1+m_j)$ block rescale to $10^{-12}$, a no-op update
 must change nothing, and both intrinsic-alignment models run (the
 TATT ladder exercises the FAST-PT rebuild machinery).
-
-<a name="nz-reconstruction"></a>
-<a name="nz-akima-factor"></a>
-### Optional n(z) reconstruction study
-
-The [manual study](../studies/README.md) compares the original cubic with
-fixed 3-, 5- and 7-point histogram preparation followed by Akima. It measures
-sensitivity to the interpretation of the input histogram, rather than
-agreement with a frozen output vector. It is **excluded from ordinary pytest discovery**.
-The study also compares the original reconstruction at default numerical
-settings with its refined calculation, using the same physical inputs.
-
 
 ## :interrobang: FAQ: Do the tests keep their own data? <a name="frozen_copy"></a>
 
