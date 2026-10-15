@@ -63,12 +63,10 @@ using the optimized production interface. It saves G, SSC, cNG and their
 sum without plotting or opening a notebook. Numerical kernels and survey
 settings are shared with the notebook calculation.
 
-The [production timing table](https://github.com/CosmoLike/cocoa)
-reports a construction time of **52.3 seconds** for this project on an
-Apple M2 Pro with eight OpenMP threads (mean of three sequential CLI runs,
-2026-10-07).
+Construction timings and measurement conditions are maintained in
+[Cocoa's main README](https://github.com/CosmoLike/cocoa#overview).
 
-This interval includes first-use CosmoLike tables, spectra, halo
+The construction interval includes first-use CosmoLike tables, spectra, halo
 calculations, transforms and complete G + SSC + cNG matrix assembly.
 Initial survey/CAMB setup, diagnostics and file writing are excluded.
 
