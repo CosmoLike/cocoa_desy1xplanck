@@ -1,11 +1,14 @@
 # Tests
 
-The DES × Planck tests are divided into two sectors.
+The DES × Planck tests and optional studies are organized as follows.
 
 - [Data-vector and likelihood checks](data_vector/README.md) cover the project
   predictions, frozen inputs and numerical diagnostics.
 - [Covariance checks](covariance/README.md) cover forecast assembly and its
   documented component checks. Covariance generation must be compiled.
+- <a name="optional_studies"></a>[Optional studies](studies/README.md#optional_studies)
+  compare n(z) reconstructions and numerical accuracy, with plots and
+  $\Delta\chi^2$ results. Run them separately from the routine tests.
 
 ```mermaid
 flowchart TD
@@ -86,8 +89,3 @@ python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE1.py --check
 ```bash
 python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE2.py --check
 ```
-
-<a name="optional_studies"></a>
-
-> [!TIP]
-> For optional studies, see the [study FAQ](studies/README.md#optional_studies).
