@@ -87,4 +87,7 @@ python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE1.py --check
 python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE2.py --check
 ```
 
-The [histogram n(z) reconstruction comparison](data_vector/README.md#nz-reconstruction) tests the optional `photoz_histogram_akima` YAML key at its tested practical integration accuracy, reports the model-vector Δχ², and plots both reconstructed curves and their original-bin area changes.
+The [optional n(z) reconstruction study](studies/README.md) compares original
+cubic and 3/5/7-point Akima curves, bin probabilities and model-vector Δχ².
+It runs only when explicitly requested, outside routine pytest. The numerical
+original-default versus original-refined comparison is reported separately.

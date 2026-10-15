@@ -1,0 +1,94 @@
+{
+  "project": "desy1xplanck",
+  "part": "refined",
+  "point": {
+    "As_1e9": 2.1,
+    "DES_A1_1": -0.7,
+    "DES_A1_2": -1.7,
+    "DES_A2_1": 0.0,
+    "DES_A2_2": -1.51541,
+    "DES_B1_1": 1.5,
+    "DES_B1_2": 1.8,
+    "DES_B1_3": 1.8,
+    "DES_B1_4": 1.9,
+    "DES_B1_5": 2.3,
+    "DES_B1_6": 2.3,
+    "DES_BARYON_Q1": 0.0,
+    "DES_BARYON_Q2": 0.0,
+    "DES_BTA_1": 0.0,
+    "DES_DZ2_L1": 0.98,
+    "DES_DZ2_L2": 1.31,
+    "DES_DZ2_L3": 0.87,
+    "DES_DZ2_L4": 0.92,
+    "DES_DZ2_L5": 1.08,
+    "DES_DZ2_L6": 0.845,
+    "DES_DZ_L1": -0.009,
+    "DES_DZ_L2": -0.035,
+    "DES_DZ_L3": -0.005,
+    "DES_DZ_L4": -0.007,
+    "DES_DZ_L5": 0.002,
+    "DES_DZ_L6": 0.002,
+    "DES_DZ_S1": 0.0,
+    "DES_DZ_S2": 0.0,
+    "DES_DZ_S3": 0.0,
+    "DES_DZ_S4": 0.0,
+    "DES_M1": -0.0063,
+    "DES_M2": -0.0198,
+    "DES_M3": -0.0241,
+    "DES_M4": -0.0369,
+    "DES_PM1": 0.0,
+    "DES_PM2": 0.0,
+    "DES_PM3": 0.0,
+    "DES_PM4": 0.0,
+    "DES_PM5": 0.0,
+    "DES_PM6": 0.0,
+    "H0": 67.32,
+    "mnu": 0.06,
+    "ns": 0.96605,
+    "omegab": 0.04,
+    "omegam": 0.3,
+    "w": -1.0,
+    "w0pwa": -1.0
+  },
+  "input_files": {
+    "source_file": {
+      "name": "nz_source_Y3_unblinded_02_26_21.txt",
+      "sha256": "c0dc83ea8dc125b2c8c6a9a852fda37fddff6c49ed41322119d7f7cb98880abb"
+    },
+    "lens_file": {
+      "name": "nz_maglim_Y3_unblinded_02_26_21.txt",
+      "sha256": "6981a3679c4f223c94d679146cbb4ec8987b11c3505f10ed5dc93ff78daeb862"
+    },
+    "cov_file": {
+      "name": "DESY3xPlanckPR4_6x2pt_baseline_archive.covmat",
+      "sha256": "67fb19b6df5e2b5be76639cde49ee6f0548f96d57109532ce1ad0029c365b157"
+    },
+    "mask_file": {
+      "name": "DESY3xPlanckR4_6x2pt_Maglim_baseline_archive.mask",
+      "sha256": "fd9a3b27df82ca8f2dfce8f482596569e6fe13cb7109d38e05cce552a8836c16"
+    },
+    "data_vector_file": {
+      "name": "synthetic_desy1xplanck.modelvector",
+      "sha256": "eee97034c618d3f6d52d78afd8fc7f88ef8963b3453adf91aef421afd28062af"
+    }
+  },
+  "accuracyboost": 5.0,
+  "integration_accuracy": 7,
+  "defaults_yaml_sha256": "a7bdff9910b40ba05ced2057a10f4ea1bd8b22d6848a4919ecb8f04080b11712",
+  "interface_sha256": "1ef3305640194dbcf2180946bed25b29bc708f22b31cc62828772f8f75d0218e",
+  "study_sha256": "ec356f5fe96ce3c418449392057aba238f77378e798274e807d4f70ff95d821c",
+  "delta_chi2": {
+    "original_to_three": 0.13046520404902306,
+    "three_to_five": 0.0022286244725531444,
+    "three_to_seven": 0.0029728510159583877,
+    "five_to_seven": 0.00013594516268500276
+  },
+  "elapsed_seconds": 37.140626584063284,
+  "thread_environment": {
+    "OMP_NUM_THREADS": "8",
+    "OPENBLAS_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "VECLIB_MAXIMUM_THREADS": "1"
+  },
+  "inverse_covariance_sha256": "77b461ca83711df2cf2b402a49e3aaf7091908fbfb3db47cbad80a443f0eb56b"
+}

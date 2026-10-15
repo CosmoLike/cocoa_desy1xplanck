@@ -1,19 +1,16 @@
-"""Regenerate the n(z) reconstruction and bin-area figures from saved test results.
-
-Run from an active Cocoa environment. This reads the committed probability
-audit; it neither changes frozen references nor reruns a cosmology.
-"""
+"""Redraw the four compiled reconstruction curves from the saved manual study."""
 from pathlib import Path
 import sys
 
 TESTS = Path(__file__).resolve().parent
 CORE = TESTS.parents[2] / "external_modules/code/cosmolike_core"
 sys.path.insert(0, str(CORE))
-from cocoa_nz_figures import plot_nz_reconstruction
+from cosmolike_notebook_utils.plot_nz_reconstruction import plot_nz_four_reconstructions
 
 
 if __name__ == "__main__":
-    plot_nz_reconstruction(
-        report_file=TESTS / "nz_reconstruction.json",
-        arrays_file=TESTS / "nz_probability_data.npz",
-        output_directory=TESTS)
+    directory = TESTS / "studies/results"
+    plot_nz_four_reconstructions(
+        report_file=directory / "probability.json",
+        arrays_file=directory / "probability.npz",
+        output_file=directory / "reconstructions.png")

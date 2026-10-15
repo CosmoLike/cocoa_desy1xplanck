@@ -176,7 +176,8 @@
     "numerical_delta_chi2": {
       "three": 0.00034386855506469917,
       "five": 0.01797179118268271,
-      "seven": 0.050183718061021815
+      "seven": 0.050183718061021815,
+      "original": 6.398288473918578e-06
     },
     "pairwise": {
       "three_to_five": {
@@ -193,6 +194,11 @@
         "raised_delta_chi2": 0.012034404997739924,
         "reference_delta_chi2": 0.001274634855181451,
         "displacement_error_delta_chi2": 0.009343471949781069
+      },
+      "original_to_three": {
+        "raised_delta_chi2": 0.24778781733929478,
+        "reference_delta_chi2": 0.24958229379780367,
+        "displacement_error_delta_chi2": 0.00034694684378363606
       }
     },
     "tests": {
@@ -206,6 +212,12 @@
     "vector_sha256": {
       "5": "eb77753772da7e14ad78ab1ca93851638a986ff952269c723eea72ee65ce2dcd",
       "7": "f763cac492ab2032151393b89a1e99ad6de2ebd613517edd945f88dd20d3df67"
+    },
+    "original_vector_source": {
+      "project": "desy1xplanck",
+      "level": 4,
+      "status": "passed",
+      "returncode": 0
     }
   }
 }
