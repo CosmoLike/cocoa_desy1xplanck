@@ -126,16 +126,21 @@ The table ranges include every source/lens tomographic distribution.
 The redistributed fraction, expressed as a percentage, is
 
 ```math
-R = 50 \sum_i \left| \frac{q_i}{\sum_j q_j} - p_i \right|.
+R = 100 \times \frac{1}{2} \sum_i \left| \frac{q_i}{\sum_j q_j} - p_i \right|.
 ```
 
 - $`p_i`$: normalized input probability in histogram cell $`i`$.
 - $`q_i`$: integral of the reconstructed curve over that same cell.
 
-Both sums run over the original histogram cells. The factor 50 converts to
-percent and divides by two because moving probability counts as both a loss
-and a gain. Normalizing $`q_i`$ separates redistribution from the total-area
-change reported in the table; it only affects this diagnostic.
+Multiplying by 100 converts the fraction to percent, while multiplying by
+$`1/2`$ avoids counting the same transfer twice: once as a loss and once as a
+gain. Moving 10% from one bin to another gives an absolute-change sum of
+$`0.10 + 0.10 = 0.20`$, so $`100 \times \frac{1}{2} \times 0.20 = 10`$,
+meaning 10% redistributed.
+
+Both sums run over the original histogram cells. Normalizing $`q_i`$ separates
+redistribution from the total-area change reported in the table; it only
+affects this diagnostic.
 
 Akima preserves total area for these uniform-bin constructions while moving
 probability between cells. This need not hold for irregular bins. Both
