@@ -87,7 +87,15 @@ python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE1.py --check
 python ./projects/desy1xplanck/EXAMPLE_EMUL2_MINIMIZE2.py --check
 ```
 
-The [optional n(z) reconstruction study](studies/README.md) compares original
-cubic and 3/5/7-point Akima curves, bin probabilities and model-vector Δχ².
-It runs only when explicitly requested, outside routine pytest. The numerical
-original-default versus original-refined comparison is reported separately.
+## Optional n(z) reconstruction study
+
+The [study guide](studies/README.md) compares original cubic and fixed
+3/5/7-point Akima reconstructions. It includes the illustrative curves,
+a two-panel survey figure, the panel-selection procedure, area accounting,
+and model-vector Δχ² tables. Original-default versus original-refined
+numerical accuracy is reported separately.
+
+The opt-in test is `studies/study_nz_reconstruction.py`; invoke it explicitly
+with pytest. Its filename keeps it outside routine test discovery. The guide
+gives commands to recompute the measurements or redraw saved figures without
+a cosmology calculation.

@@ -122,7 +122,23 @@ interpolation; they are not galaxy histogram densities.
 
 ## Run only when investigating reconstruction
 
-From an activated Cocoa environment and the Cocoa directory:
+From an activated Cocoa environment and the Cocoa directory, run the
+**opt-in pytest test** explicitly:
+
+```bash
+python -m pytest projects/desy1xplanck/tests/studies/study_nz_reconstruction.py -v -s
+```
+
+The `study_` filename deliberately stays outside normal pytest discovery.
+This test launches a fresh Python process, computes the four reconstructions
+and the original-default comparison, checks the shared inputs/covariance and
+cache round trip, integrates the cell areas and regenerates the figure. It
+uses boost 5 and integration level 7, without a frozen expected vector or
+an asserted model-choice Δχ². A numerical/check failure fails the test.
+Results are written in the temporary directory printed at completion.
+
+For an explicitly chosen persistent output directory, run the same study
+script directly:
 
 ```bash
 OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 \
