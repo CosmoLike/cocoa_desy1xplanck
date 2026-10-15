@@ -1,9 +1,7 @@
 # DES × Planck: optional n(z) reconstruction study
 
-This study asks whether the interpretation of a supplied histogram changes
-predictions. It is **run explicitly**, not collected by routine pytest and
-not compared with a frozen expected output vector. The small compiled-reader
-checks remain part of software regression testing.
+This optional study measures how reconstructing the same input histogram
+changes the predicted data vector. Run it separately from routine tests.
 
 ## Four reconstructions of the same histogram
 
@@ -16,8 +14,7 @@ Akima then smooths the transitions between those prepared cells.
 
 The **preparation factor is fixed independently of accuracy**. Raising the
 lookup accuracy subdivides the same Akima polynomial algebraically; it does
-not refit or sharpen the curve. Both reconstructions always use uniform-grid
-lookup; the former compile-time GSL bypass has been retired.
+not refit or sharpen the curve. Both reconstructions use uniform-grid lookup.
 
 ![Original, 3-, 5- and 7-point preparation on an illustrative histogram](../nz_akima_preparation.png)
 
@@ -26,6 +23,19 @@ bin widths rather than redshift. Its lower row always shows the prescribed
 edge at coordinate 3, from 2.45 to 3.55, including both neighbouring cell
 centres. Each row uses the same axes across all four columns. This fixed
 illustration is separate from the automatic survey close-up explained below.
+
+The preparation points lie at these fractions of each original bin width,
+measured from its left edge:
+
+| Preparation factor | Point positions within each bin |
+|---|---|
+| 3 | 1/6, 1/2, 5/6 |
+| 5 | 1/10, 3/10, 1/2, 7/10, 9/10 |
+| 7 | 1/14, 3/14, 5/14, 1/2, 9/14, 11/14, 13/14 |
+
+All three factors retain the original bin centre. More points narrow the
+smoothed edge; all three Akima curves still redistribute probability between
+bins.
 
 The next figure has only two panels: an actual survey histogram edge, and
 redistribution of probability among original cells for every source/lens bin.
@@ -65,9 +75,14 @@ mask and supplied covariance. They use `accuracyboost: 5` and
 rules are capped at 8,192, including the source/lens mean-redshift rules.
 These are deliberately expensive study settings, not new likelihood defaults.
 
-For two model vectors, Δχ² = (d_b − d_a)ᵀ C⁻¹ (d_b − d_a).
-This is a distance between predictions, not a difference in their fit to data.
-Pairwise squared distances are not additive.
+The distance between two predicted data vectors is
+
+```math
+\Delta\chi^2 = (d_b-d_a)^{\mathsf T} C^{-1} (d_b-d_a).
+```
+
+Here $`C`$ is the supplied survey covariance. This measures the change in
+predictions; it is not the change in goodness of fit to observed data.
 
 | Original → 3 | 3 → 5 | 3 → 7 | 5 → 7 |
 |---:|---:|---:|---:|
@@ -108,37 +123,46 @@ The table ranges include every source/lens tomographic distribution.
 | 5-point Akima | 1–1 | 0.063233% |
 | 7-point Akima | 1–1 | 0.0451665% |
 
-The redistributed fraction is 50 Σ|q/Σq − p| percent, where p is the
-normalized input cell mass and q is the reconstructed cell area. Normalizing
-q in this diagnostic separates movement between bins from total-area drift;
-**it does not renormalize the production reader**. Akima preserves total area
-for these uniform-bin constructions but still exchanges mass between cells.
-That statement does not extend to arbitrary irregular input. Original signed
-input cells are retained, and neither arm adds clipping or area corrections.
+The redistributed fraction, expressed as a percentage, is
 
-For DES cluster, this switch acts on the galaxy source/lens histograms.
-Its separately supplied cluster selection probabilities retain their linear
-interpolation; they are not galaxy histogram densities.
+```math
+R = 50 \sum_i \left| \frac{q_i}{\sum_j q_j} - p_i \right|.
+```
 
-## Run only when investigating reconstruction
+- $`p_i`$: normalized input probability in histogram cell $`i`$.
+- $`q_i`$: integral of the reconstructed curve over that same cell.
 
-From an activated Cocoa environment and the Cocoa directory, run the
-**opt-in pytest test** explicitly:
+Both sums run over the original histogram cells. The factor 50 converts to
+percent and divides by two because moving probability counts as both a loss
+and a gain. Normalizing $`q_i`$ separates redistribution from the total-area
+change reported in the table; it only affects this diagnostic.
+
+Akima preserves total area for these uniform-bin constructions while moving
+probability between cells. This need not hold for irregular bins. Both
+reconstructions retain signed input values without clipping or area corrections.
+
+## Run the study
+
+We assume the Cocoa Conda environment is active and the current directory
+is `cocoa/Cocoa/`.
+
+**Step :one:**: activate Cocoa.
+
+```bash
+source start_cocoa.sh
+```
+
+**Step :two:**: run the reconstruction study.
 
 ```bash
 python -m pytest projects/desy1xplanck/tests/studies/study_nz_reconstruction.py -v -s
 ```
 
-The `study_` filename deliberately stays outside normal pytest discovery.
-This test launches a fresh Python process, computes the four reconstructions
-and the original-default comparison, checks the shared inputs/covariance and
-cache round trip, integrates the cell areas and regenerates the figure. It
-uses boost 5 and integration level 7, without a frozen expected vector or
-an asserted model-choice Δχ². A numerical/check failure fails the test.
-Results are written in the temporary directory printed at completion.
+The study computes all four reconstructions, compares the default and
+refined settings, measures cell areas and regenerates the figure. Results
+are saved in the temporary directory printed at completion.
 
-For an explicitly chosen persistent output directory, run the same study
-script directly:
+To keep the results in a directory of your choice, replace step two with:
 
 ```bash
 OMP_NUM_THREADS=8 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 \
@@ -146,13 +170,10 @@ python projects/desy1xplanck/tests/studies/run_nz_reconstruction.py \
   --output /tmp/desy1xplanck-nz-study
 ```
 
-Use a new output directory: existing vectors are never overwritten. The
-script checks finite values, positive-definite selected inverse covariance,
-unchanged inputs and covariance, and the original→3→5→7→original cache round
-trip. It reports measured distances without asserting a frozen Δχ².
-`--part defaults`, `--part refined` and `--part compare` allow separate stages.
-`--boost` and `--integration-accuracy` allow deliberate numerical follow-ups;
-the first-stage factors remain 3, 5 and 7.
+Use a new output directory to preserve earlier results. To run one stage,
+select `--part defaults`, `--part refined` or `--part compare`. The options
+`--boost` and `--integration-accuracy` change the numerical accuracy; the
+preparation factors remain 3, 5 and 7.
 
 To redraw the committed figure without a cosmology calculation:
 
@@ -164,5 +185,3 @@ python projects/desy1xplanck/tests/generate_nz_reconstruction_figures.py
 [refined settings and input fingerprints](results/refined.json),
 [area audit](results/probability.json), and their adjacent NPZ arrays preserve
 the measurements. The inverse covariance is stored once through Git LFS.
-DES Y6 has no statistical row because its supplied identity metric is not a
-physical survey covariance.
