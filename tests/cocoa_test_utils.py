@@ -308,5 +308,6 @@ _nonlinear_comparison_block = _H._nonlinear_comparison_block
 halofit_vs_ee2_dchi2s = _H.halofit_vs_ee2_dchi2s
 
 # ---- shared test-class factories (bound by the test files) ------------------
+example_suite = _cct_suites.example_suite
 baryon_accuracy_suite = _cct_suites.baryon_accuracy_suite
 baryon_drift_suite = _cct_suites.baryon_drift_suite

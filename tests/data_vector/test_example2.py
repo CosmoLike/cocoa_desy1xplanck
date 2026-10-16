@@ -30,91 +30,27 @@ start_cocoa.sh sourced):
 import os
 
 # OpenMP reads OMP_NUM_THREADS when the compiled libraries load, so
-# this must run before any cobaya/cosmolike import in the process. "4"
-# is REQUIRED_OMP_THREADS of cocoa_testing, the count of every worker
-# subprocess: a race check needs more than one thread.
+# this must run before any cobaya/cosmolike import in the process.
 os.environ["OMP_NUM_THREADS"] = "4"
 
 import sys
 import unittest
 
-# The harness stays in the parent tests/ folder (dirname applied twice to
-# this file's absolute path). Add it explicitly so direct execution and
-# worker processes resolve this project's stored inputs.
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# The tests folder is not a package; put it on the import path so the
+# shared harness resolves no matter where pytest was launched from.
+sys.path.insert(0, os.path.dirname(os.path.dirname(
+    os.path.abspath(__file__))))
 import cocoa_test_utils as u
 
-EXAMPLE = "example2"
-
-
-class TestExample2ThreeXTwo(unittest.TestCase):
-    """Tests 5-8, sharing one frozen-state verification.
-
-    setUpClass runs once before the tests: it moves to ROOTDIR,
-    verifies every frozen file against the SHA-256 manifest (an edited
-    frozen state must fail loudly before any physics runs), and loads
-    the frozen reference chi2 values.
-    """
-
-    # the classmethod decorator hands the method the class itself
-    # (cls), not an instance; unittest calls setUpClass once before
-    # the first test of the class
-    @classmethod
-    def setUpClass(cls):
-        u.require_cocoa_environment()
-        u.verify_frozen()
-        cls.reference = u.load_reference()
-
-    def test_5_chi2_matches_frozen_reference(self):
-        """chi2 at the frozen NLA point stays within 0.2 of the reference."""
-        chi2 = u.single_model_chi2(EXAMPLE, tatt=False)
-        ref = self.reference[f"{EXAMPLE}_nla"]
-        u.report_chi2_test(
-            5, "example2 (6x2pt, NLA) chi2 vs frozen reference",
-            chi2, ref, u.CHI2_TOLERANCE)
-        # assertLess(a, b) passes when a < b and fails with msg
-        # otherwise; in that message, :.6f prints fixed six decimals
-        self.assertLess(
-            abs(chi2 - ref), u.CHI2_TOLERANCE,
-            msg=f"chi2 = {chi2:.6f} vs frozen reference {ref:.6f} "
-                f"(|delta| >= {u.CHI2_TOLERANCE})")
-
-    def test_6_no_race_condition_ten_in_a_row(self):
-        """The fiducial as 10th of 10 cosmologies matches a fresh run."""
-        u.assert_omp_threads()
-        # the function returns a (fresh, tenth) pair; the assignment
-        # unpacks it into the two names
-        fresh, tenth = u.ten_in_a_row_chi2(EXAMPLE, tatt=False)
-        u.report_race_test(
-            6, "example2 (6x2pt, NLA) race check: 10 cosmologies in a row",
-            fresh, tenth, u.RACE_TOLERANCE)
-        self.assertLess(
-            abs(tenth - fresh), u.RACE_TOLERANCE,
-            msg=f"10th-in-a-row chi2 = {tenth:.8f} vs fresh {fresh:.8f}")
-
-    def test_7_chi2_matches_frozen_reference_tatt(self):
-        """Test 5 repeated with the TATT IA model and nonzero A2/BTA."""
-        chi2 = u.single_model_chi2(EXAMPLE, tatt=True)
-        ref = self.reference[f"{EXAMPLE}_tatt"]
-        u.report_chi2_test(
-            7, "example2 (6x2pt, TATT) chi2 vs frozen reference",
-            chi2, ref, u.CHI2_TOLERANCE)
-        self.assertLess(
-            abs(chi2 - ref), u.CHI2_TOLERANCE,
-            msg=f"TATT chi2 = {chi2:.6f} vs frozen reference {ref:.6f} "
-                f"(|delta| >= {u.CHI2_TOLERANCE})")
-
-    def test_8_no_race_condition_ten_in_a_row_tatt(self):
-        """Test 6 repeated with the TATT IA model."""
-        u.assert_omp_threads()
-        fresh, tenth = u.ten_in_a_row_chi2(EXAMPLE, tatt=True)
-        u.report_race_test(
-            8, "example2 (6x2pt, TATT) race check: 10 cosmologies in a row",
-            fresh, tenth, u.RACE_TOLERANCE)
-        self.assertLess(
-            abs(tenth - fresh), u.RACE_TOLERANCE,
-            msg=f"TATT 10th-in-a-row chi2 = {tenth:.8f} vs fresh {fresh:.8f}")
-
+# The shared factory (cosmolike_core/cocoa_testing_suites.py) builds
+# the chi2 + race test class for one frozen example; assigning its
+# return value to the usual module-level name is what makes pytest
+# collect it here, with unchanged test ids. The numbers name the
+# methods and the printed reports; the label opens every report line.
+TestExample2ThreeXTwo = u.example_suite(
+    u, name="TestExample2ThreeXTwo", example="example2",
+    label="example2 (6x2pt",
+    numbers=("5", "6"), tatt_numbers=("7", "8"))
 
 # __name__ is "__main__" only when this file runs directly as a
 # script; pytest imports the module instead, so this block stays
