@@ -60,6 +60,13 @@ _CORE_DIR = os.path.abspath(os.path.join(
 if _CORE_DIR not in sys.path:
     sys.path.insert(0, _CORE_DIR)
 import cocoa_testing as _cct
+# cocoa_testing_suites holds the factories that build whole shared
+# test classes bound to this module; the project's test files assign
+# their return values to the module-level names pytest collects
+import cocoa_testing_suites as _cct_suites
+# cocoa_testing_freeze is the shared machinery behind the
+# maintainer tool generate_frozen_reference.py
+import cocoa_testing_freeze as _cct_freeze
 
 # ---- the project data ------------------------------------------------------
 
@@ -302,3 +309,17 @@ _run_fastpt_comparison_worker = _H._run_fastpt_comparison_worker
 cfastpt_vs_fastpt_chi2s = _H.cfastpt_vs_fastpt_chi2s
 _nonlinear_comparison_block = _H._nonlinear_comparison_block
 halofit_vs_ee2_dchi2s = _H.halofit_vs_ee2_dchi2s
+
+# ---- shared test-class factories (bound by the test files) ------------------
+example_suite = _cct_suites.example_suite
+accuracy_suite = _cct_suites.accuracy_suite
+fastpt_reference_suite = _cct_suites.fastpt_reference_suite
+fastpt_sweep_suite = _cct_suites.fastpt_sweep_suite
+ee2_suite = _cct_suites.ee2_suite
+nonlinear_suite = _cct_suites.nonlinear_suite
+photoz_conventions_suite = _cct_suites.photoz_conventions_suite
+nonlimber_suite = _cct_suites.nonlimber_suite
+cache_ladder_suite = _cct_suites.cache_ladder_suite
+baryon_accuracy_suite = _cct_suites.baryon_accuracy_suite
+baryon_drift_suite = _cct_suites.baryon_drift_suite
+freeze_main = _cct_freeze.freeze_main
