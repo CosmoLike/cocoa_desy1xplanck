@@ -87,11 +87,11 @@ configurations and test numbers:
 
 | file | configuration | tests |
 |---|---|---|
-| `test_example1.py` | cosmic shear | 1-4: drift and race, in NLA then TATT |
-| `test_example2.py` | 6x2pt | 5-8: drift and race, in NLA then TATT |
-| `test_example2_2x2pt.py` | 2x2pt (`desy1xplanck.combo_2x2pt`, the 6x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing) | 11-14: drift and race, in NLA then TATT |
-| `test_fastpt.py` | the sweep on cosmic shear, the 6x2pt likelihood (`desy1xplanck.combo_6x2pt`) and the 2x2pt likelihood (`desy1xplanck.combo_2x2pt`) | 15, 16, 17 |
-| `test_ee2.py` | cosmic shear, NLA with EE2 (`non_linear_emul: 1`) | 18: race, including EE2's own threaded compute |
+| `test_example1.py` | cosmic shear | 1-4 |
+| `test_example2.py` | 6x2pt | 5-8 |
+| `test_example2_2x2pt.py` | 2x2pt (`desy1xplanck.combo_2x2pt`, the 6x2pt reduction) | 11-14 |
+| `test_fastpt.py` | the sweep: shear; 6x2pt (`desy1xplanck.combo_6x2pt`); 2x2pt (`desy1xplanck.combo_2x2pt`) | 15, 16, 17 |
+| `test_ee2.py` | race | 18 |
 
 Tests 9 and 10 are not used: the numbering follows the shared
 convention, where they are the frozen FAST-PT reference checks
