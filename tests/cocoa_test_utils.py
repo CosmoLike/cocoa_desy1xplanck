@@ -309,5 +309,10 @@ halofit_vs_ee2_dchi2s = _H.halofit_vs_ee2_dchi2s
 
 # ---- shared test-class factories (bound by the test files) ------------------
 example_suite = _cct_suites.example_suite
+accuracy_suite = _cct_suites.accuracy_suite
+fastpt_reference_suite = _cct_suites.fastpt_reference_suite
+fastpt_sweep_suite = _cct_suites.fastpt_sweep_suite
+ee2_suite = _cct_suites.ee2_suite
+nonlinear_suite = _cct_suites.nonlinear_suite
 baryon_accuracy_suite = _cct_suites.baryon_accuracy_suite
 baryon_drift_suite = _cct_suites.baryon_drift_suite
