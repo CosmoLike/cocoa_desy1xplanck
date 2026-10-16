@@ -60,6 +60,10 @@ _CORE_DIR = os.path.abspath(os.path.join(
 if _CORE_DIR not in sys.path:
     sys.path.insert(0, _CORE_DIR)
 import cocoa_testing as _cct
+# cocoa_testing_suites holds the factories that build whole shared
+# test classes bound to this module; the project's test files assign
+# their return values to the module-level names pytest collects
+import cocoa_testing_suites as _cct_suites
 
 # ---- the project data ------------------------------------------------------
 
@@ -302,3 +306,7 @@ _run_fastpt_comparison_worker = _H._run_fastpt_comparison_worker
 cfastpt_vs_fastpt_chi2s = _H.cfastpt_vs_fastpt_chi2s
 _nonlinear_comparison_block = _H._nonlinear_comparison_block
 halofit_vs_ee2_dchi2s = _H.halofit_vs_ee2_dchi2s
+
+# ---- shared test-class factories (bound by the test files) ------------------
+baryon_accuracy_suite = _cct_suites.baryon_accuracy_suite
+baryon_drift_suite = _cct_suites.baryon_drift_suite
